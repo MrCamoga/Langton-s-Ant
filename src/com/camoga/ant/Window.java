@@ -30,15 +30,14 @@ import javax.swing.event.ChangeListener;
 public class Window extends Canvas {
 
 	static int scale = 16;
-	static int check = 4000;
 	
-	static BufferedImage image = new BufferedImage((int)Level.cSIZE*scale, (int)Level.cSIZE*scale, BufferedImage.TYPE_INT_RGB);
+	static BufferedImage image = new BufferedImage((int)Settings.cSIZE*scale, (int)Settings.cSIZE*scale, BufferedImage.TYPE_INT_RGB);
 	int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
 	
 	Thread thread;
 	BufferStrategy b;
 	
-	Ant ant;
+	static Ant ant;
 	Level level;
 	IRule nextrule = new IRule() {};
 	
@@ -96,7 +95,7 @@ public class Window extends Canvas {
 				if(ant.CYCLEFOUND || ant.saveState) {
 					File dir = new File(ant.minCycleLength+"");
 					boolean newdir = !dir.exists() ? dir.mkdir():false;
-					cycles += rule + "\t" + ant.minCycleLength + "\t" + ((iterations-ant.minCycleLength*1000)) + (newdir ? " N":"")+"\n";
+					cycles += rule + "\t" + ant.minCycleLength + "\t" + (ant.highwaystart) + (newdir ? " N":"")+"\n";
 					if(ant.CYCLEFOUND) {
 						saveImage(ant.minCycleLength + "/"+rule);
 					} else {
@@ -118,8 +117,7 @@ public class Window extends Canvas {
 	boolean render = true;
 	long rule = -1;
 	
-	long iterations = 0;
-	long maxiterations = 100000000;
+	static long iterations = 0;
 	static 	int itpf = 100;
 	
 	long firstit = 0;
@@ -128,20 +126,17 @@ public class Window extends Canvas {
 		b = getBufferStrategy();
 		double timer = System.currentTimeMillis();
 		while(true) {
-			for(int i = 0; i < itpf; i++) {
-				ant.move();
+			int i = 0;
+			for(; i < itpf; i++) {
+				if(ant.move()) break;
 			}
 			
 			if(System.currentTimeMillis() - timer > 1000) {
 				timer = System.currentTimeMillis();
 //				System.out.println(Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory());
 			}
-			
-			if(Math.max(Math.abs(Ant.x),Math.abs(Ant.y)) > check && !ant.CYCLEFOUND && Settings.detectCycles) {
-				ant.saveState = true;
-			}
-			iterations += itpf;
-			if(iterations > maxiterations || ant.CYCLEFOUND) {
+			iterations += i;
+			if(iterations > Settings.maxiterations || ant.CYCLEFOUND) {
 				saveRule();
 				System.out.println(cycles);
 				space = true;
@@ -204,7 +199,7 @@ public class Window extends Canvas {
 					}
 				}
 			}
-		} else {
+		} else { // LR...RLR...R
 			long kexp = (rule+1)&-(rule+1);
 			int k = 63 - Long.numberOfLeadingZeros(kexp);
 			if(k >= 2) {

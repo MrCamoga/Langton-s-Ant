@@ -98,49 +98,6 @@ public class IORules {
 		}
 	}
 	
-
-	public static void funciondemierdaparaarreglarlacagadaqueacabodehacer() {
-		DirectoryScanner scanner = new DirectoryScanner();
-		scanner.setBasedir(new File("C:\\Users\\usuario\\workspace\\CELLULAR AUTOMATA\\Langton-s-Ant"));
-		scanner.setIncludes(new String[] {"**/*.png"});
-		scanner.setExcludes(new String[] {"cyclestoorganize/*.png"});
-		System.err.println("Finding rules");
-		scanner.scan();
-		String[] files = scanner.getIncludedFiles();
-		long[] savedRules = new long[files.length];
-		for(int i = 0; i < files.length; i++) {
-			savedRules[i] = Long.parseLong(files[i].substring(files[i].lastIndexOf("\\") + 1, files[i].length()-4));			
-		}
-		Arrays.sort(files, new Comparator<String>() {
-			public int compare(String o1, String o2) {
-				Long l1 = Long.parseLong(o1.substring(o1.lastIndexOf("\\") + 1, o1.length()-4));
-				Long l2 = Long.parseLong(o2.substring(o2.lastIndexOf("\\") + 1, o2.length()-4));
-				return l1.compareTo(l2);
-			}
-		});
-		for(int i = 0; i < 100; i++) {
-			System.out.println(savedRules[i]);
-		}
-		try {
-			FileOutputStream fos = new FileOutputStream(new File("test2.langton"), true);
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			for(int i = 0; i < files.length; i++) {
-				System.out.println(files[i]);
-				long rule = Long.parseLong(files[i].substring(files[i].lastIndexOf("\\") + 1, files[i].length()-4));
-				baos.write(ByteBuffer.allocate(12)
-						.putLong(rule)
-						.putInt(files[i].contains("\\") ? Integer.parseInt(files[i].split("\\\\")[0]):0).array());
-			}
-			baos.writeTo(fos);
-			fos.close();
-//			oos.close();
-			System.out.println("write success");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-//		System.exit(0);
-	}
-	
 	public static long[] searchSavedRules() {
 		long[] savedRules = null;
 		try {
@@ -165,7 +122,7 @@ public class IORules {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		System.out.println(savedRules.length);
+		System.err.println("Rules saved: " + savedRules.length);
 		return savedRules;
 	}
 	

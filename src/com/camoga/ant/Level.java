@@ -3,6 +3,8 @@ package com.camoga.ant;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.camoga.ant.Settings.cSIZE;
+
 /**
  * y++: down
  * x++: right
@@ -12,7 +14,6 @@ public class Level {
 	
 	public static List<Chunk> chunks;
 	private static Chunk lastChunk; 
-	static final int cSIZE = 64; // chunks are powers of two because bitwise op are faster
 	
 	static class Chunk {
 		int x, y;
@@ -74,20 +75,6 @@ public class Level {
 	 * @return
 	 */
 	public static Chunk getChunk(int xc, int yc, boolean create) {
-//		HashMap<Integer, Chunk> ca = chunks.get(xc);
-//		if(ca != null) {
-//			Chunk c = ca.get(yc);
-//			if(c != null) return c;
-//			c = new Chunk(xc, yc);
-//			ca.put(yc, c);
-//			return c;
-//		}
-//		ca = new HashMap<Integer, Chunk>();
-//		chunks.put(xc, ca);
-//		Chunk c = new Chunk(xc, yc);
-//		ca.put(yc, c);
-//		
-//		return c;
 		if(lastChunk != null) {
 			if(xc == lastChunk.x && yc == lastChunk.y) return lastChunk;
 		}
@@ -100,6 +87,10 @@ public class Level {
 		}
 		if(!create) return null;
 		chunks.add(new Chunk(xc, yc));
+
+		if(Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck && !Window.ant.CYCLEFOUND && Settings.detectCycles) {
+			Window.ant.saveState = true;
+		}
 		return chunks.get(chunks.size()-1);
 	}
 

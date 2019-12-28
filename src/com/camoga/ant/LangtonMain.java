@@ -1,5 +1,7 @@
 package com.camoga.ant;
 
+import java.util.Arrays;
+
 public class LangtonMain {
 	static int i = 1;
 	public static void main(String[] args) {
@@ -14,21 +16,21 @@ public class LangtonMain {
 		//31819 --
 		//36841
 		long r[] = new long[] {13882};
-		window.rule = 1;
-		window.maxiterations = (long) 1e8;
+		window.rule = 8106;
+//		System.out.println("Rules below 100000: " + Arrays.binarySearch(window.savedRules, 100000));
+
 		window.nextrule = new IRule() {
 			public long nextRule(long current) {
 				long rule;
 //				rule = r[i];
 //				i++;
-				rule = current + 1;
-//				rule = (long) (Math.random()*5000000L);
+				rule = current + 8192;
+//				rule = (long) (Math.random()*900000+100000);
 //				rule = (long) (new Random().nextInt(65536)+1);
 				return rule;
 			}
 		};
 		window.nextRule();
-//		Rule.colors.forEach(e -> System.out.print(e.right ? "R":"L"));
 	}
 }
 
