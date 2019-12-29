@@ -3,6 +3,8 @@ package com.camoga.ant;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 
 public class Ant {
@@ -37,7 +39,7 @@ public class Ant {
 		Ant.y = y;
 		Ant.dir = Direction.NORTH;
 		try {
-			cycleFile = new RandomAccessFile(File.createTempFile("owo", "owo"), "rw");
+			mbb = new RandomAccessFile("uwu.uwu", "rw").getChannel().map(FileChannel.MapMode.READ_WRITE, 0, Settings.fileSize);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -106,20 +108,22 @@ public class Ant {
 	boolean CYCLEFOUND = false;
 	private long check = 0;
 //	ArrayList<Byte> lastStates = new ArrayList<>();
-	private int repeatcheck = 3;
+	private int repeatcheck = 1;
 	public long highwaystart = 0;
-	private RandomAccessFile cycleFile;
+	private MappedByteBuffer mbb;
+	private int index = 0;
 	private boolean checkCycle(Direction dir, int state) {
 		try {
 			if(!saveState) return false;
-			cycleFile.seek(cycleFile.length());
-			cycleFile.write(new byte[] {(byte)dir.id, (byte)state});
-			if(cycleFile.length() > 2) {
+			mbb.put(index, (byte)dir.id);
+			mbb.put(index+1, (byte)state);
+			index+=2;
+			if(index > 2) {
 				if(currentCycleLength == 0) {
-					minCycleLength = cycleFile.length()/2-1;
+					minCycleLength = index/2-1;
 				}
-				cycleFile.seek(currentCycleLength*2);
-				if(cycleFile.readByte() == (byte)dir.id && cycleFile.readByte() == (byte)state) {
+				
+				if(mbb.get(2*currentCycleLength) == (byte)dir.id && mbb.get(2*currentCycleLength+1) == (byte)state) {
 					currentCycleLength++;
 				} else {
 					currentCycleLength = 0;
@@ -149,9 +153,8 @@ public class Ant {
 		int dx = 0;
 		int dy = 0;
 		
-		cycleFile.seek(0);
 		for(int i = 0; i < minCycleLength; i++) {
-			int dirr = (cycleFile.readShort()&0xFF00)>>8;
+			int dirr = mbb.get(2*i);
 			Direction d = 	dirr == 0 ? Direction.NORTH:
 							dirr == 1 ? Direction.EAST:
 							dirr == 2 ? Direction.SOUTH:Direction.WEST;

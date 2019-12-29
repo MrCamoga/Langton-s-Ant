@@ -8,6 +8,7 @@ public class LangtonMain {
 		Settings.ignoreSavedRules = true;
 		Settings.saverule = true;
 		Settings.savepic = true;
+		Settings.maxiterations = (long) 1e8;
 //		IORules.cleanRulesFile();
 //		IORules.saveRulesToTxt();
 //		System.exit(0);
@@ -16,7 +17,7 @@ public class LangtonMain {
 		//31819 --
 		//36841
 		long r[] = new long[] {13882};
-		window.rule = 8106;
+		window.rule = 1;
 //		System.out.println("Rules below 100000: " + Arrays.binarySearch(window.savedRules, 100000));
 
 		window.nextrule = new IRule() {
@@ -24,8 +25,8 @@ public class LangtonMain {
 				long rule;
 //				rule = r[i];
 //				i++;
-				rule = current + 8192;
-//				rule = (long) (Math.random()*900000+100000);
+				rule = current+1;
+//				rule = (long) (Math.random()*100000);
 //				rule = (long) (new Random().nextInt(65536)+1);
 				return rule;
 			}

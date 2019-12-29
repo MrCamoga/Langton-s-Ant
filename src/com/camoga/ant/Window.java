@@ -28,10 +28,8 @@ import javax.swing.event.ChangeListener;
 
 @SuppressWarnings("serial")
 public class Window extends Canvas {
-
-	static int scale = 16;
 	
-	static BufferedImage image = new BufferedImage((int)Settings.cSIZE*scale, (int)Settings.cSIZE*scale, BufferedImage.TYPE_INT_RGB);
+	static BufferedImage image = new BufferedImage((int)Settings.cSIZE*Settings.canvasSize, (int)Settings.cSIZE*Settings.canvasSize, BufferedImage.TYPE_INT_RGB);
 	int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
 	
 	Thread thread;
@@ -118,9 +116,8 @@ public class Window extends Canvas {
 	long rule = -1;
 	
 	static long iterations = 0;
-	static 	int itpf = 100;
-	
-	long firstit = 0;
+	static int itpf = 100;
+
 	public void run() {
 		createBufferStrategy(3);
 		b = getBufferStrategy();
@@ -219,7 +216,7 @@ public class Window extends Canvas {
 		for(int i = 0; i < pixels.length; i++) {
 			pixels[i] = Rule.colors.get(0).color;
 		}
-		Level.render(pixels, scale);
+		Level.render(pixels, Settings.canvasSize);
 		
 		if(render)
 		g.drawImage(image, 0, 0, 800, 800, null);
