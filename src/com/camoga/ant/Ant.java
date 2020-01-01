@@ -6,6 +6,7 @@ import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
+import java.util.ArrayList;
 
 public class Ant {
 	static Direction dir;
@@ -39,7 +40,12 @@ public class Ant {
 		Ant.y = y;
 		Ant.dir = Direction.NORTH;
 		try {
-			mbb = new RandomAccessFile("uwu.uwu", "rw").getChannel().map(FileChannel.MapMode.READ_WRITE, 0, Settings.fileSize);
+			RandomAccessFile raf = new RandomAccessFile("langton.buf", "rw");
+			for(int i = 0; i < Settings.numOfFiles; i++) {
+				mbbs.add(raf.getChannel().map(FileChannel.MapMode.READ_WRITE, i*Settings.fileSize, Settings.fileSize));
+			}
+//			mbbs.add(raf.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, Settings.fileSize));
+//			mbbs.add(raf.getChannel().map(FileChannel.MapMode.READ_WRITE, Settings.fileSize, Settings.fileSize));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -103,27 +109,27 @@ public class Ant {
 //		return false;
 //	}
 	
-	private int currentCycleLength = 0;
+	private long currentCycleLength = 0;
 	long minCycleLength = 0;  // This is the final cycle length
 	boolean CYCLEFOUND = false;
 	private long check = 0;
 //	ArrayList<Byte> lastStates = new ArrayList<>();
-	private int repeatcheck = 1;
 	public long highwaystart = 0;
-	private MappedByteBuffer mbb;
-	private int index = 0;
+	private ArrayList<MappedByteBuffer> mbbs = new ArrayList<>();
+	private long index = 0;
 	private boolean checkCycle(Direction dir, int state) {
 		try {
 			if(!saveState) return false;
-			mbb.put(index, (byte)dir.id);
-			mbb.put(index+1, (byte)state);
-			index+=2;
-			if(index > 2) {
+			mbbs.get((int) (index/Settings.fileSize)).put((int) (index%Settings.fileSize), (byte)(dir.id<<6 | state)); //Only works for rules with <= 64 colors
+			index+=1;
+			if(index > 1) {
 				if(currentCycleLength == 0) {
-					minCycleLength = index/2-1;
+					minCycleLength = index-1;
 				}
 				
-				if(mbb.get(2*currentCycleLength) == (byte)dir.id && mbb.get(2*currentCycleLength+1) == (byte)state) {
+				int s = mbbs.get((int) (currentCycleLength/Settings.fileSize)).get((int) (currentCycleLength%Settings.fileSize))&0xff;
+//				System.out.println(s >> 6 + "," + (s&0b111111));
+				if(s>>6 == (byte)dir.id && (s&0b111111) == (byte)state) {
 					currentCycleLength++;
 				} else {
 					currentCycleLength = 0;
@@ -131,11 +137,10 @@ public class Ant {
 				if(currentCycleLength >= minCycleLength) {
 					check++;
 				}
-//				if(Math.random() > 0.99) {
+//				if(Math.random() > 0.999993) {
 //					System.out.println(currentCycleLength + ", " + check + ", " + minCycleLength);
 //				}
-				if(check > repeatcheck*minCycleLength) {
-					System.out.println(check + ", " + repeatcheck + "*" + minCycleLength);
+				if(check > Settings.repeatcheck*minCycleLength) {
 					CYCLEFOUND = true;
 					saveState = false;
 					getCycleStart();
@@ -149,28 +154,31 @@ public class Ant {
 		return false;
 	}
 	
-	private void getCycleStart() throws Exception {
+	public void getCycleStart() throws Exception {
 		int dx = 0;
 		int dy = 0;
-		
-		for(int i = 0; i < minCycleLength; i++) {
-			int dirr = mbb.get(2*i);
+		for(long i = 0; i < minCycleLength; i++) {
+			int dirr = (mbbs.get((int) (i/Settings.fileSize)).get((int) (i%Settings.fileSize))&0xff) >> 6;
 			Direction d = 	dirr == 0 ? Direction.NORTH:
 							dirr == 1 ? Direction.EAST:
 							dirr == 2 ? Direction.SOUTH:Direction.WEST;
 			
 			dx += d.dx;
 			dy += d.dy;
+//			if(Math.random() > 0.99999) {
+//				System.out.println(i + ": " + dx + ", " + dy);
+//			}
 		}
-		int xr = x-dx;
-		int yr = y-dy;
-		int state = Level.getState(xr, yr);
-		while(state == (state = Level.getState(xr -= dx, yr -= dy))) {}
-		xr += dx;
-		yr += dy;
-		if(dx!=0) highwaystart = Window.iterations - ((x-xr)/dx-1)*minCycleLength; // upper bound, lower bound = highwaystart - minCycleLength
-		else highwaystart = Window.iterations - ((y-yr)/dy-1)*minCycleLength;
-		System.out.println("Size of highway: " + dx + "×" + dy + ", starts at: " + highwaystart);
-//		System.out.println(Long.toHexString(Rule.colors.get(Level.getState(xr+dx, yr+dy)).color));
+//		int xr = x;
+//		int yr = y;
+//		int state = Level.getState(xr, yr);
+//		while(state == (state = Level.getState(xr -= dx, yr -= dy))) {
+//			System.out.println(xr + ", " + yr);
+//		}
+//		xr += dx;
+//		yr += dy;
+//		if(dx!=0) highwaystart = Window.iterations - ((x-xr)/dx)*minCycleLength; // upper bound, lower bound = highwaystart - minCycleLength
+//		else highwaystart = Window.iterations - ((y-yr)/dy)*minCycleLength;
+		System.out.println("Size of highway: " + dx + "×" + dy);
 	}
 }

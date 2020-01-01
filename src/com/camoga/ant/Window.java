@@ -26,11 +26,13 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.camoga.ant.Level.Chunk;
+
 @SuppressWarnings("serial")
 public class Window extends Canvas {
 	
-	static BufferedImage image = new BufferedImage((int)Settings.cSIZE*Settings.canvasSize, (int)Settings.cSIZE*Settings.canvasSize, BufferedImage.TYPE_INT_RGB);
-	int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+	static BufferedImage canvasImage = new BufferedImage(Settings.cSIZE*Settings.canvasSize, Settings.cSIZE*Settings.canvasSize, BufferedImage.TYPE_INT_RGB);
+	int[] pixels = ((DataBufferInt) canvasImage.getRaster().getDataBuffer()).getData();
 	
 	Thread thread;
 	BufferStrategy b;
@@ -39,7 +41,7 @@ public class Window extends Canvas {
 	Level level;
 	IRule nextrule = new IRule() {};
 	
-	String cycles = "";
+	String log = "";
 	
 	long[] savedRules; //FIXME new rules are not added to array
 	
@@ -51,24 +53,16 @@ public class Window extends Canvas {
 		f.setResizable(true);
 		f.setLocationRelativeTo(null);
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		addKeyListener(new KeyAdapter() {
-			public void keyReleased(KeyEvent e) {
-				if(e.getKeyCode() == KeyEvent.VK_SPACE) {
-					space = true;
-					
-				} else if(e.getKeyCode() == KeyEvent.VK_S && !ant.CYCLEFOUND) ant.saveState = true;
-			}
-		});
-		if(Settings.ignoreSavedRules) savedRules = IORules.searchSavedRules();
+		if(Settings.ignoreSavedRules) savedRules = IORules.searchSavedRules(false);
 	}
 
 	public void gui(JFrame f) {
 		JPanel panel = new JPanel(new GridLayout(1,4));
-		JSlider speed = new JSlider(1, 40000000, itpf);
+		JSlider speed = new JSlider(1, 40000000, Settings.itpf);
 			speed.setOrientation(JSlider.HORIZONTAL);
 			speed.addChangeListener(new ChangeListener() {
 				public void stateChanged(ChangeEvent e) {
-					itpf = ((JSlider)e.getSource()).getValue();
+					Settings.itpf = ((JSlider)e.getSource()).getValue();
 				}
 			});
 		JButton pic = new JButton("Take Picture");
@@ -90,60 +84,51 @@ public class Window extends Canvas {
 	public void saveRule() {
 		try {
 			if(Settings.savepic) {
-				if(ant.CYCLEFOUND || ant.saveState) {
+				if(ant.CYCLEFOUND) {
 					File dir = new File(ant.minCycleLength+"");
 					boolean newdir = !dir.exists() ? dir.mkdir():false;
-					cycles += rule + "\t" + ant.minCycleLength + "\t" + (ant.highwaystart) + (newdir ? " N":"")+"\n";
-					if(ant.CYCLEFOUND) {
-						saveImage(ant.minCycleLength + "/"+rule);
-					} else {
-						saveImage("0/"+rule);
-						System.gc();
-					}					
-				}	
+					log += rule + "\t" + ant.minCycleLength + "\t" + (newdir ? " N":"")+"\n";
+					saveImage(ant.minCycleLength + "/"+rule);		
+				} else if(ant.saveState) {
+					log += rule + "\t" + "?" +"\n";
+					saveImage(0 + "/" + rule);
+				}
 			}
 			if(!Settings.saverule) return;
-			FileOutputStream fos = new FileOutputStream("test2.langton", true);
-			fos.write(ByteBuffer.allocate(12).putLong(rule).putInt((int)ant.minCycleLength).array());
+			FileOutputStream fos = new FileOutputStream(Settings.file, true);
+			fos.write(ByteBuffer.allocate(12).putLong(rule).putInt((int) (ant.CYCLEFOUND ? ant.minCycleLength:(ant.saveState ? 1:0))).array());
 			fos.close();
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
 	}
 
-	boolean space = false;
-	boolean render = true;
 	long rule = -1;
 	
 	static long iterations = 0;
-	static int itpf = 100;
 
 	public void run() {
 		createBufferStrategy(3);
 		b = getBufferStrategy();
-		double timer = System.currentTimeMillis();
+
 		while(true) {
 			int i = 0;
-			for(; i < itpf; i++) {
+			for(; i < Settings.itpf; i++) {
 				if(ant.move()) break;
 			}
 			
-			if(System.currentTimeMillis() - timer > 1000) {
-				timer = System.currentTimeMillis();
-//				System.out.println(Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory());
+			if(Settings.deleteOldChunks) {
+				Level.chunks.removeIf((Chunk c) -> iterations - c.lastVisit >= 100000000);
 			}
+
 			iterations += i;
 			if(iterations > Settings.maxiterations || ant.CYCLEFOUND) {
 				saveRule();
-				System.out.println(cycles);
-				space = true;
-			}
-			if(render)	render(b, b.getDrawGraphics());
-
-			if(space) {
+				System.out.println(log);
 				rule = nextrule.nextRule(rule);
 				nextRule();
 			}
+			render(b, b.getDrawGraphics());
 		}
 	}
 	
@@ -161,7 +146,6 @@ public class Window extends Canvas {
 		new Rule(rule);
 		ant = new Ant(0,0);
 		iterations = 0;
-		space = false;
 		
 		if(thread == null) {
 			thread = new Thread(() -> run());
@@ -170,14 +154,27 @@ public class Window extends Canvas {
 	}
 	
 	protected void saveImage(String file) {
-		render = false;
-		render(b, image.createGraphics());
+		BufferedImage image = new BufferedImage(Settings.saveImageW, Settings.saveImageH, BufferedImage.TYPE_INT_RGB);
+		Level.render(((DataBufferInt)(image.getRaster().getDataBuffer())).getData(), Settings.canvasSize, image.getWidth(), image.getHeight());
+		Graphics g = image.createGraphics();
+//		g.drawImage(canvasImage, 0, 0, 800, 800, null);
+		//TODO merge with render method
+		g.setColor(Color.WHITE);
+		g.drawString("Iterations: " + iterations, 10, 30); 
+		g.drawString("Rule: " + Rule.string() + " ("+rule+")", 10, 46);
+		if(ant.saveState) {
+			g.setColor(Color.red);
+			g.drawString("Finding cycle... " + ant.minCycleLength, 10, 62);
+		} else if(ant.CYCLEFOUND) {
+			g.setColor(Color.WHITE);
+			g.drawString("Cycle found: " + ant.minCycleLength, 10, 62);
+		}
+		
 		try {
 			ImageIO.write(image, "PNG", new File(file+".png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		render = true;
 	}
 	
 	private boolean ignoreRules() {		
@@ -213,16 +210,13 @@ public class Window extends Canvas {
 	}
 
 	public void render(BufferStrategy b, Graphics g) {
-		for(int i = 0; i < pixels.length; i++) {
-			pixels[i] = Rule.colors.get(0).color;
-		}
-		Level.render(pixels, Settings.canvasSize);
+		Level.render(pixels, Settings.canvasSize, canvasImage.getWidth(), canvasImage.getHeight());
 		
-		if(render)
-		g.drawImage(image, 0, 0, 800, 800, null);
+		g.drawImage(canvasImage, 0, 0, 800, 800, null);
 		g.setColor(Color.WHITE);
 		g.drawString("Iterations: " + iterations, 10, 30); 
 		g.drawString("Rule: " + Rule.string() + " ("+rule+")", 10, 46);
+		
 		if(ant.saveState) {
 			g.setColor(Color.red);
 			g.drawString("Finding cycle... " + ant.minCycleLength, 10, 62);

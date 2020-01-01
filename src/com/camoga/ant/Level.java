@@ -18,11 +18,14 @@ public class Level {
 	static class Chunk {
 		int x, y;
 		
+		long lastVisit;
+		
 		public int[] cells = new int[cSIZE*cSIZE];
 		
 		public Chunk(int x, int y) {
 			this.x = x;
 			this.y = y;
+			lastVisit = Window.iterations;
 		}
 	}
 	
@@ -39,8 +42,8 @@ public class Level {
 		int yo = getCoord(y);
 		
 		Chunk c = getChunk(xc, yc, true);
-		c.cells[xo+yo*cSIZE] += 1;
-		c.cells[xo+yo*cSIZE] %= Rule.colors.size();
+		int i = getCellIndex(xo, yo);
+		c.cells[i] = (c.cells[i]+1) % Rule.colors.size();
 	}
 	
 	public static boolean isRight(int x, int y) {
@@ -48,11 +51,11 @@ public class Level {
 	}
 	
 	private static int getChunkCoord(int p) {
-		return (int)Math.floor(p/(float)cSIZE);
+		return p>>Settings.cPOW;
 	}
 	
 	private static int getCoord(int p) {
-		return p&(cSIZE-1);
+		return p&(Settings.cSIZEm);
 	}
 	
 	public static int getState(int x, int y) {
@@ -60,11 +63,13 @@ public class Level {
 	}
 	
 	private static int getCellIndex(int x, int y) {
-		return getCoord(x)+getCoord(y)*cSIZE;
+		return getCoord(x)|(getCoord(y)<<Settings.cPOW);
 	}
 	
 	public static Chunk getChunkByCoord(int x, int y) {
-		return getChunk(getChunkCoord(x), getChunkCoord(y), true);
+		int xc = getChunkCoord(x);
+		int yc = getChunkCoord(y);
+		return getChunk(xc, yc, true);
 	}
 	
 	/**
@@ -76,12 +81,16 @@ public class Level {
 	 */
 	public static Chunk getChunk(int xc, int yc, boolean create) {
 		if(lastChunk != null) {
-			if(xc == lastChunk.x && yc == lastChunk.y) return lastChunk;
+			if(xc == lastChunk.x && yc == lastChunk.y) {
+				lastChunk.lastVisit = Window.iterations;
+				return lastChunk;
+			}
 		}
 		for(int i = chunks.size()-1; i >= 0; i--) {
 			Chunk c = chunks.get(i);
 			if(xc == c.x && yc == c.y) {
 				lastChunk = c;
+				lastChunk.lastVisit = Window.iterations;
 				return c;
 			}
 		}
@@ -95,17 +104,28 @@ public class Level {
 	}
 
 	//TODO improve render
-	public static void render(int[] pixels, int chunks) {
+	public static void render(int[] pixels, int chunks, int width, int height) {
+		int xa = Settings.followAnt ? getChunkCoord(Ant.x):0;
+		int ya = Settings.followAnt ? getChunkCoord(Ant.y):0;
+
+		if(!Settings.renderVoid) for(int i = 0; i < pixels.length; i++) {
+			pixels[i] = Rule.colors.get(0).color;
+		} 
+		else for(int i = 0; i < pixels.length; i++) {
+			pixels[i] = 0xff000000;
+		}
+		
 		for(int yc = 0; yc < chunks; yc++) {
-			int ycf = yc*cSIZE;
+			int ycf = yc<<Settings.cPOW;
 			for(int xc = 0; xc < chunks; xc++) {
-				Chunk c = Level.getChunk(xc-chunks/2, yc-chunks/2, false);
+				Chunk c = Level.getChunk(xc-chunks/2+xa, yc-chunks/2+ya, false);
 				if(c == null) continue;
-				int xcf = xc*cSIZE;
+				int xcf = xc<<Settings.cPOW;
 				int i = 0;
 				for(int yo = 0; yo < cSIZE; yo++) {
+					int y = yo+ycf;
 					for(int xo = 0; xo < cSIZE; xo++) {
-						int index = (xo+xcf) + (yo+ycf)*Window.image.getWidth();
+						int index = (xo+xcf) + y*Window.canvasImage.getWidth();
 						if(index >= pixels.length) continue;
 						pixels[index] = Rule.colors.get(c.cells[i]).color;
 						i++;
@@ -113,6 +133,19 @@ public class Level {
 				}
 			}
 		}
+		
+		// Shear (really slow)
+//		int xoffset = width;
+//		for(int y = 0; y < height; y++) {
+//			int yo = y+ya*cSIZE;
+//			for(int x = 0; x < width; x++) {
+//				int xo = x+xa*cSIZE;
+//				pixels[x+y*width] = Rule.colors.get(getState(xo-xoffset, yo+x-height/2-xoffset)).color;
+////				System.out.println(xo + ", " +  yo +" : "+ (xo+yo));
+//			}
+//		}
+//		
+//		System.out.println("{"+Ant.x + ", " + Window.iterations+"}");
 		
 	}
 }

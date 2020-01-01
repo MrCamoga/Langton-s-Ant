@@ -25,7 +25,7 @@ public class Rule {
 		r = new Random(seed);
 		while(rule != 0) {
 			boolean right = rule%2 != 0;
-			rule = (rule - (right ? 1:0))/2;
+			rule = rule>>1;
 			colors.add(new CellColor(r.nextInt(0x1000000), right));
 		}
 	}

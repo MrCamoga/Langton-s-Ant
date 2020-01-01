@@ -1,6 +1,5 @@
 package com.camoga.ant;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -11,7 +10,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -19,10 +17,21 @@ import java.util.Scanner;
 import java.util.stream.Stream;
 
 import org.apache.tools.ant.DirectoryScanner;
+import static com.camoga.ant.Settings.file;
 
+/**
+ * File with rules is stored in the following way:
+ * [offset]	[type]			[value]			[description]
+ * 0000		64 bit integer	??				rule (e.g. RRLR = 13)
+ * 0008		32 bit integer  ??				period of rule  (0 == no period found, 1 == period was being found but simulation got to max iterations and wasn't found)
+ * 0012		64 bit integer
+ * 0020		32 bit integer
+ * .......
+ *  
+ * @author Carlos
+ *
+ */
 public class IORules {
-	
-	private static final String file = "test2.langton";
 	
 	public static void cleanRulesFile() {
 		Map<Long, Integer> rules = new HashMap<>();
@@ -35,15 +44,15 @@ public class IORules {
 				ByteBuffer bb = ByteBuffer.wrap(data);
 				long rule = bb.getLong();
 				int cycle = bb.getInt();
-				if(cycle == 10 || cycle == 4 || cycle == 8 || cycle == 12 || cycle == 16 || cycle == 20) {
+				if(cycle == 10 || cycle == 4 || cycle == 8 || cycle == 6 || cycle == 12 || cycle == 16 || cycle == 20) {
 					System.out.println(rule +" removed");
 					cycle = 0;
 				}
 				if(rules.get(rule)!= null && cycle != rules.get(rule)) {
-					System.out.println("Duplicated: " + rule + ", " + cycle + "; " + rules.get(rule));
+					System.out.println("Duplicated: " + rule + ", new cycle: " + cycle + "; old cycle: " + rules.get(rule));
 					duplicated = true;
 				}
-				rules.put(rule, cycle); // 851 has two cycles: 292 and 244
+				rules.put(rule, cycle);
 			}
 			fis.close();
 			
@@ -98,22 +107,34 @@ public class IORules {
 		}
 	}
 	
-	public static long[] searchSavedRules() {
+	/**
+	 * 
+	 * @param highways if true only highways will be returned
+	 * @return
+	 */
+	public static long[] searchSavedRules(boolean highways) {
 		long[] savedRules = null;
 		try {
 			FileInputStream fis = null;
 			try {
 				fis = new FileInputStream(file);
 			} catch(FileNotFoundException e) {
-				FileOutputStream fos = new FileOutputStream(file);
-				fos.close();
-				fis = new FileInputStream(file);
+				e.printStackTrace();
+				return null;
+//				FileOutputStream fos = new FileOutputStream(file);
+//				fos.close();
+//				fis = new FileInputStream(file);
 			}
 			ArrayList<Long> rules = new ArrayList<>();
 			while(fis.available()>0) {
 				byte[] data = new byte[12];
 				fis.read(data);
-				rules.add(ByteBuffer.wrap(data).getLong());
+				ByteBuffer bb = ByteBuffer.wrap(data);
+				long rule = bb.getLong();
+				int period = bb.getInt();
+				if(highways) {
+					if(period != 0 && period != 1) rules.add(rule);
+				} else rules.add(rule);
 			}
 			savedRules = rules.stream().mapToLong(i->i).toArray();
 //			System.out.println(Arrays.toString(Arrays.copyOfRange(savedRules, savedRules.length-20, savedRules.length)));
@@ -126,9 +147,14 @@ public class IORules {
 		return savedRules;
 	}
 	
-	public static long[] searchRules(int cycle) {
+	/**
+	 * Search rules in folder with that period
+	 * @param period
+	 * @return
+	 */
+	public static long[] searchRules(int period) {
 		DirectoryScanner scanner = new DirectoryScanner();
-		scanner.setBasedir(new File("C:\\Users\\usuario\\workspace\\CELLULAR AUTOMATA\\Langton-s-Ant\\"+cycle));
+		scanner.setBasedir(new File("C:\\Users\\usuario\\workspace\\CELLULAR AUTOMATA\\Langton-s-Ant\\"+period));
 		scanner.setIncludes(new String[] {"*.png"});
 		scanner.scan();
 		String[] files = scanner.getIncludedFiles();
