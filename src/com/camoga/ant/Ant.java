@@ -1,11 +1,8 @@
 package com.camoga.ant;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
 import java.util.ArrayList;
 
 public class Ant {
@@ -44,8 +41,6 @@ public class Ant {
 			for(int i = 0; i < Settings.numOfFiles; i++) {
 				mbbs.add(raf.getChannel().map(FileChannel.MapMode.READ_WRITE, i*Settings.fileSize, Settings.fileSize));
 			}
-//			mbbs.add(raf.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, Settings.fileSize));
-//			mbbs.add(raf.getChannel().map(FileChannel.MapMode.READ_WRITE, Settings.fileSize, Settings.fileSize));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -78,45 +73,14 @@ public class Ant {
 		return false;
 	}
 	
-//	public boolean checkCycleOld(Direction dir, int state) {
-//		if(!saveState) return false;
-//		lastStates.add((byte)dir.id);
-//		lastStates.add((byte)state);
-//		if(lastStates.size() > 2) {
-//			if(currentCycleLength == 0) {
-//				minCycleLength = lastStates.size()/2-1;
-//			}
-//			if(lastStates.get(currentCycleLength*2) == (byte)dir.id && lastStates.get(currentCycleLength*2+1) == (byte)state) {
-//				currentCycleLength++;
-//			} else {
-//				currentCycleLength = 0;
-//			}
-//			if(currentCycleLength >= minCycleLength) {
-//				check++;
-//			}
-//			if(Math.random() > 0.9999) {
-//				System.out.println(currentCycleLength + ", " + maxcycle + ", " + minCycleLength);
-//			}
-//			if(check > repeatcheck*minCycleLength) {
-//				System.out.println(check + ", " + repeatcheck + "*" + minCycleLength);
-//				CYCLEFOUND = true;
-//				saveState = false;
-//				getCycleStart();
-//
-//				return true;
-//			}
-//		}
-//		return false;
-//	}
-	
 	private long currentCycleLength = 0;
-	long minCycleLength = 0;  // This is the final cycle length
-	boolean CYCLEFOUND = false;
 	private long check = 0;
-//	ArrayList<Byte> lastStates = new ArrayList<>();
-	public long highwaystart = 0;
 	private ArrayList<MappedByteBuffer> mbbs = new ArrayList<>();
 	private long index = 0;
+	
+	long minCycleLength = 0;  // This is the final cycle length
+	boolean CYCLEFOUND = false;
+	
 	private boolean checkCycle(Direction dir, int state) {
 		try {
 			if(!saveState) return false;
@@ -128,7 +92,6 @@ public class Ant {
 				}
 				
 				int s = mbbs.get((int) (currentCycleLength/Settings.fileSize)).get((int) (currentCycleLength%Settings.fileSize))&0xff;
-//				System.out.println(s >> 6 + "," + (s&0b111111));
 				if(s>>6 == (byte)dir.id && (s&0b111111) == (byte)state) {
 					currentCycleLength++;
 				} else {
@@ -165,9 +128,6 @@ public class Ant {
 			
 			dx += d.dx;
 			dy += d.dy;
-//			if(Math.random() > 0.99999) {
-//				System.out.println(i + ": " + dx + ", " + dy);
-//			}
 		}
 //		int xr = x;
 //		int yr = y;

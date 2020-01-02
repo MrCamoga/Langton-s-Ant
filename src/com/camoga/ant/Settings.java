@@ -37,7 +37,7 @@ public class Settings {
 	
 	//OUTPUT IMAGES
 
-	static final String file = "test2.langton";
+	static final String file = "ruleperiods.langton";
 	static boolean saverule = true; // saves rule to file
 	static boolean savepic = true; // saves pic if ant forms a highway
 	static int saveImageW = canvasSize*cSIZE;

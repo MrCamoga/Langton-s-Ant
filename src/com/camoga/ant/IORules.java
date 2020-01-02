@@ -1,5 +1,9 @@
 package com.camoga.ant;
 
+import static com.camoga.ant.Settings.file;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -11,21 +15,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Stream;
 
 import org.apache.tools.ant.DirectoryScanner;
-import static com.camoga.ant.Settings.file;
 
 /**
  * File with rules is stored in the following way:
  * [offset]	[type]			[value]			[description]
  * 0000		64 bit integer	??				rule (e.g. RRLR = 13)
- * 0008		32 bit integer  ??				period of rule  (0 == no period found, 1 == period was being found but simulation got to max iterations and wasn't found)
- * 0012		64 bit integer
- * 0020		32 bit integer
+ * 0008		64 bit integer  ??				period of rule  (0 == no period found, 1 == period was being found but simulation got to max iterations and wasn't found (this includes ants that generate other patterns like squares or triangles))
+ * 0016		64 bit integer
+ * 0024		64 bit integer
  * .......
  *  
  * @author Carlos
@@ -33,18 +37,35 @@ import static com.camoga.ant.Settings.file;
  */
 public class IORules {
 	
-	public static void cleanRulesFile() {
-		Map<Long, Integer> rules = new HashMap<>();
+	@Deprecated
+	public static void exportToNewFormat() {
 		try {
-			FileInputStream fis = new FileInputStream(file);
-			byte[] data = new byte[12];
+			BufferedInputStream bis = new BufferedInputStream(new FileInputStream("test2.langton"));
+			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("ruleperiods.langton"));
+
+			while(bis.available() > 0) {
+				ByteBuffer bb = ByteBuffer.wrap(bis.readNBytes(12));
+				bos.write(ByteBuffer.allocate(16).putLong(bb.getLong()).putLong(bb.getInt()).array());
+			}
+			bis.close();
+			bos.close();
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void cleanRulesFile() {
+		Map<Long, Long> rules = new HashMap<>();
+		try {
+			BufferedInputStream fis = new BufferedInputStream(new FileInputStream(file));
+			byte[] data = new byte[16];
 			boolean duplicated = false;
 			while(fis.available()>0) {
 				fis.read(data);
 				ByteBuffer bb = ByteBuffer.wrap(data);
 				long rule = bb.getLong();
-				int cycle = bb.getInt();
-				if(cycle == 10 || cycle == 4 || cycle == 8 || cycle == 6 || cycle == 12 || cycle == 16 || cycle == 20) {
+				long cycle = bb.getLong();
+				if(cycle == 10 || cycle == 4 || cycle == 6 || cycle == 8 || cycle == 12 || cycle == 16 || cycle == 20) { //Rules with these periods are triangles/squares that have incorrectly been identified as highways
 					System.out.println(rule +" removed");
 					cycle = 0;
 				}
@@ -64,16 +85,13 @@ public class IORules {
 				} else if(!ans.equalsIgnoreCase("y")) return;
 			}
 			
-			ArrayList<Map.Entry<Long,Integer>> list = new ArrayList<>(rules.entrySet());
+			ArrayList<Map.Entry<Long,Long>> list = new ArrayList<>(rules.entrySet());
 			Collections.sort(list, (a,b) -> a.getKey().compareTo(b.getKey()));
 			
-			LinkedHashMap<Long, Integer> sorted = new LinkedHashMap<>();
-			list.forEach((e) -> sorted.put(e.getKey(), e.getValue()));
-			
 			FileOutputStream fos = new FileOutputStream(file);
-			sorted.forEach((k,v) -> {
+			list.forEach(e -> {
 				try {
-					fos.write(ByteBuffer.allocate(12).putLong(k).putInt(v).array());
+					fos.write(ByteBuffer.allocate(16).putLong(e.getKey()).putLong(e.getValue()).array());
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
@@ -84,21 +102,55 @@ public class IORules {
 		}
 	}
 	
+	public static void getInfo() {
+		try {
+			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(Settings.file));
+			HashMap<Long, Long> rules = new HashMap<Long, Long>();
+			HashSet<Long> periods = new HashSet<Long>();
+			int numhighways = 0;
+			while(bis.available() > 0) {
+				ByteBuffer bb = ByteBuffer.wrap(bis.readNBytes(16));
+				long rule = bb.getLong();
+				long period = bb.getLong();
+				if(period != 0 && period != 1) numhighways++;
+				rules.put(rule, period);
+				periods.add(period);
+			}
+			
+			System.out.println(rules.size() + " rules have been tested");
+			System.out.println("Of which " + numhighways + " form a highway");
+			System.out.println(periods.size() + " distinct periods found");
+			
+			System.out.println("\n============================\nTOP 10 RULES WITH LONGEST PERIOD\n============================");
+			
+			ArrayList<Map.Entry<Long, Long>> list = new ArrayList<Map.Entry<Long,Long>>(rules.entrySet());
+			Collections.sort(list, (a,b) -> Long.compareUnsigned(b.getValue(), a.getValue()));
+			
+			System.out.println(String.format("%-20s \t %-10s \t %-64s", "Rule", "Period", "Rule String"));
+			for(int i = 0; i < 10; i++) {
+				System.out.println(String.format("%-20d \t %-10d \t %-64s", list.get(i).getKey(), list.get(i).getValue(), Rule.string(list.get(i).getKey())));
+//				System.out.println(list.get(i).getKey() + "\t\t" + list.get(i).getValue() + "\t\t" + Rule.string(list.get(i).getKey()));				
+			}
+			
+			
+			bis.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static void saveRulesToTxt() {
 		String result = "RULE, PERIOD\n";
 		try {
-			FileInputStream fis = new FileInputStream(file);
-			byte[] data = new byte[12];
-			while(fis.available()>0) {
-				fis.read(data, 0, 12);
-				ByteBuffer bb = ByteBuffer.wrap(data);
+			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+			while(bis.available()>0) {
+				ByteBuffer bb = ByteBuffer.wrap(bis.readNBytes(16));
 				long rule = bb.getLong();
-				int cycle = bb.getInt();
-//				if(cycle != 0)
+				long cycle = bb.getLong();
 				result+=rule + ", " + cycle+"\n";
 			}
 			
-			fis.close();
+			bis.close();
 			FileWriter fw = new FileWriter(new File("rulescycles.txt"));
 			fw.write(result);
 			fw.close();
@@ -108,30 +160,27 @@ public class IORules {
 	}
 	
 	/**
-	 * 
+	 * If Settings.file doesn't exist, a new empty file will be created
 	 * @param highways if true only highways will be returned
 	 * @return
 	 */
 	public static long[] searchSavedRules(boolean highways) {
 		long[] savedRules = null;
 		try {
-			FileInputStream fis = null;
+			BufferedInputStream bis = null;
 			try {
-				fis = new FileInputStream(file);
+				bis = new BufferedInputStream(new FileInputStream(file));
 			} catch(FileNotFoundException e) {
 				e.printStackTrace();
-				return null;
-//				FileOutputStream fos = new FileOutputStream(file);
-//				fos.close();
-//				fis = new FileInputStream(file);
+				FileOutputStream fos = new FileOutputStream(file);
+				fos.close();
+				bis = new BufferedInputStream(new FileInputStream(file));
 			}
 			ArrayList<Long> rules = new ArrayList<>();
-			while(fis.available()>0) {
-				byte[] data = new byte[12];
-				fis.read(data);
-				ByteBuffer bb = ByteBuffer.wrap(data);
+			while(bis.available()>0) {
+				ByteBuffer bb = ByteBuffer.wrap(bis.readNBytes(16));
 				long rule = bb.getLong();
-				int period = bb.getInt();
+				long period = bb.getLong();
 				if(highways) {
 					if(period != 0 && period != 1) rules.add(rule);
 				} else rules.add(rule);
@@ -139,7 +188,7 @@ public class IORules {
 			savedRules = rules.stream().mapToLong(i->i).toArray();
 //			System.out.println(Arrays.toString(Arrays.copyOfRange(savedRules, savedRules.length-20, savedRules.length)));
 			Arrays.sort(savedRules);
-			fis.close();
+			bis.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

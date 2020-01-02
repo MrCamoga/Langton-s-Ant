@@ -12,7 +12,7 @@ import static com.camoga.ant.Settings.cSIZE;
  */
 public class Level {
 	
-	public static List<Chunk> chunks;
+	public static List<Chunk> chunks = new ArrayList<Chunk>();
 	private static Chunk lastChunk; 
 	
 	static class Chunk {
@@ -29,9 +29,10 @@ public class Level {
 		}
 	}
 	
-	public Level() {
-		chunks = new ArrayList<Chunk>()	;
+	public static void init() {
+		chunks.clear();
 		lastChunk = null;
+		chunks = new ArrayList<Chunk>();
 	}
 	
 	public static void updateState(int x, int y) {

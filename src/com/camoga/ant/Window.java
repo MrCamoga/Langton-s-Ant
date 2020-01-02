@@ -35,10 +35,8 @@ public class Window extends Canvas {
 	int[] pixels = ((DataBufferInt) canvasImage.getRaster().getDataBuffer()).getData();
 	
 	Thread thread;
-	BufferStrategy b;
 	
 	static Ant ant;
-	Level level;
 	IRule nextrule = new IRule() {};
 	
 	String log = "";
@@ -96,7 +94,7 @@ public class Window extends Canvas {
 			}
 			if(!Settings.saverule) return;
 			FileOutputStream fos = new FileOutputStream(Settings.file, true);
-			fos.write(ByteBuffer.allocate(12).putLong(rule).putInt((int) (ant.CYCLEFOUND ? ant.minCycleLength:(ant.saveState ? 1:0))).array());
+			fos.write(ByteBuffer.allocate(16).putLong(rule).putLong((int) (ant.CYCLEFOUND ? ant.minCycleLength:(ant.saveState ? 1:0))).array());
 			fos.close();
 		} catch (IOException e1) {
 			e1.printStackTrace();
@@ -109,7 +107,6 @@ public class Window extends Canvas {
 
 	public void run() {
 		createBufferStrategy(3);
-		b = getBufferStrategy();
 
 		while(true) {
 			int i = 0;
@@ -128,11 +125,9 @@ public class Window extends Canvas {
 				rule = nextrule.nextRule(rule);
 				nextRule();
 			}
-			render(b, b.getDrawGraphics());
+			render();
 		}
 	}
-	
-	boolean random = false;
 	
 	public void nextRule() {
 		//I exclude rules I already know they form a highway and its cycle length
@@ -140,10 +135,8 @@ public class Window extends Canvas {
 			rule = nextrule.nextRule(rule);
 		}
 		System.out.println(rule);
-		if(Level.chunks != null) Level.chunks.clear();
-		level = new Level();
-		System.gc();
-		new Rule(rule);
+		Level.init();
+		Rule.createRule(rule);
 		ant = new Ant(0,0);
 		iterations = 0;
 		
@@ -157,7 +150,6 @@ public class Window extends Canvas {
 		BufferedImage image = new BufferedImage(Settings.saveImageW, Settings.saveImageH, BufferedImage.TYPE_INT_RGB);
 		Level.render(((DataBufferInt)(image.getRaster().getDataBuffer())).getData(), Settings.canvasSize, image.getWidth(), image.getHeight());
 		Graphics g = image.createGraphics();
-//		g.drawImage(canvasImage, 0, 0, 800, 800, null);
 		//TODO merge with render method
 		g.setColor(Color.WHITE);
 		g.drawString("Iterations: " + iterations, 10, 30); 
@@ -209,7 +201,8 @@ public class Window extends Canvas {
 		return false;
 	}
 
-	public void render(BufferStrategy b, Graphics g) {
+	public void render() {
+		Graphics g = getBufferStrategy().getDrawGraphics();
 		Level.render(pixels, Settings.canvasSize, canvasImage.getWidth(), canvasImage.getHeight());
 		
 		g.drawImage(canvasImage, 0, 0, 800, 800, null);
@@ -226,6 +219,6 @@ public class Window extends Canvas {
 		}
 		
 		g.dispose();
-		b.show();
+		getBufferStrategy().show();
 	}
 }
