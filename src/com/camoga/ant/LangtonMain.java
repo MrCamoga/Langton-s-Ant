@@ -5,19 +5,18 @@ public class LangtonMain {
 	public static void main(String[] args) {
 		Settings.ignoreSavedRules = true;
 		Settings.saverule = true;
-		Settings.savepic = true;
+		Settings.savepic = false;
 		Settings.maxiterations = (long) 1e8;
-		Settings.canvasSize = 16;
-		Settings.chunkCheck = 120;
-		IORules.cleanRulesFile();
+		Settings.chunkCheck = 90;
+//		IORules.cleanRulesFile();
 //		IORules.exportToNewFormat();
 //		IORules.getInfo();
 //		IORules.saveRulesToTxt();
-		System.exit(0);
+//		System.exit(0);
 		Window window = new Window();
 		//36841,  851019 ,1260619, 786123 period: 5307264488, 7208011 owo
 //		long r[] = IORules.searchRules(0);
-		window.rule = 100000;//
+		window.rule = 1;//
 //		System.out.println("Rules below 100000: " + Arrays.binarySearch(window.savedRules, 100000));
 		window.nextrule = new IRule() {
 			public long nextRule(long current) {

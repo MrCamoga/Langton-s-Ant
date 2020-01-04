@@ -30,7 +30,7 @@ public class Rule {
 	}
 	
 	/**
-	 * Returns rule string in correct order
+	 * Returns rule as string of Rs and Ls
 	 * @param rule
 	 * @return
 	 */
@@ -43,11 +43,14 @@ public class Rule {
 		return result;
 	}
 	
+	/**
+	 * Returns rule string currently being simulated
+	 * @return
+	 */
 	public static String string() {
 		String rule = "";
-		for(int i = colors.size()-1; i >= 0; i--) {
-			if(colors.get(i).right) rule += "R";
-			else rule += "L";
+		for(int i = 0; i < colors.size(); i++) {
+			rule += colors.get(i).right ? "R":"L";
 		}
 		return rule;
 	}

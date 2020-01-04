@@ -7,9 +7,6 @@ import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.File;
@@ -81,17 +78,17 @@ public class Window extends Canvas {
 	
 	public void saveRule() {
 		try {
-			if(Settings.savepic) {
 				if(ant.CYCLEFOUND) {
-					File dir = new File(ant.minCycleLength+"");
-					boolean newdir = !dir.exists() ? dir.mkdir():false;
-					log += rule + "\t" + ant.minCycleLength + "\t" + (newdir ? " N":"")+"\n";
-					saveImage(ant.minCycleLength + "/"+rule);		
+					if(Settings.savepic) {
+						File dir = new File(ant.minCycleLength+"");
+						boolean newdir = !dir.exists() ? dir.mkdir():false;
+						log += rule + "\t" + ant.minCycleLength + "\t" + (newdir ? " N":"")+"\n";
+						saveImage(ant.minCycleLength + "/"+rule);
+					} else log += rule + "\t" + ant.minCycleLength + "\n";
 				} else if(ant.saveState) {
 					log += rule + "\t" + "?" +"\n";
-					saveImage(0 + "/" + rule);
+					if(Settings.savepic) saveImage(0 + "/" + rule);
 				}
-			}
 			if(!Settings.saverule) return;
 			FileOutputStream fos = new FileOutputStream(Settings.file, true);
 			fos.write(ByteBuffer.allocate(16).putLong(rule).putLong((int) (ant.CYCLEFOUND ? ant.minCycleLength:(ant.saveState ? 1:0))).array());
@@ -119,13 +116,13 @@ public class Window extends Canvas {
 			}
 
 			iterations += i;
+			render();
 			if(iterations > Settings.maxiterations || ant.CYCLEFOUND) {
 				saveRule();
 				System.out.println(log);
 				rule = nextrule.nextRule(rule);
 				nextRule();
 			}
-			render();
 		}
 	}
 	
@@ -169,7 +166,8 @@ public class Window extends Canvas {
 		}
 	}
 	
-	private boolean ignoreRules() {		
+	private boolean ignoreRules() {	
+		if(0==0) return false;
 		if(((rule+1) & (rule)) == 0) return true;			// 2^n - 1
 		if((rule & (rule-1)) == 0) return true; // 2^n
 		if(rule % 512 == 469 || (rule % 512 == 42 && rule > 512)) return true; // ?

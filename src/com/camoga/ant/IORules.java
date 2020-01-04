@@ -16,8 +16,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.stream.Stream;
 
@@ -36,23 +36,6 @@ import org.apache.tools.ant.DirectoryScanner;
  *
  */
 public class IORules {
-	
-	@Deprecated
-	public static void exportToNewFormat() {
-		try {
-			BufferedInputStream bis = new BufferedInputStream(new FileInputStream("test2.langton"));
-			BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("ruleperiods.langton"));
-
-			while(bis.available() > 0) {
-				ByteBuffer bb = ByteBuffer.wrap(bis.readNBytes(12));
-				bos.write(ByteBuffer.allocate(16).putLong(bb.getLong()).putLong(bb.getInt()).array());
-			}
-			bis.close();
-			bos.close();
-		} catch(IOException e) {
-			e.printStackTrace();
-		}
-	}
 	
 	public static void cleanRulesFile() {
 		Map<Long, Long> rules = new HashMap<>();
@@ -107,31 +90,81 @@ public class IORules {
 			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(Settings.file));
 			HashMap<Long, Long> rules = new HashMap<Long, Long>();
 			HashSet<Long> periods = new HashSet<Long>();
+			HashSet<Long> ruleshighway = new HashSet<Long>();
 			int numhighways = 0;
+			int numunknown = 0;
 			while(bis.available() > 0) {
 				ByteBuffer bb = ByteBuffer.wrap(bis.readNBytes(16));
 				long rule = bb.getLong();
 				long period = bb.getLong();
-				if(period != 0 && period != 1) numhighways++;
+				if(period != 0) {
+					if(period==1) numunknown++;
+					else {
+						numhighways++;
+						ruleshighway.add(rule);
+					}
+				}
 				rules.put(rule, period);
 				periods.add(period);
 			}
+	
+			
 			
 			System.out.println(rules.size() + " rules have been tested");
 			System.out.println("Of which " + numhighways + " form a highway");
+			System.out.println("Unknown rules: " + numunknown);
 			System.out.println(periods.size() + " distinct periods found");
 			
-			System.out.println("\n============================\nTOP 10 RULES WITH LONGEST PERIOD\n============================");
+			
+			
 			
 			ArrayList<Map.Entry<Long, Long>> list = new ArrayList<Map.Entry<Long,Long>>(rules.entrySet());
-			Collections.sort(list, (a,b) -> Long.compareUnsigned(b.getValue(), a.getValue()));
+			Collections.sort(list, (a,b)->Long.compareUnsigned(a.getKey(), b.getKey()));
+			int allrules = 1;
+			while(allrules == list.get(allrules-1).getKey()) {allrules++;}
+			System.out.println("All rules up to " + allrules + " tested");
+			System.out.println("All rules of " + (int)Math.floor(Math.log(allrules)/Math.log(2)) +  " letters or less have been tested");
 			
-			System.out.println(String.format("%-20s \t %-10s \t %-64s", "Rule", "Period", "Rule String"));
+			System.out.println("\n============================\nTOP 10 RULES WITH LONGEST PERIOD\n============================");
+			Collections.sort(list, (a,b) -> Long.compareUnsigned(b.getValue(), a.getValue()));
+			System.out.format("%-20s \t %-10s \t %-64s\n", "Rule", "Period", "Rule String");
 			for(int i = 0; i < 10; i++) {
-				System.out.println(String.format("%-20d \t %-10d \t %-64s", list.get(i).getKey(), list.get(i).getValue(), Rule.string(list.get(i).getKey())));
-//				System.out.println(list.get(i).getKey() + "\t\t" + list.get(i).getValue() + "\t\t" + Rule.string(list.get(i).getKey()));				
+				System.out.format("%-20d \t %-10d \t %-64s\n", list.get(i).getKey(), list.get(i).getValue(), Rule.string(list.get(i).getKey()));				
 			}
 			
+			//See how many rules form highways that start in the same way
+			int n = 5;
+			HashMap<Integer, Integer> mods = new HashMap<Integer, Integer>();
+			for(int i = 0; i < 1<<n; i++) mods.put(i, 0);
+			for(long rule : ruleshighway) {
+				if((rule < allrules) && rule >= (1<<n)) { //Only allow rules with at least "n" colors and below "allrules" to not count the rules found by selected search
+					int index = (int) (rule&((1<<n)-1));
+					mods.put(index, 1+mods.get(index));					
+				}
+			}
+			
+			ArrayList<Map.Entry<Integer, Integer>> modssorted = new ArrayList<Map.Entry<Integer,Integer>>(mods.entrySet());
+			Collections.sort(modssorted, (a,b) -> b.getValue()-a.getValue());
+			System.out.println("Num of rules that start with the same " + n + " letters" + (1<<n));
+			System.out.format("%5s  \t%5s\n", "start", "count");
+			modssorted.forEach(e -> System.out.format("%s : %4d\n", String.format("%-"+n+"s",Rule.string(e.getKey())).replace(" ", "L"), e.getValue()));
+			
+			//MOST COMMON PERIODS
+			HashMap<Long, Integer> highwayperiodfreq = new HashMap<Long, Integer>();
+			for(long rule : ruleshighway) {
+				if((rule < allrules)) {
+					long period = rules.get(rule);
+					highwayperiodfreq.put(period, 1+highwayperiodfreq.getOrDefault(period, 0));
+				}
+			}
+			ArrayList<Map.Entry<Long, Integer>> freqsort = new ArrayList<Map.Entry<Long,Integer>>(highwayperiodfreq.entrySet());
+			Collections.sort(freqsort, (a,b) -> b.getValue()-a.getValue());
+			
+			System.out.println("\nMost frequent periods: ");
+			for(int i = 0; i < 20; i++) {
+				Entry<Long, Integer> e = freqsort.get(i);
+				System.out.println(e);
+			}
 			
 			bis.close();
 		} catch (IOException e) {

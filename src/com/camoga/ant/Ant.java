@@ -1,9 +1,9 @@
 package com.camoga.ant;
 
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
 
 public class Ant {
 	static Direction dir;
@@ -37,10 +37,9 @@ public class Ant {
 		Ant.y = y;
 		Ant.dir = Direction.NORTH;
 		try {
-			RandomAccessFile raf = new RandomAccessFile("langton.buf", "rw");
-			for(int i = 0; i < Settings.numOfFiles; i++) {
-				mbbs.add(raf.getChannel().map(FileChannel.MapMode.READ_WRITE, i*Settings.fileSize, Settings.fileSize));
-			}
+			raf = new RandomAccessFile("langton.buf", "rw");
+			 mbbr = raf.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, Settings.fileSize);
+			 mbbw = mbbr;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -48,6 +47,10 @@ public class Ant {
 	
 	boolean saveState = false;
 	
+	/**
+	 * 
+	 * @return true if ant forms a highway
+	 */
 	public boolean move() {
 		int state = Level.getState(x, y);
 		boolean right = Rule.colors.get(state).right;
@@ -75,7 +78,9 @@ public class Ant {
 	
 	private long currentCycleLength = 0;
 	private long check = 0;
-	private ArrayList<MappedByteBuffer> mbbs = new ArrayList<>();
+	private static MappedByteBuffer mbbr, mbbw; // mbbr: reading, mbbw: writing
+	private static RandomAccessFile raf;
+	private static int chunkLoadedr = 0, chunkLoadedw = 0;
 	private long index = 0;
 	
 	long minCycleLength = 0;  // This is the final cycle length
@@ -84,14 +89,14 @@ public class Ant {
 	private boolean checkCycle(Direction dir, int state) {
 		try {
 			if(!saveState) return false;
-			mbbs.get((int) (index/Settings.fileSize)).put((int) (index%Settings.fileSize), (byte)(dir.id<<6 | state)); //Only works for rules with <= 64 colors
+			put(index, (byte)(dir.id<<6 | state)); //Only works for rules with <= 64 colors
 			index+=1;
 			if(index > 1) {
 				if(currentCycleLength == 0) {
 					minCycleLength = index-1;
 				}
 				
-				int s = mbbs.get((int) (currentCycleLength/Settings.fileSize)).get((int) (currentCycleLength%Settings.fileSize))&0xff;
+				int s = get(currentCycleLength)&0xff;
 				if(s>>6 == (byte)dir.id && (s&0b111111) == (byte)state) {
 					currentCycleLength++;
 				} else {
@@ -100,14 +105,10 @@ public class Ant {
 				if(currentCycleLength >= minCycleLength) {
 					check++;
 				}
-//				if(Math.random() > 0.999993) {
-//					System.out.println(currentCycleLength + ", " + check + ", " + minCycleLength);
-//				}
 				if(check > Settings.repeatcheck*minCycleLength) {
 					CYCLEFOUND = true;
 					saveState = false;
-					getCycleStart();
-					
+					//TODO calculate highway size here
 					return true;
 				}
 			}
@@ -117,28 +118,35 @@ public class Ant {
 		return false;
 	}
 	
-	public void getCycleStart() throws Exception {
-		int dx = 0;
-		int dy = 0;
-		for(long i = 0; i < minCycleLength; i++) {
-			int dirr = (mbbs.get((int) (i/Settings.fileSize)).get((int) (i%Settings.fileSize))&0xff) >> 6;
-			Direction d = 	dirr == 0 ? Direction.NORTH:
-							dirr == 1 ? Direction.EAST:
-							dirr == 2 ? Direction.SOUTH:Direction.WEST;
-			
-			dx += d.dx;
-			dy += d.dy;
+	private void put(long index, byte data) {
+		int loc = (int)(index%Settings.fileSize);
+		int chunk = (int) (index/Settings.fileSize);
+		if(chunk > Settings.maxNumOfChunks) throw new RuntimeException("Max capacity exceeded");
+		if(chunk != chunkLoadedw) {
+			chunkLoadedw = chunk;
+			try {
+				if(chunkLoadedr == chunkLoadedw) mbbw = mbbr;
+				else mbbw = raf.getChannel().map(FileChannel.MapMode.READ_WRITE, chunk*Settings.fileSize, Settings.fileSize);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
-//		int xr = x;
-//		int yr = y;
-//		int state = Level.getState(xr, yr);
-//		while(state == (state = Level.getState(xr -= dx, yr -= dy))) {
-//			System.out.println(xr + ", " + yr);
-//		}
-//		xr += dx;
-//		yr += dy;
-//		if(dx!=0) highwaystart = Window.iterations - ((x-xr)/dx)*minCycleLength; // upper bound, lower bound = highwaystart - minCycleLength
-//		else highwaystart = Window.iterations - ((y-yr)/dy)*minCycleLength;
-		System.out.println("Size of highway: " + dx + "×" + dy);
+		mbbw.put(loc, data);
+	}
+	
+	private byte get(long index) {
+		int loc = (int)(index%Settings.fileSize);
+		int chunk = (int) (index/Settings.fileSize);
+		if(chunk > Settings.maxNumOfChunks) throw new RuntimeException("Max capacity exceeded");
+		if(chunk != chunkLoadedr) {
+			chunkLoadedr = chunk;
+			try {
+				if(chunkLoadedr == chunkLoadedw) mbbr = mbbw;
+				else mbbr = raf.getChannel().map(FileChannel.MapMode.READ_WRITE, chunk*Settings.fileSize, Settings.fileSize);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return mbbr.get(loc);
 	}
 }
