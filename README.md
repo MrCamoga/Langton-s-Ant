@@ -131,6 +131,7 @@ In total I've tested 159980 rules and found 30507 highways.
 
 #### TOP 10 highways with longest period
 *I've colored the rules depending on how they start*
+
 |Period|Rule String|
 |:-:|:-:|                                                 
 |5307264488 |    <span style="color:blue">**RRLRLLRRLRRRRRR**</span>RRRLR    	|                                         
@@ -157,6 +158,7 @@ Since I read the rules backwards (e.g. RRRLRR -> 110111 = 55) I can test rules t
     };
 ```
 This code will test the following rules (with **n=14** will test every **16384th** rule)
+
 |Rule|Binary|
 |:-:|:-:|
 |31819 |  111110001001011  |
