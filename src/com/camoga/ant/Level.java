@@ -98,7 +98,7 @@ public class Level {
 		if(!create) return null;
 		chunks.add(new Chunk(xc, yc));
 
-		if(Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck && !Window.ant.CYCLEFOUND && Settings.detectCycles) {
+		if(Settings.detectHighways && !Window.ant.CYCLEFOUND && Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck) {
 			Window.ant.saveState = true;
 		}
 		return chunks.get(chunks.size()-1);
@@ -126,7 +126,7 @@ public class Level {
 				for(int yo = 0; yo < cSIZE; yo++) {
 					int y = yo+ycf;
 					for(int xo = 0; xo < cSIZE; xo++) {
-						int index = (xo+xcf) + y*Window.canvasImage.getWidth();
+						int index = (xo+xcf) + y*width;
 						if(index >= pixels.length) continue;
 						pixels[index] = Rule.colors.get(c.cells[i]).color;
 						i++;

@@ -4,7 +4,7 @@ public class Settings {
 	
 	//GUI
 	
-	static int canvasSize = 16; // size of canvas (and resulting image) in chunks (e.g. scale = 16, cSIZE = 64 => size = 1024×1024)
+	final static int canvasSize = 16; // size of canvas (and resulting image) in chunks (e.g. scale = 16, cSIZE = 64 => size = 1024ï¿½1024)
 	static boolean gui = true; //TODO
 	static boolean followAnt = true;
 	static boolean smoothFollow = false; //TODO
@@ -25,19 +25,19 @@ public class Settings {
 	
 	static boolean ignoreSavedRules = true; // If true skips all rules that have already been tested
 	static final String file = "ruleperiods.langton";
-	static int chunkCheck = 140; // Check if the ant forms a highway when the ant goes further than this chunk from the origin
+	static int chunkCheck = 90; // Check if the ant forms a highway when the ant goes further than this chunk from the origin
 	static float repeatcheck = 10f; // Number of times the period has to repeat to confirm that it's correct (e.g. You're more certain that 10101010101010101010 has a period of 2 than 1010)
-	static boolean detectCycles = true; //Detects if the ant follows a periodic pattern
+	static boolean detectHighways = true; //Detects if the ant follows a periodic pattern
 	static long maxiterations = (long) 1e8; // After this many iterations, program moves to next rule
+	static boolean saverule = true; // saves rule to file
 	
 		//Total file size = fileSize*numOfFiles
-	static long fileSize = (1<<31)-1; // File size in bytes to search for periods. This will create a permanent file of that size on your hard drive
+	static long fileChunkSize = (1<<31)-1; // File size in bytes to search for periods. This will create a permanent file of that size on your hard drive
 	static long maxNumOfChunks = 20; // MappedByteBuffer cannot load files bigger than 2GB, this allows you to load bigger files in chunks
 	
 	//OUTPUT IMAGES
 
-	static boolean saverule = true; // saves rule to file
-	static boolean savepic = true; // saves pic if ant forms a highway
+	static boolean savepic = false; // saves pic if ant forms a highway
 	static int saveImageW = canvasSize*cSIZE;
 	static int saveImageH = canvasSize*cSIZE;
 	

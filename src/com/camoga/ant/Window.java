@@ -34,7 +34,7 @@ public class Window extends Canvas {
 	Thread thread;
 	
 	static Ant ant;
-	IRule nextrule = new IRule() {};
+	IRule nextrule = c -> c+1;
 	
 	String log = "";
 	
@@ -80,18 +80,18 @@ public class Window extends Canvas {
 		try {
 				if(ant.CYCLEFOUND) {
 					if(Settings.savepic) {
-						File dir = new File(ant.minCycleLength+"");
+						File dir = new File(ant.minHighwayPeriod+"");
 						boolean newdir = !dir.exists() ? dir.mkdir():false;
-						log += rule + "\t" + ant.minCycleLength + "\t" + (newdir ? " N":"")+"\n";
-						saveImage(ant.minCycleLength + "/"+rule);
-					} else log += rule + "\t" + ant.minCycleLength + "\n";
+						log += rule + "\t" + ant.minHighwayPeriod + "\t" + (newdir ? " N":"")+"\n";
+						saveImage(ant.minHighwayPeriod + "/"+rule);
+					} else log += rule + "\t" + ant.minHighwayPeriod + "\n";
 				} else if(ant.saveState) {
 					log += rule + "\t" + "?" +"\n";
 					if(Settings.savepic) saveImage(0 + "/" + rule);
 				}
 			if(!Settings.saverule) return;
 			FileOutputStream fos = new FileOutputStream(Settings.file, true);
-			fos.write(ByteBuffer.allocate(16).putLong(rule).putLong((int) (ant.CYCLEFOUND ? ant.minCycleLength:(ant.saveState ? 1:0))).array());
+			fos.write(ByteBuffer.allocate(16).putLong(rule).putLong((int) (ant.CYCLEFOUND ? ant.minHighwayPeriod:(ant.saveState ? 1:0))).array());
 			fos.close();
 		} catch (IOException e1) {
 			e1.printStackTrace();
@@ -153,10 +153,10 @@ public class Window extends Canvas {
 		g.drawString("Rule: " + Rule.string() + " ("+rule+")", 10, 46);
 		if(ant.saveState) {
 			g.setColor(Color.red);
-			g.drawString("Finding cycle... " + ant.minCycleLength, 10, 62);
+			g.drawString("Finding highway... " + ant.minHighwayPeriod, 10, 62);
 		} else if(ant.CYCLEFOUND) {
 			g.setColor(Color.WHITE);
-			g.drawString("Cycle found: " + ant.minCycleLength, 10, 62);
+			g.drawString("Period: " + ant.minHighwayPeriod, 10, 62);
 		}
 		
 		try {
@@ -210,10 +210,10 @@ public class Window extends Canvas {
 		
 		if(ant.saveState) {
 			g.setColor(Color.red);
-			g.drawString("Finding cycle... " + ant.minCycleLength, 10, 62);
+			g.drawString("Finding highway... " + ant.minHighwayPeriod, 10, 62);
 		} else if(ant.CYCLEFOUND) {
 			g.setColor(Color.WHITE);
-			g.drawString("Cycle found: " + ant.minCycleLength, 10, 62);
+			g.drawString("Period: " + ant.minHighwayPeriod, 10, 62);
 		}
 		
 		g.dispose();

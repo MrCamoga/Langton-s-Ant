@@ -3,7 +3,6 @@ package com.camoga.ant;
 import static com.camoga.ant.Settings.file;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -19,9 +18,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
-import java.util.stream.Stream;
-
-import org.apache.tools.ant.DirectoryScanner;
 
 /**
  * File with rules is stored in the following way:
@@ -128,7 +124,7 @@ public class IORules {
 			System.out.println("\n============================\nTOP 10 RULES WITH LONGEST PERIOD\n============================");
 			Collections.sort(list, (a,b) -> Long.compareUnsigned(b.getValue(), a.getValue()));
 			System.out.format("%-20s \t %-10s \t %-64s\n", "Rule", "Period", "Rule String");
-			for(int i = 0; i < 10; i++) {
+			for(int i = 0; i < 50; i++) {
 				System.out.format("%-20d \t %-10d \t %-64s\n", list.get(i).getKey(), list.get(i).getValue(), Rule.string(list.get(i).getKey()));				
 			}
 			
@@ -137,7 +133,7 @@ public class IORules {
 			HashMap<Integer, Integer> mods = new HashMap<Integer, Integer>();
 			for(int i = 0; i < 1<<n; i++) mods.put(i, 0);
 			for(long rule : ruleshighway) {
-				if((rule < allrules) && rule >= (1<<n)) { //Only allow rules with at least "n" colors and below "allrules" to not count the rules found by selected search
+				if((rule < (1<<17)) && rule >= (1<<n)) { //Only allow rules with at least "n" colors and below "allrules" to not count the rules found by selected search
 					int index = (int) (rule&((1<<n)-1));
 					mods.put(index, 1+mods.get(index));					
 				}
@@ -145,14 +141,14 @@ public class IORules {
 			
 			ArrayList<Map.Entry<Integer, Integer>> modssorted = new ArrayList<Map.Entry<Integer,Integer>>(mods.entrySet());
 			Collections.sort(modssorted, (a,b) -> b.getValue()-a.getValue());
-			System.out.println("Num of rules that start with the same " + n + " letters" + (1<<n));
+			System.out.println("\nNum of rules that start with the same " + n + " letters");
 			System.out.format("%5s  \t%5s\n", "start", "count");
 			modssorted.forEach(e -> System.out.format("%s : %4d\n", String.format("%-"+n+"s",Rule.string(e.getKey())).replace(" ", "L"), e.getValue()));
 			
 			//MOST COMMON PERIODS
 			HashMap<Long, Integer> highwayperiodfreq = new HashMap<Long, Integer>();
 			for(long rule : ruleshighway) {
-				if((rule < allrules)) {
+				if(true || (rule < allrules)) {
 					long period = rules.get(rule);
 					highwayperiodfreq.put(period, 1+highwayperiodfreq.getOrDefault(period, 0));
 				}
@@ -160,11 +156,24 @@ public class IORules {
 			ArrayList<Map.Entry<Long, Integer>> freqsort = new ArrayList<Map.Entry<Long,Integer>>(highwayperiodfreq.entrySet());
 			Collections.sort(freqsort, (a,b) -> b.getValue()-a.getValue());
 			
-			System.out.println("\nMost frequent periods: ");
+			System.out.println("\nMost common periods: ");
 			for(int i = 0; i < 20; i++) {
 				Entry<Long, Integer> e = freqsort.get(i);
 				System.out.println(e);
 			}
+			
+//			long max = 0;
+//			long rulemax = 0;
+//			for(long rule : ruleshighway) {
+//				if(rule%16384 == 15435) {
+//					if(rules.get(rule) > max) {
+//						max = rules.get(rule);
+//						rulemax = rule;
+//					}
+//					System.out.println(rule + ": " + rules.get(rule));
+//				}
+//			}
+//			System.out.println("Max: " + rulemax + "; " + max);
 			
 			bis.close();
 		} catch (IOException e) {
@@ -227,20 +236,5 @@ public class IORules {
 		}
 		System.err.println("Rules saved: " + savedRules.length);
 		return savedRules;
-	}
-	
-	/**
-	 * Search rules in folder with that period
-	 * @param period
-	 * @return
-	 */
-	public static long[] searchRules(int period) {
-		DirectoryScanner scanner = new DirectoryScanner();
-		scanner.setBasedir(new File("C:\\Users\\usuario\\workspace\\CELLULAR AUTOMATA\\Langton-s-Ant\\"+period));
-		scanner.setIncludes(new String[] {"*.png"});
-		scanner.scan();
-		String[] files = scanner.getIncludedFiles();
-		long[] rules = Stream.of(files).mapToLong(s -> Long.parseLong(s.substring(0, s.length()-4))).toArray();
-		return rules;
 	}
 }
