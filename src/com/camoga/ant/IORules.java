@@ -164,16 +164,22 @@ public class IORules {
 			
 //			long max = 0;
 //			long rulemax = 0;
+//			int total = 0;
+//			int mean = 0;
 //			for(long rule : ruleshighway) {
-//				if(rule%16384 == 15435) {
+//				if(rule%32768 == 28757) {
+//					total++;
 //					if(rules.get(rule) > max) {
 //						max = rules.get(rule);
 //						rulemax = rule;
 //					}
+//					mean += rules.get(rule);
 //					System.out.println(rule + ": " + rules.get(rule));
 //				}
 //			}
+//			mean/=total;
 //			System.out.println("Max: " + rulemax + "; " + max);
+//			System.out.println(total + ", " + mean);
 			
 			bis.close();
 		} catch (IOException e) {

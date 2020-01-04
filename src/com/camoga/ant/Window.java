@@ -98,7 +98,7 @@ public class Window extends Canvas {
 		}
 	}
 
-	long rule = -1;
+	long rule = 1;
 	
 	static long iterations = 0;
 
