@@ -130,20 +130,20 @@ In total I've tested 159980 rules and found 30507 highways.
 1921 different periods in total
 
 #### TOP 10 highways with longest period
-*I've colored the rules depending on how they start*
+I've added \* and ** in front of the rules depending on how they start
 
 |Period|Rule String|
 |:-:|:-:|                                                 
-|5307264488 |    <span style="color:blue">**RRLRLLRRLRRRRRR**</span>RRRLR    	|                                         
-|1078710528 |    <span style="color:blue">**RRLRLLRRLRRRRRR**</span>LLLLRR		|                                      
-|320374420  |	 <span style="color:red">**RRLRLLRLLLRRRR**</span>RRR			|                                       
-|220391833  |	 <span style="color:red">**RRLRLLRLLLRRRR**</span>RLLLLRRRR     |                                       
-|34911892   |	 <span style="color:red">**RRLRLLRLLLRRRR**</span>R            |                                       
-|21561810   |	 <span style="color:red">**RRLRLLRLLLRRRR**</span>RLRLRRRR      |                                      
-|20899462   |	 <span style="color:red">**RRLRLLRLLLRRRR**</span>LLRRRLLRR     |                                   
-|10749868   |	 <span style="color:blue">**RRLRLLRRLRRRRRR**</span>RLRLRR      |                                  
-|9275184    |	 <span style="color:blue">**RRLRLLRRLRRRRRR**</span>RRLLRLLLLR  |                                   
-|8483164    |	 <span style="color:red">**RRLRLLRLLLRRRR**</span>RRRRLRRLR     |
+|5307264488 |   \*\* **RRLRLLRRLRRRRRR**RRRLR    	|                                         
+|1078710528 |    \*\* **RRLRLLRRLRRRRRR**LLLLRR		|                                      
+|320374420  |	\* **RRLRLLRLLLRRRR**RRR			|                                       
+|220391833  |	\* **RRLRLLRLLLRRRR**RLLLLRRRR     |                                       
+|34911892   |	\* **RRLRLLRLLLRRRR**R            |                                       
+|21561810   |	\* **RRLRLLRLLLRRRR**RLRLRRRR      |                                      
+|20899462   |	\* **RRLRLLRLLLRRRR**LLRRRLLRR     |                                   
+|10749868   |	 \*\* **RRLRLLRRLRRRRRR**RLRLRR      |                                  
+|9275184    |	 \*\* **RRLRLLRRLRRRRRR**RRLLRLLLLR  |                                   
+|8483164    |	\* **RRLRLLRLLLRRRR**RRRRLRRLR     |
 
 #### How I found these huge highways
 Whenever I found a big highway such as <span style="color:red">**RRLRLLRLLLRRRR**</span>RR (31819) or <span style="color:blue">**RRLRLLRRLRRRRRR**</span> (32459), I tested all rules that started in the same way because they usually have similar behaviour.
