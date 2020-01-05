@@ -53,7 +53,7 @@ public class Window extends Canvas {
 
 	public void gui(JFrame f) {
 		JPanel panel = new JPanel(new GridLayout(1,4));
-		JSlider speed = new JSlider(1, 40000000, Settings.itpf);
+		JSlider speed = new JSlider(1, Math.max(Settings.itpf, 40000000), Settings.itpf);
 			speed.setOrientation(JSlider.HORIZONTAL);
 			speed.addChangeListener(new ChangeListener() {
 				public void stateChanged(ChangeEvent e) {

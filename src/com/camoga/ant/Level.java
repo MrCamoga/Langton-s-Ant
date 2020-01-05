@@ -35,23 +35,7 @@ public class Level {
 		chunks = new ArrayList<Chunk>();
 	}
 	
-	public static void updateState(int x, int y) {
-		int xc = getChunkCoord(x);
-		int yc = getChunkCoord(y);
-
-		int xo = getCoord(x);
-		int yo = getCoord(y);
-		
-		Chunk c = getChunk(xc, yc, true);
-		int i = getCellIndex(xo, yo);
-		c.cells[i] = (c.cells[i]+1) % Rule.colors.size();
-	}
-	
-	public static boolean isRight(int x, int y) {
-		return Rule.colors.get(getState(x,y)).right;
-	}
-	
-	private static int getChunkCoord(int p) {
+	public static int getChunkCoord(int p) {
 		return p>>Settings.cPOW;
 	}
 	
@@ -59,11 +43,7 @@ public class Level {
 		return p&(Settings.cSIZEm);
 	}
 	
-	public static int getState(int x, int y) {
-		return getChunkByCoord(x, y).cells[getCellIndex(x,y)];
-	}
-	
-	private static int getCellIndex(int x, int y) {
+	public static int getCellIndex(int x, int y) {
 		return getCoord(x)|(getCoord(y)<<Settings.cPOW);
 	}
 	
@@ -110,7 +90,7 @@ public class Level {
 		int ya = Settings.followAnt ? getChunkCoord(Ant.y):0;
 
 		if(!Settings.renderVoid) for(int i = 0; i < pixels.length; i++) {
-			pixels[i] = Rule.colors.get(0).color;
+			pixels[i] = Rule.colors[0].color;
 		} 
 		else for(int i = 0; i < pixels.length; i++) {
 			pixels[i] = 0xff000000;
@@ -128,7 +108,7 @@ public class Level {
 					for(int xo = 0; xo < cSIZE; xo++) {
 						int index = (xo+xcf) + y*width;
 						if(index >= pixels.length) continue;
-						pixels[index] = Rule.colors.get(c.cells[i]).color;
+						pixels[index] = Rule.colors[c.cells[i]].color;
 						i++;
 					}
 				}

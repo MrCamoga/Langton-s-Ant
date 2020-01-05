@@ -5,6 +5,8 @@ import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
+import com.camoga.ant.Level.Chunk;
+
 public class Ant {
 	static Direction dir;
 	static int x, y;
@@ -52,8 +54,10 @@ public class Ant {
 	 * @return true if ant forms a highway
 	 */
 	public boolean move() {
-		int state = Level.getState(x, y);
-		boolean right = Rule.colors.get(state).right;
+		Chunk c = Level.getChunkByCoord(x, y);
+		int index = Level.getCellIndex(x, y);
+		int state = c.cells[index];
+		boolean right = Rule.colors[state].right;
 		if(checkCycle(dir, state)) return true;
 		switch(dir) {
 		case NORTH:
@@ -69,7 +73,7 @@ public class Ant {
 			dir = right ? Direction.NORTH:Direction.SOUTH;
 			break;
 		}
-		Level.updateState(x, y);
+		c.cells[index] = (state+1) % Rule.colors.length;
 		
 		x += dir.getX();
 		y += dir.getY();
@@ -87,8 +91,8 @@ public class Ant {
 	boolean CYCLEFOUND = false;
 	
 	private boolean checkCycle(Direction dir, int state) {
+		if(!saveState) return false;
 		try {
-			if(!saveState) return false;
 			put(index, (byte)(dir.id<<6 | state)); //Only works for rules with <= 64 colors
 			index+=1;
 			if(index > 1) {
