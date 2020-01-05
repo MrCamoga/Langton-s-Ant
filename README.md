@@ -159,23 +159,32 @@ Since I read the rules backwards (e.g. RRRLRR -> 110111 = 55) I can test rules t
 ```
 This code will test the following rules (with **n=14** will test every **16384th** rule)
 
-|Rule|Binary|
-|:-:|:-:|
-|31819 |  111110001001011  |
-|48203 | 1011110001001011  |
-|64587 | 1111110001001011  |
-|80971 | 10011110001001011 |
+|Rule|Binary| String |
+|:-:|-:|:-|
+|31819 |  1**11110001001011**  | **RRLRLLRLLLRRRR**R |
+|48203 | 10**11110001001011**  | **RRLRLLRLLLRRRR**LR|
+|64587 | 11**11110001001011**  | **RRLRLLRLLLRRRR**RR|
+|80971 | 100**11110001001011** | **RRLRLLRLLLRRRR**LLR|
 |...|...|
 
 #### Some functions that generate lots of highways
 
 |functions| longest highway | longest highway period | rules found | info |
 |:-:|:-:|:-:|:-:|:-:|
-|16384n + 16075		| **RRLRLLRRLRRRRR**RRRRLR| 5307264488	| 284| biggest highway found |
-|16384n + 15435		|**RRLRLLRLLLRRRR**RRR|	320374420 | 66 | periods of around 1m |
-|8192n + 8106		|	**LRLRLRLRRRRRR**RLRRRRRLRLRR | 907904  | 4317 | periods vary from 3k to 27k |
-|16384n + 12892	| **LLRRRLRLLRLLRR**RLLRLLLRLRRLRLRLLRLLRLRLLLRRLLRRRRRLRRRRRLRLRLRR| 721784 | 2131	|	got the rule from [vmainen](https://www.reddit.com/r/cellular_automata/comments/9mfthz/langtons_ant_exhibiting_a_distinct_highwaypattern/). Periods around 5k |
-|32768n + 28757		|	**RLRLRLRLLLLLRRR**RLLLR | 300078 |33 | 20k - 300k |
+|16384n+16075		| **RRLRLLRRLRRRRR**RRRRLR| 5307264488	| 284| biggest highway found |
+|16384n+15435		|**RRLRLLRLLLRRRR**RRR|	320374420 | 66 | periods of around 1m |
+|8192n+8106		|	**LRLRLRLRRRRRR**RLRRRRRLRLRR | 907904  | 4317 | periods vary from 3k to 27k |
+|16384n+12892	| **LLRRRLRLLRLLRR**RLLRLLLRLRRLRLRLL RLLRLRLLLRRLLRRRRRLRRRRRLRLRLRR| 721784 | 2131	|	got the rule from [vmainen](https://www.reddit.com/r/cellular_automata/comments/9mfthz/langtons_ant_exhibiting_a_distinct_highwaypattern/). Periods around 5k |
+|32768n+28757		|	**RLRLRLRLLLLLRRR**RLLLR | 300078 |33 | 20k - 300k |
+||||||
+|1024n+455<br>1024n+568<br>2048n+1884||488|| period 38 |
+|1024n+467<br>1024n+556||224||almost all period 42|
+|2048n+428<br>2048n+1619<br>4096n+1100||344|| period 46 |
+|512n+469<br>512n+554||442|| period 88|
+|1024n+1365<br>1024n+1706||894||104|
+|2048n+1194<br>2048n+2901||618||108|
+|8192n+1220||5028||216|
+|4096n+3643||472||244|
 
 #### Some rules that form highways
 
