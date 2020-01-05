@@ -193,6 +193,6 @@ This code will test the following rules (with **n=14** will test every **16384th
 |2 | 104|
 |4 | 18 |
 |2<sup>n</sup>  for n≥3 | 16n+4 |
-|R**L...L**R**L...L**... (n L's in each block): __2<sup>n</sup>*(2<sup>n+1</sup>*(2k-1)+1)__ for n>1,  k>0 | same period as 2<sup>n</sup>|
-|L**R...R**L**R...R**... (n R's in each block): __2<sup>n</sup>*(2<sup>n+1</sup>*(2k+1)-1)-1__ for n>1,  k>0 | same period as 2<sup>n</sup>|
+|R**L...L**R**L...L**...R (n L's in each block): __2<sup>n</sup>*(2<sup>n+1</sup>*(2k-1)+1)__ for n>1,  k>0 | same period as 2<sup>n</sup>|
+|L**R...R**L**R...R**...R (n R's in each block): __2<sup>n</sup>*(2<sup>n+1</sup>*(2k+1)-1)-1__ for n>1,  k>0 | same period as 2<sup>n</sup>|
 
