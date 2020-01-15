@@ -84,7 +84,7 @@ In LangtonsMain.java you have to put the starting rule and the function that gen
 			if(i > r.length) return current+1;
 			return r[i];   
 		}
-	}
+	};
 ```
 	
 ## Settings
@@ -133,11 +133,11 @@ In total I've tested 159980 rules and found 30507 highways.
 I've added \* and ** in front of the rules depending on how they start
 
 |Period|Rule String|
-|:-:|:-|                                                 
+|:-:|:-|    
+| greater than 586782472424 | \*\* **LLRLRRLLRLLLLLL**RRLLLR |                                             
 |5307264488 |   \*\* **RRLRLLRRLRRRRRR**RRRLR    	|                                         
 |1078710528 |    \*\* **RRLRLLRRLRRRRRR**LLLLRR		|                                      
 |320374420  |	\* **RRLRLLRLLLRRRR**RRR			|                                       
-|220391833  |	\* **RRLRLLRLLLRRRR**RLLLLRRRR     |                                       
 |34911892   |	\* **RRLRLLRLLLRRRR**R            |                                       
 |21561810   |	\* **RRLRLLRLLLRRRR**RLRLRRRR      |                                      
 |20899462   |	\* **RRLRLLRLLLRRRR**LLRRRLLRR     |                                   
@@ -149,13 +149,14 @@ I've added \* and ** in front of the rules depending on how they start
 Whenever I found a big highway such as <span style="color:red">**RRLRLLRLLLRRRR**</span>RR (31819) or <span style="color:blue">**RRLRLLRRLRRRRRR**</span> (32459), I tested all rules that started in the same way because they usually have similar behaviour.
 
 Since I read the rules backwards (e.g. RRRLRR -> 110111 = 55) I can test rules that start with the same **n** letters really easily:
+
 ```java
 	window.rule = 31819;
 	window.nextrule = new IRule() {
-    	public long nextRule(int current) {
-        	return current + (1<<n);
-        }
-    };
+		public long nextRule(int current) {
+    		return current + (1<<n);
+		}
+	};
 ```
 This code will test the following rules (with **n=14** will test every **16384th** rule)
 
