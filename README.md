@@ -98,21 +98,22 @@ In total I've tested 159980 rules and found 30507 highways.
 
 1921 different periods in total
 
-#### TOP 10 highways with longest period
-I've added \* and ** in front of the rules depending on how they start
+#### TOP highways with longest period
 
-|Period|Size|Rule String|
-|:-:|:-|                                                 
-|5307264488 |850668|   \*\* **RRLRLLRRLRRRRRR**RRRLR    	|                                         
-|1078710528 ||    \*\* **RRLRLLRRLRRRRRR**LLLLRR		|                                      
-|320374420  |11592|	\* **RRLRLLRLLLRRRR**RRR			|   
-|41320192   || \* **RRLRLLRRLRRRRR**LLRRRRLLR |                                    
-|34911892   |4368|	\* **RRLRLLRLLLRRRR**R            |                                       
-|21561810   ||	\* **RRLRLLRLLLRRRR**RLRLRRRR      |                                      
-|20899462   ||	\* **RRLRLLRLLLRRRR**LLRRRLLRR     |                                   
-|10749868   ||	 \*\* **RRLRLLRRLRRRRRR**RLRLRR      |                                  
-|9275184    ||	 \*\* **RRLRLLRRLRRRRRR**RRLLRLLLLR  |                                   
-|8483164    ||	\* **RRLRLLRLLLRRRR**RRRRLRRLR     |
+|Rule Number|Period|Rule String|
+|:-:|-:|:-|  
+|13730100           |  	 13498292016 |	 LLRLRRLLRLLLLLLRRLLLRLRR                                        
+|786123             |  	 5307264488 |	 RRLRLLRRLRRRRRRRRRLR                                            
+|1605323            |  	 1078710528 |	 RRLRLLRRLRRRRRRLLLLRR                                           
+|130123             |  	 320374420  |	 RRLRLLRLLLRRRRRRR                                               
+|39795787           |  	 223586484  |	 RRLRLLRLLLRRRRLLRRRRRLRLLR                                      
+|34028619          |   	 143634980  |	 RRLRLLRLLLRRRRLLRRRLLLLLLR                                      
+|12483659         |    	 136647312  |	 RRLRLLRLLLRRRRRLLRRRRRLR                                        
+|32144459        |     	 41875566   |	 RRLRLLRLLLRRRRRLLRLRLRRRR                                       
+|5193419        |      	 41320192   |	 RRLRLLRRLRRRRRLLRRRRLLR                                         
+|31819         |       	 34911892   |	 RRLRLLRLLLRRRRR                                                 
+|7666763      |        	 33868240   |	 RRLRLLRLLLRRRRRRLLRLRRR                                         
+|13418804    |         	 33372780   |	 LLRLRRLLRLLLLLRRLLRRLLRR     
 
 #### Biggest highways with unknown period
 |Bigger than|Rule String|Rule number|
