@@ -32,59 +32,28 @@ In IORules.java I explain how the rules are stored in the binary file.
 ## Usage
 In LangtonsMain.java you have to put the starting rule and the function that generates the next rule to be tested.
 
-### Some examples (below them written using lambda expressions):
+### Some examples:
 #### Test all rules
 ```java
-	window.rule = 2847;
-	window.nextrule = new IRule() {
-        public long nextRule(long current) {
-            return current+1;
-        }	
-	};
-	
-    
-	window.nextrule = r -> r+1;
+	new Simulation(1, r->r+1);
 	
 ```
 	
 #### Test rules that start with LRRLLR (test every 2^6 rules, I talk more about this in [Huge Highways](#how-i-found-these-huge-highways))
 ```java
-	window.rule = 0b100110; //Rules are written backwards (LRRLLR -> 011001 -> 100110)
-	window.nextrule = new IRule() {
-		public long nextRule(long current) {
-			return current+64;
-		}	
-	};
-	
-   window.rule = 0b100110;
-	window.nextrule = r -> r+64;
+	new Simulation(0b100110, r -> r+64); //Rules are written backwards (LRRLLR -> 011001 -> 100110)
 ```
 
 #### Test random rules
 ```java
-	window.rule = new Random().nextLong();
-	window.nextrule = new IRule() {
-		public long nextRule(long current) {
-			return new Random().nextLong();
-		}
-	};
-	
-	window.nextrule = r -> new Random().nextLong();
+	new Simulation(new Random().nextLong(), r -> new Random().nextLong());
 ```
 
 #### Test list of rules
 ```java
 	static int i = 0;
 	long[] rules = new long[]{1,2,27,3873};
-	window.rule = r[0];
-	window.nextrule = new IRule() {
-		public long nextRule(long current) {
-			i++;
-			//Add some code to catch ArrayIndexOutOfBoundException, close program, continue with random rules, etc.
-			if(i > r.length) return current+1;
-			return r[i];   
-		}
-	};
+	new Simulation(rules[0], r -> rules[++i]);
 ```
 	
 ## Settings
@@ -132,18 +101,33 @@ In total I've tested 159980 rules and found 30507 highways.
 #### TOP 10 highways with longest period
 I've added \* and ** in front of the rules depending on how they start
 
-|Period|Rule String|
-|:-:|:-|    
-| greater than 586782472424 | \*\* **LLRLRRLLRLLLLLL**RRLLLR |                                             
-|5307264488 |   \*\* **RRLRLLRRLRRRRRR**RRRLR    	|                                         
-|1078710528 |    \*\* **RRLRLLRRLRRRRRR**LLLLRR		|                                      
-|320374420  |	\* **RRLRLLRLLLRRRR**RRR			|                                       
-|34911892   |	\* **RRLRLLRLLLRRRR**R            |                                       
-|21561810   |	\* **RRLRLLRLLLRRRR**RLRLRRRR      |                                      
-|20899462   |	\* **RRLRLLRLLLRRRR**LLRRRLLRR     |                                   
-|10749868   |	 \*\* **RRLRLLRRLRRRRRR**RLRLRR      |                                  
-|9275184    |	 \*\* **RRLRLLRRLRRRRRR**RRLLRLLLLR  |                                   
-|8483164    |	\* **RRLRLLRLLLRRRR**RRRRLRRLR     |
+|Period|Size|Rule String|
+|:-:|:-|                                                 
+|5307264488 |850668|   \*\* **RRLRLLRRLRRRRRR**RRRLR    	|                                         
+|1078710528 ||    \*\* **RRLRLLRRLRRRRRR**LLLLRR		|                                      
+|320374420  |11592|	\* **RRLRLLRLLLRRRR**RRR			|   
+|41320192   || \* **RRLRLLRRLRRRRR**LLRRRRLLR |                                    
+|34911892   |4368|	\* **RRLRLLRLLLRRRR**R            |                                       
+|21561810   ||	\* **RRLRLLRLLLRRRR**RLRLRRRR      |                                      
+|20899462   ||	\* **RRLRLLRLLLRRRR**LLRRRLLRR     |                                   
+|10749868   ||	 \*\* **RRLRLLRRLRRRRRR**RLRLRR      |                                  
+|9275184    ||	 \*\* **RRLRLLRRLRRRRRR**RRLLRLLLLR  |                                   
+|8483164    ||	\* **RRLRLLRLLLRRRR**RRRRLRRLR     |
+
+#### Biggest highways with unknown period
+|Bigger than|Rule String|Rule number|
+|83373374780|RRLRLLRRLRRRRRRLLRLLRRR|7503563|
+|1.34e11|RRRLRRLLRLRRRRRRRRRLR|1572151|
+||LLRLRRLRRRLLLLLRRLLLLLRR|| ????
+|4e9|RRRLRRLLRLRRRRLLRRLRLRRR|15416631|
+|1.88e10|RRRLRRLLRLRRRRRLLRLRRLRR|14318903|
+|6e9|RRRLRRLLRLRRRRLLRRRLLRLR|10960183|
+| 586782472424 | \*\* **LLRLRRLLRLLLLLL**RRLLLR |1147188| // 3084,1060,1044. lcm = 71101620
+|4113593729|\*\* **LLRLRRLLRLLLLLL**LLRRLRR|3539252|
+|1.3e11 |     **LLRLRRLLRLLLLLL**LLLLRLRLR | 11010356 |
+| 6e8  |   **LLRLRRLLRLLLLL**RRLRRLLLRR | 13025588 |
+| 7e8  |   **LLRLRRLLRLLLLLL**RRLLLRLRR | 13730100 |
+
 
 #### How I found these huge highways
 Whenever I found a big highway such as <span style="color:red">**RRLRLLRLLLRRRR**</span>RR (31819) or <span style="color:blue">**RRLRLLRRLRRRRRR**</span> (32459), I tested all rules that started in the same way because they usually have similar behaviour.
@@ -173,7 +157,7 @@ This code will test the following rules (with **n=14** will test every **16384th
 |functions| longest highway | longest highway period | % form highways | info |
 |:-:|:-:|:-:|:-:|:-:|
 |16384n+16075		| **RRLRLLRRLRRRRR**RRRRLR| 5307264488	| 28.1% | biggest highway found |
-|16384n+15435		|**RRLRLLRLLLRRRR**RRR|	320374420 | 10.7% | periods of around 1m |
+|16384n+15435<br>16384n+948		|**RRLRLLRLLLRRRR**RRR|	320374420 | 10.7% | periods of around 1m |
 |8192n+8106		|	**LRLRLRLRRRRRR**RLRRRRRLRLRR | 907904  | 94.9% | periods vary from 3k to 27k |
 |16384n+12892	| **LLRRRLRLLRLLRR**RLLRLLLRLRRLRLRLL RLLRLRLLLRRLLRRRRRLRRRRRLRLRLRR| 721784 | 44.6%	|	got the rule from [vmainen](https://www.reddit.com/r/cellular_automata/comments/9mfthz/langtons_ant_exhibiting_a_distinct_highwaypattern/). Periods around 5k |
 |32768n+28757		|	**RLRLRLRLLLLLRRR**RLLLR | 300078 |24.1% | 20k - 300k |

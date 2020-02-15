@@ -21,12 +21,13 @@ public class Rule {
 	public static void createRule(long rule) {
 		colors = new CellColor[(int) (Math.log(rule)/Math.log(2)+1)];
 		long seed = -8485983343335656213L;
-		Random r = new Random(seed);
+		Random r = new Random();
 		for(int i = 0; i < colors.length; i++) {
 			boolean right = rule%2 != 0;
 			rule = rule>>1;
 			colors[i] = new CellColor(r.nextInt(0x1000000), right);
 		}
+		if(colors.length > 64) throw new RuntimeException("More than 64 states not supported");
 	}
 	
 	/**

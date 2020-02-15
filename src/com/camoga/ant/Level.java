@@ -1,7 +1,11 @@
 package com.camoga.ant;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+
+import com.camoga.ant.Rule.CellColor;
 
 import static com.camoga.ant.Settings.cSIZE;
 
@@ -12,8 +16,8 @@ import static com.camoga.ant.Settings.cSIZE;
  */
 public class Level {
 	
-	public static List<Chunk> chunks = new ArrayList<Chunk>();
-	private static Chunk lastChunk; 
+	public static ArrayList<Chunk> chunks = new ArrayList<Chunk>();
+	public static Chunk lastChunk;
 	
 	static class Chunk {
 		int x, y;
@@ -25,32 +29,15 @@ public class Level {
 		public Chunk(int x, int y) {
 			this.x = x;
 			this.y = y;
-			lastVisit = Window.iterations;
+			lastVisit = Simulation.iterations;
 		}
 	}
 	
 	public static void init() {
 		chunks.clear();
-		lastChunk = null;
 		chunks = new ArrayList<Chunk>();
-	}
-	
-	public static int getChunkCoord(int p) {
-		return p>>Settings.cPOW;
-	}
-	
-	private static int getCoord(int p) {
-		return p&(Settings.cSIZEm);
-	}
-	
-	public static int getCellIndex(int x, int y) {
-		return getCoord(x)|(getCoord(y)<<Settings.cPOW);
-	}
-	
-	public static Chunk getChunkByCoord(int x, int y) {
-		int xc = getChunkCoord(x);
-		int yc = getChunkCoord(y);
-		return getChunk(xc, yc, true);
+		chunks.add(new Chunk(0, 0));
+		lastChunk = chunks.get(0);
 	}
 	
 	/**
@@ -61,36 +48,53 @@ public class Level {
 	 * @return
 	 */
 	public static Chunk getChunk(int xc, int yc, boolean create) {
-		if(lastChunk != null) {
-			if(xc == lastChunk.x && yc == lastChunk.y) {
-				lastChunk.lastVisit = Window.iterations;
-				return lastChunk;
-			}
+		if(xc == lastChunk.x && yc == lastChunk.y) {
+			lastChunk.lastVisit = Simulation.iterations;
+			return lastChunk;
 		}
 		for(int i = chunks.size()-1; i >= 0; i--) {
 			Chunk c = chunks.get(i);
 			if(xc == c.x && yc == c.y) {
 				lastChunk = c;
-				lastChunk.lastVisit = Window.iterations;
+				lastChunk.lastVisit = Simulation.iterations;
+//				Collections.swap(chunks, i, chunks.size()-1); // faster in some situations
 				return c;
 			}
 		}
 		if(!create) return null;
-		chunks.add(new Chunk(xc, yc));
-
-		if(Settings.detectHighways && !Window.ant.CYCLEFOUND && Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck) {
-			Window.ant.saveState = true;
+		Chunk c = new Chunk(xc, yc);
+		chunks.add(c);
+		if(!Simulation.ant.saveState && Settings.detectHighways && !Simulation.ant.CYCLEFOUND && Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck) {
+			Simulation.ant.saveState = true;
+//			int state = c.cells[getCellIndex(Ant.x, Ant.y)];
+//			int d = (Ant.dir + (Rule.colors[state].right ? 1:-1))&0b11;
+//			Simulation.ant.xs = Ant.x+Ant.directions[d][0];
+//			Simulation.ant.ys = Ant.y+Ant.directions[d][1];
+			Simulation.ant.xs = Ant.x;
+			Simulation.ant.ys = Ant.y;
 		}
-		return chunks.get(chunks.size()-1);
+		return c;
+	}
+	
+	public static Chunk getChunk2(int xc, int yc) {
+		for(int i = chunks.size()-1; i >= 0; i--) {
+			Chunk c = chunks.get(i);
+			if(xc == c.x && yc == c.y) {
+				return c;
+			}
+		}
+		return null;
 	}
 
 	//TODO improve render
-	public static void render(int[] pixels, int chunks, int width, int height) {
-		int xa = Settings.followAnt ? getChunkCoord(Ant.x):0;
-		int ya = Settings.followAnt ? getChunkCoord(Ant.y):0;
+	public static void render(int[] pixels, int chunks, int width, int height, boolean followAnt) {
+		int xa = followAnt ? Ant.xc:0;
+		int ya = followAnt ? Ant.yc:0;
 
+		CellColor[] colors = Rule.colors;
+		
 		if(!Settings.renderVoid) for(int i = 0; i < pixels.length; i++) {
-			pixels[i] = Rule.colors[0].color;
+			pixels[i] = colors[0].color;
 		} 
 		else for(int i = 0; i < pixels.length; i++) {
 			pixels[i] = 0xff000000;
@@ -99,7 +103,7 @@ public class Level {
 		for(int yc = 0; yc < chunks; yc++) {
 			int ycf = yc<<Settings.cPOW;
 			for(int xc = 0; xc < chunks; xc++) {
-				Chunk c = Level.getChunk(xc-chunks/2+xa, yc-chunks/2+ya, false);
+				Chunk c = getChunk2(xc-chunks/2+xa, yc-chunks/2+ya);
 				if(c == null) continue;
 				int xcf = xc<<Settings.cPOW;
 				int i = 0;
@@ -108,7 +112,7 @@ public class Level {
 					for(int xo = 0; xo < cSIZE; xo++) {
 						int index = (xo+xcf) + y*width;
 						if(index >= pixels.length) continue;
-						pixels[index] = Rule.colors[c.cells[i]].color;
+						pixels[index] = colors[c.cells[i]].color;
 						i++;
 					}
 				}
@@ -121,7 +125,9 @@ public class Level {
 //			int yo = y+ya*cSIZE;
 //			for(int x = 0; x < width; x++) {
 //				int xo = x+xa*cSIZE;
-//				pixels[x+y*width] = Rule.colors.get(getState(xo-xoffset, yo+x-height/2-xoffset)).color;
+//				int a = xo-xoffset;
+//				int b = yo-x+width*2-height/2-xoffset;
+//				pixels[x+y*width] = Rule.colors[getChunkByCoord(a, b).cells[getCellIndex(a, b)]].color;
 ////				System.out.println(xo + ", " +  yo +" : "+ (xo+yo));
 //			}
 //		}

@@ -2,84 +2,71 @@ package com.camoga.ant;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.lang.annotation.Repeatable;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
 import com.camoga.ant.Level.Chunk;
 
 public class Ant {
-	static Direction dir;
+	static int dir;
+	static int xc,yc;
 	static int x, y;
-
-	private static int count = 0;
-	enum Direction {
-		NORTH(0,-1),EAST(1,0),SOUTH(0,1),WEST(-1,0);
-		
-		int dx, dy;
-		int id;
-		
-		Direction(int dx, int dy) {
-			id = count;
-			count++;
-			this.dx = dx;
-			this.dy = dy;
-		}
-		
-		public int getX() {
-			return dx;
-		}
-		
-		public int getY() {
-			return dy;
-		}
-	}
+	
+	static final int[][] directions = new int[][] {{0,-1},{1,0},{0,1},{-1,0}};
 	
 	public Ant(int x, int y) {
-		Ant.x = x;
-		Ant.y = y;
-		Ant.dir = Direction.NORTH;
+		Ant.x = x&Settings.cSIZEm;
+		Ant.y = y&Settings.cSIZEm;
+		Ant.xc = x>>Settings.cPOW;
+		Ant.yc = y>>Settings.cPOW;
+		Ant.dir = 0;
 		try {
-			raf = new RandomAccessFile("langton.buf", "rw");
-			 mbbr = raf.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, Settings.fileChunkSize);
-			 mbbw = mbbr;
+			raf = new RandomAccessFile(Settings.statefile, "rw");
+			mbbr = raf.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, Settings.fileChunkSize);
+			mbbw = mbbr;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
-	boolean saveState = false;
-	
 	/**
 	 * 
 	 * @return true if ant forms a highway
 	 */
-	public boolean move() {
-		Chunk c = Level.getChunkByCoord(x, y);
-		int index = Level.getCellIndex(x, y);
-		int state = c.cells[index];
-		boolean right = Rule.colors[state].right;
-		if(checkCycle(dir, state)) return true;
-		switch(dir) {
-		case NORTH:
-			dir = right ? Direction.EAST:Direction.WEST;
-			break;
-		case EAST:
-			dir = right ? Direction.SOUTH:Direction.NORTH;
-			break;
-		case SOUTH:
-			dir = right ? Direction.WEST:Direction.EAST;
-			break;
-		case WEST:
-			dir = right ? Direction.NORTH:Direction.SOUTH;
-			break;
+	public int move() {
+		int i = 0;
+		for(; i < Settings.itpf; i++) {
+			Chunk c = Level.getChunk(xc, yc, true);
+			int index = x|(y<<Settings.cPOW);
+			int state = c.cells[index];
+			boolean right = Rule.colors[state].right;
+			if(checkCycle(dir, state)) break;
+			dir = (dir + (right ? 1:-1))&0b11;
+			c.cells[index] = (state+1) % Rule.colors.length;
+			
+			x += directions[dir][0];
+			y += directions[dir][1];
+			
+			//OPTIMIZE (chunk coordinates can only change if x/y = 0/cSIZE)
+			if(x > Settings.cSIZEm) {
+				x = 0;
+				xc++;
+			} else if(x < 0) {
+				x = Settings.cSIZEm;
+				xc--;
+			} else if(y > Settings.cSIZEm) {
+				y = 0;
+				yc++;
+			} else if(y < 0) {
+				y = Settings.cSIZEm;
+				yc--;
+			}
 		}
-		c.cells[index] = (state+1) % Rule.colors.length;
-		
-		x += dir.getX();
-		y += dir.getY();
-		return false;
+		return i;
 	}
 	
+	boolean saveState = false;
 	private long currentCycleLength = 0;
 	private long check = 0;
 	private static MappedByteBuffer mbbr, mbbw; // mbbr: reading, mbbw: writing
@@ -90,29 +77,32 @@ public class Ant {
 	long minHighwayPeriod = 0;  // This is the final cycle length
 	boolean CYCLEFOUND = false;
 	
-	private boolean checkCycle(Direction dir, int state) {
+	int xs = 0;
+	int ys = 0;
+	
+	private boolean checkCycle(int dir, int state) {
 		if(!saveState) return false;
 		try {
-			put(index, (byte)(dir.id<<6 | state)); //Only works for rules with <= 64 colors
+			byte s1 = (byte)(dir<<6 | state); //Only works for rules with <= 64 colors
+			if(index < 200000000) put(index, s1);
 			index+=1;
 			if(index > 1) {
 				if(currentCycleLength == 0) {
 					minHighwayPeriod = index-1;
 				}
 				
-				int s = get(currentCycleLength)&0xff;
-				if(s>>6 == (byte)dir.id && (s&0b111111) == (byte)state) {
-					currentCycleLength++;
-				} else {
-					currentCycleLength = 0;
-				}
+				byte s2 = get(currentCycleLength);
+				if(s2==s1) currentCycleLength++;
+				else currentCycleLength = 0;
+				
 				if(currentCycleLength >= minHighwayPeriod) {
 					check++;
 				}
-				if(check > Settings.repeatcheck*minHighwayPeriod) {
+
+				if(currentCycleLength == 200000000 || check > Settings.repeatcheck*minHighwayPeriod) {
 					CYCLEFOUND = true;
 					saveState = false;
-					//TODO calculate highway size here
+//					System.out.println((x-xs-directions[dir][0]+1)/(Settings.repeatcheck+2)+ ", " + (y-ys-directions[dir][1]+1)/(Settings.repeatcheck+2));
 					return true;
 				}
 			}
@@ -125,7 +115,7 @@ public class Ant {
 	private void put(long index, byte data) {
 		int loc = (int)(index%Settings.fileChunkSize);
 		int chunk = (int) (index/Settings.fileChunkSize);
-		if(chunk > Settings.maxNumOfChunks) throw new RuntimeException("Max capacity exceeded");
+		if(chunk >= Settings.maxNumOfChunks) throw new RuntimeException("Max capacity exceeded");
 		if(chunk != chunkLoadedw) {
 			chunkLoadedw = chunk;
 			try {
@@ -141,12 +131,12 @@ public class Ant {
 	private byte get(long index) {
 		int loc = (int)(index%Settings.fileChunkSize);
 		int chunk = (int) (index/Settings.fileChunkSize);
-		if(chunk > Settings.maxNumOfChunks) throw new RuntimeException("Max capacity exceeded");
+		if(chunk >= Settings.maxNumOfChunks) throw new RuntimeException("Max capacity exceeded");
 		if(chunk != chunkLoadedr) {
 			chunkLoadedr = chunk;
 			try {
 				if(chunkLoadedr == chunkLoadedw) mbbr = mbbw;
-				else mbbr = raf.getChannel().map(FileChannel.MapMode.READ_WRITE, chunk*Settings.fileChunkSize, Settings.fileChunkSize);
+				else mbbr = raf.getChannel().map(FileChannel.MapMode.READ_ONLY, chunk*Settings.fileChunkSize, Settings.fileChunkSize);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
