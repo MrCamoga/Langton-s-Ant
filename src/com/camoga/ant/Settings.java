@@ -4,7 +4,7 @@ public class Settings {
 	
 	//GUI
 	
-	final static int canvasSize = 8; // size of canvas (and output image) in chunks (e.g. scale = 16, cSIZE = 64 => size = 1024x1024)
+	final static int canvasSize = 4; // size of canvas (and output image) in chunks (e.g. scale = 16, cSIZE = 64 => size = 1024x1024)
 	static boolean gui = true;
 	static boolean followAnt = true;
 	static boolean smoothFollow = false; //TODO
@@ -26,7 +26,6 @@ public class Settings {
 	
 	static boolean ignoreSavedRules = true; // If true skips all rules that have already been tested
 	static final String file = "ruleperiods.langton";
-	static final String statefile = "langton.buf";
 	static int chunkCheck = 90; // Check if the ant forms a highway when the ant goes further than this chunk from the origin
 	static float repeatcheck = 40; // Number of times the period has to repeat to confirm that it's correct (e.g. You're more certain that 10101010101010101010 has a period of 2 than 1010)
 	static boolean detectHighways = true; //Detects if the ant follows a periodic pattern

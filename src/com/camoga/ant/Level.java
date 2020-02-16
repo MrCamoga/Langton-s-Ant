@@ -1,13 +1,10 @@
 package com.camoga.ant;
 
+import static com.camoga.ant.Settings.cSIZE;
+
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 
 import com.camoga.ant.Rule.CellColor;
-
-import static com.camoga.ant.Settings.cSIZE;
 
 /**
  * y++: down
@@ -78,9 +75,14 @@ public class Level {
 	
 	public static Chunk getChunk2(int xc, int yc) {
 		for(int i = chunks.size()-1; i >= 0; i--) {
-			Chunk c = chunks.get(i);
-			if(xc == c.x && yc == c.y) {
-				return c;
+			try {
+				Chunk c = chunks.get(i);
+				if(c==null) continue;
+				if(xc == c.x && yc == c.y) {
+					return c;
+				}				
+			} catch(IndexOutOfBoundsException e) {
+				continue;
 			}
 		}
 		return null;

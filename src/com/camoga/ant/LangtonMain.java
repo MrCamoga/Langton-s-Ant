@@ -6,13 +6,8 @@ import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.Toolkit;
 import java.awt.TrayIcon;
-import java.awt.event.ActionListener;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-
-import javax.imageio.ImageIO;
 
 public class LangtonMain {
 	
@@ -20,19 +15,20 @@ public class LangtonMain {
 	
 	public static void main(String[] args) throws Exception {
 		Settings.maxiterations = (long) 3e20;
-		Settings.toot = true;
+//		Settings.toot = true;
 		Settings.savepic = true;
 		Settings.ignoreSavedRules = false;
 		Settings.deleteOldChunks = true;
 		Settings.chunkCheck = 200;
 
-//		IORules.cleanRulesFile();
-		IORules.getInfo();
+		IORules.cleanRulesFile();
+//		IORules.getInfo();
+		IORules.saveRulesToTxt();
 		System.exit(0);
 		
 //		LLRRRLRLRR                        231929
-//		long[] rules = new long[] {28540215,1572151,12682164,15416631,14318903,10960183};
-//		for(long rule : rules) System.out.println(rule + ", " + Rule.string(rule));
+//		long[] rules = new long[] {28540215 no,12682164,14318903,10960183};
+		
 		BufferedReader br = new BufferedReader(new FileReader("settings.txt"));
 		long rule = Long.parseLong(br.readLine().split(" ")[0]);
 		long step = Long.parseLong(br.readLine().split(" ")[0]);
@@ -40,7 +36,7 @@ public class LangtonMain {
 		Settings.itpf = Integer.parseInt(br.readLine().split(" ")[0]);
 		br.close();
 
-		Simulation sim = new Simulation(13730100, r -> r+8192);
+		Simulation sim = new Simulation(31819, r -> r+8192);
 		createSystemTray();
 		if(Settings.gui) new Window();
 	}

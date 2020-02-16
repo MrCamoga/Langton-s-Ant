@@ -9,29 +9,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.ByteBuffer;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 
-import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
-import com.camoga.ant.Level.Chunk;
 
 @SuppressWarnings("serial")
 public class Window extends Canvas {
@@ -65,18 +50,26 @@ public class Window extends Canvas {
 		JButton pic = new JButton("Take Picture");
 			pic.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					try {
-						ImageIO.write(canvasImage, "png", new File(Rule.string()+".png"));						
-					} catch(IOException e2) {
-						e2.printStackTrace();
-					}
+					Simulation.saveImage(new File(Rule.string()+".png"));
 				}
 			});
+		JButton pause = new JButton("Pause");
+		pause.addActionListener(e -> {
+			String cmd = e.getActionCommand();
+			if(cmd.equals("Pause")) {
+				pause.setText("Resume");
+				Simulation.stop();
+			} else {
+				pause.setText("Pause");
+				Simulation.start();
+			}
+		});
 
 //		JButton checkCycle = new JButton("Check Cycle");
 		
 		panel.add(speed);
 		panel.add(pic);
+		panel.add(pause);
 //		panel.add(checkCycle);
 		f.add(panel, BorderLayout.NORTH);
 		f.add(this, BorderLayout.CENTER);
@@ -106,7 +99,7 @@ public class Window extends Canvas {
 		
 		if(Simulation.ant.saveState) {
 			g.setColor(Color.red);
-			g.drawString("Finding highway... " + Simulation.ant.minHighwayPeriod, 10, 62);
+			g.drawString("Finding period... " + Simulation.ant.minHighwayPeriod, 10, 62);
 		} else if(Simulation.ant.CYCLEFOUND) {
 			g.setColor(Color.WHITE);
 			g.drawString("Period: " + Simulation.ant.minHighwayPeriod, 10, 62);
