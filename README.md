@@ -102,21 +102,25 @@ In total I've tested 159980 rules and found 30507 highways.
 
 |Rule Number|Period|Rule String|
 |:-:|-:|:-|  
-|13730100           |  	 13498292016 |	 LLRLRRLLRLLLLLLRRLLLRLRR                                        
-|786123             |  	 5307264488 |	 RRLRLLRRLRRRRRRRRRLR                                            
-|1605323            |  	 1078710528 |	 RRLRLLRRLRRRRRRLLLLRR                                           
-|130123             |  	 320374420  |	 RRLRLLRLLLRRRRRRR                                               
-|39795787           |  	 223586484  |	 RRLRLLRLLLRRRRLLRRRRRLRLLR                                      
-|34028619          |   	 143634980  |	 RRLRLLRLLLRRRRLLRRRLLLLLLR                                      
-|12483659         |    	 136647312  |	 RRLRLLRLLLRRRRRLLRRRRRLR                                        
-|32144459        |     	 41875566   |	 RRLRLLRLLLRRRRRLLRLRLRRRR                                       
-|5193419        |      	 41320192   |	 RRLRLLRRLRRRRRLLRRRRLLR                                         
-|31819         |       	 34911892   |	 RRLRLLRLLLRRRRR                                                 
-|7666763      |        	 33868240   |	 RRLRLLRLLLRRRRRRLLRLRRR                                         
-|13418804    |         	 33372780   |	 LLRLRRLLRLLLLLRRLLRRLLRR     
+|15416631           |  	 117440512200 |	 RRRLRRLLRLRRRRLLRRLRLRRR|
+|13025588           |  	 66487151028 |	 LLRLRRLLRLLLLLRRLRRLLLRR|
+|13730100           |  	 13498292016 |	 LLRLRRLLRLLLLLLRRLLLRLRR | 
+|3539252            | 	 6740764524 |	 LLRLRRLLRLLLLLLLLRRLRR    |                                  
+|786123             |  	 5307264488 |	 RRLRLLRRLRRRRRRRRRLR       |                                     
+|1605323            |  	 1078710528 |	 RRLRLLRRLRRRRRRLLLLRR       |                                    
+|130123             |  	 320374420  |	 RRLRLLRLLLRRRRRRR            |                                   
+|39795787           |  	 223586484  |	 RRLRLLRLLLRRRRLLRRRRRLRLLR    |                                  
+|34028619          |   	 143634980  |	 RRLRLLRLLLRRRRLLRRRLLLLLLR     |                                 
+|12483659         |    	 136647312  |	 RRLRLLRLLLRRRRRLLRRRRRLR       |                                
+|32144459        |     	 41875566   |	 RRLRLLRLLLRRRRRLLRLRLRRRR      |                               
+|5193419        |      	 41320192   |	 RRLRLLRRLRRRRRLLRRRRLLR        |                              
+|31819         |       	 34911892   |	 RRLRLLRLLLRRRRR                |                             
+|7666763      |        	 33868240   |	 RRLRLLRLLLRRRRRRLLRLRRR        |                           
+|13418804    |         	 33372780   |	 LLRLRRLLRLLLLLRRLLRRLLRR       |
 
 #### Biggest highways with unknown period
 |Bigger than|Rule String|Rule number|
+|:-:|:-|:-:|
 |83373374780|RRLRLLRRLRRRRRRLLRLLRRR|7503563|
 |1.74e12|RRRLRRLLRLRRRRRRRRRLR|1572151|
 ||LLRLRRLRRRLLLLLRRLLLLLRR|| ????
