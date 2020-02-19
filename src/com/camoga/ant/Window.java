@@ -7,9 +7,15 @@ import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -25,6 +31,7 @@ public class Window extends Canvas {
 	int[] pixels = ((DataBufferInt) canvasImage.getRaster().getDataBuffer()).getData();
 	
 	Thread thread;
+	boolean running;
 	
 	
 	public Window() {
@@ -34,19 +41,34 @@ public class Window extends Canvas {
 		f.setVisible(true);
 		f.setResizable(true);
 		f.setLocationRelativeTo(null);
-		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		new Thread(() -> run(), "Render Thread").start();
+		f.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		f.addWindowListener(new WindowAdapter() {
+			public void windowClosed(WindowEvent e) {
+				stop();
+			}
+		});
+		start();
+	}
+	
+	public void start() {
+		running = true;
+		thread = new Thread(() -> run(), "Render Thread");
+		thread.start();
+	}
+	
+	public void stop() {
+		running = false;
 	}
 
 	public void gui(JFrame f) {
 		JPanel panel = new JPanel(new GridLayout(1,4));
-		JSlider speed = new JSlider(1, Math.max(Settings.itpf, 40000000), Settings.itpf);
-			speed.setOrientation(JSlider.HORIZONTAL);
-			speed.addChangeListener(new ChangeListener() {
-				public void stateChanged(ChangeEvent e) {
-					Settings.itpf = ((JSlider)e.getSource()).getValue();
-				}
-			});
+//		JSlider speed = new JSlider(1, Math.max(Settings.itpf, 40000000), Settings.itpf);
+//			speed.setOrientation(JSlider.HORIZONTAL);
+//			speed.addChangeListener(new ChangeListener() {
+//				public void stateChanged(ChangeEvent e) {
+//					Settings.itpf = ((JSlider)e.getSource()).getValue();
+//				}
+//			});
 		JButton pic = new JButton("Take Picture");
 			pic.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -64,12 +86,25 @@ public class Window extends Canvas {
 				Simulation.start();
 			}
 		});
+		JButton savestate = new JButton("Save State");
+		savestate.addActionListener(e -> {
+			Simulation.stop();
+			pause.setText("Resume");
+			while(!Simulation.finished)
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+			LangtonMain.saveState();
+		});
 
 //		JButton checkCycle = new JButton("Check Cycle");
 		
-		panel.add(speed);
+//		panel.add(speed);
 		panel.add(pic);
 		panel.add(pause);
+		panel.add(savestate);
 //		panel.add(checkCycle);
 		f.add(panel, BorderLayout.NORTH);
 		f.add(this, BorderLayout.CENTER);
@@ -78,7 +113,7 @@ public class Window extends Canvas {
 	public void run() {
 		createBufferStrategy(3);
 
-		while(true) {
+		while(running) {
 			render();
 			try {
 				Thread.sleep(250);
@@ -97,12 +132,12 @@ public class Window extends Canvas {
 		g.drawString("Iterations: " + Simulation.iterations, 10, 30); 
 		g.drawString("Rule: " + Rule.string(Simulation.rule) + " ("+Simulation.rule+")", 10, 46);
 		
-		if(Simulation.ant.saveState) {
+		if(Ant.saveState) {
 			g.setColor(Color.red);
-			g.drawString("Finding period... " + Simulation.ant.minHighwayPeriod, 10, 62);
-		} else if(Simulation.ant.CYCLEFOUND) {
+			g.drawString("Finding period... " + Ant.minHighwayPeriod, 10, 62);
+		} else if(Ant.CYCLEFOUND) {
 			g.setColor(Color.WHITE);
-			g.drawString("Period: " + Simulation.ant.minHighwayPeriod, 10, 62);
+			g.drawString("Period: " + Ant.minHighwayPeriod, 10, 62);
 		}
 		
 		g.dispose();

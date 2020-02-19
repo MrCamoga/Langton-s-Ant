@@ -4,12 +4,21 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 
 import javax.imageio.ImageIO;
 
@@ -19,7 +28,7 @@ public class Simulation {
 
 
 	static long rule = 1;
-	static Ant ant;
+//	static Ant ant;
 	static long iterations = 0;
 	
 	static IRule nextrule = c -> c+1;
@@ -28,6 +37,7 @@ public class Simulation {
 	
 	static Thread thread;
 	static boolean running;
+	static boolean finished;
 	
 	public Simulation(long startingrule, IRule nextrule) {
 		Simulation.rule = startingrule;
@@ -38,10 +48,44 @@ public class Simulation {
 		start();
 	}
 	
+	public Simulation(String file, IRule nextrule) {
+		try {
+			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
+			iterations = ois.readLong();
+			rule = ois.readLong();
+			System.out.println(rule);
+			Rule.createRule(rule);
+			Simulation.nextrule = nextrule;
+			Ant.init();
+			Ant.dir = ois.readInt();
+			Ant.x = ois.readInt();
+			Ant.y = ois.readInt();
+			Ant.xc = ois.readInt();
+			Ant.yc = ois.readInt();
+			Ant.saveState = ois.readBoolean();
+			if(Ant.saveState) {
+				Ant.index = ois.readLong();
+				Ant.currentCycleLength = ois.readInt();
+				Ant.minHighwayPeriod = ois.readLong();
+				Ant.states = ois.readNBytes(200000000);
+			}
+			Level.chunks = (ArrayList<Level.Chunk>)ois.readObject();
+			Level.lastChunk = Level.chunks.get(0);
+			ois.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		if(Settings.ignoreSavedRules) savedRules = IORules.searchSavedRules(false);
+		timer = System.currentTimeMillis();
+		start();
+	}
+	
 	public static void start() {
 		thread = new Thread(() -> run(),"Simulation");
 		thread.start();
 		running = true;
+		finished = false;
 	}
 	
 	public static void stop() {
@@ -50,19 +94,20 @@ public class Simulation {
 	
 	public static void run() {
 		while(running) {			
-			iterations += ant.move();
+			iterations += Ant.move();
 			
 			if(Settings.deleteOldChunks) {
 				Level.chunks.removeIf((Chunk c) -> iterations - c.lastVisit >= 100000000);
 			}
 			
-			if(iterations > Settings.maxiterations || ant.CYCLEFOUND) {
+			if(iterations > Settings.maxiterations && Settings.maxiterations != -1 || Ant.CYCLEFOUND) {
 				saveRule();
 				if(Settings.printlog)System.out.println(log);
 				rule = nextrule.nextRule(rule);
 				nextRule();
 			}
 		}
+		finished = true;
 	}
 	
 	protected static void saveImage(File file) {
@@ -73,12 +118,12 @@ public class Simulation {
 		g.setColor(Color.WHITE);
 		g.drawString("Iterations: " + iterations, 10, 30); 
 		g.drawString("Rule: " + Rule.string() + " ("+rule+")", 10, 46);
-		if(ant.saveState) {
+		if(Ant.saveState) {
 			g.setColor(Color.red);
-			g.drawString("Finding period... " + ant.minHighwayPeriod, 10, 62);
-		} else if(ant.CYCLEFOUND) {
+			g.drawString("Finding period... " + Ant.minHighwayPeriod, 10, 62);
+		} else if(Ant.CYCLEFOUND) {
 			g.setColor(Color.WHITE);
-			g.drawString("Period: " + ant.minHighwayPeriod, 10, 62);
+			g.drawString("Period: " + Ant.minHighwayPeriod, 10, 62);
 		}
 		
 		try {
@@ -90,23 +135,37 @@ public class Simulation {
 	
 	public static void saveRule() {
 		try {
-			if(ant.CYCLEFOUND) {
-				if(Settings.toot && ant.minHighwayPeriod > 5000) {
+			if(Ant.CYCLEFOUND) {
+				if(Settings.toot && Ant.minHighwayPeriod > 5000) {
 					//MASTODON BOT mastodon.social/@langtonant
+					BufferedReader fr = new BufferedReader(new FileReader("utctimeschedule.txt"));
+					long utctime = Long.parseLong(fr.readLine());
+					long now = Instant.now().getEpochSecond();
+					while(now > utctime+400) {
+						utctime += 3600;
+					}
+					File tmpimg = File.createTempFile("langtonimg", ".png");
+					saveImage(tmpimg);
+					System.out.println("Toot at " + new SimpleDateFormat().format(new Date(utctime*1000)));
+					Runtime.getRuntime().exec("python -c \"from mastodon import Mastodon; from datetime import datetime; m = Mastodon(access_token = '"+System.getenv("MASTODONTOKEN")+"', api_base_url = 'https://mastodon.social/'); m.status_post('Rule: "+Rule.string()+"\\nPeriod: "+Ant.minHighwayPeriod+"', media_ids=[m.media_post(r'"+tmpimg.getPath()+"')], scheduled_at=datetime.utcfromtimestamp("+utctime+"))\"");
+					fr.close();
+					FileWriter fw = new FileWriter("utctimeschedule.txt", false);
+					fw.write(utctime+3600+"");
+					fw.close();
 				}
 				if(Settings.savepic) {				
-					File dir = new File(ant.minHighwayPeriod+"");
+					File dir = new File(Ant.minHighwayPeriod+"");
 					boolean newdir = !dir.exists() ? dir.mkdir():false;
-					log += rule + "\t" + ant.minHighwayPeriod + "\t" + (newdir ? " N":"")+"\n";
-					saveImage(new File(ant.minHighwayPeriod + "/"+rule+".png"));
-				} else log += rule + "\t" + ant.minHighwayPeriod + "\n";
-			} else if(ant.saveState) {
-				log += rule + "\t" + "? " + ant.minHighwayPeriod +"\n";
+					log += rule + "\t" + Ant.minHighwayPeriod + "\t" + (newdir ? " N":"")+"\n";
+					saveImage(new File(Ant.minHighwayPeriod + "/"+rule+".png"));
+				} else log += rule + "\t" + Ant.minHighwayPeriod + "\n";
+			} else if(Ant.saveState) {
+				log += rule + "\t" + "? " + Ant.minHighwayPeriod +"\n";
 				if(Settings.savepic) saveImage(new File(0 + "/" + rule+".png"));
 			}
 			if(!Settings.saverule) return;
 			FileOutputStream fos = new FileOutputStream(Settings.file, true);
-			fos.write(ByteBuffer.allocate(16).putLong(rule).putLong(ant.CYCLEFOUND ? ant.minHighwayPeriod:(ant.saveState ? 1:0)).array());
+			fos.write(ByteBuffer.allocate(16).putLong(rule).putLong(Ant.CYCLEFOUND ? Ant.minHighwayPeriod:(Ant.saveState ? 1:0)).array());
 			fos.close();
 			//TODO add tested rules to savedrules
 		} catch (IOException e1) {
@@ -117,7 +176,7 @@ public class Simulation {
 	public static void init() {
 		Level.init();
 		Rule.createRule(rule);
-		ant = new Ant(0,0);
+		Ant.init();
 		iterations = 0;
 //		System.gc();
 	}

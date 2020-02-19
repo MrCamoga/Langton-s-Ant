@@ -2,6 +2,7 @@ package com.camoga.ant;
 
 import static com.camoga.ant.Settings.cSIZE;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import com.camoga.ant.Rule.CellColor;
@@ -16,7 +17,7 @@ public class Level {
 	public static ArrayList<Chunk> chunks = new ArrayList<Chunk>();
 	public static Chunk lastChunk;
 	
-	static class Chunk {
+	static class Chunk implements Serializable {
 		int x, y;
 		
 		long lastVisit;
@@ -61,14 +62,13 @@ public class Level {
 		if(!create) return null;
 		Chunk c = new Chunk(xc, yc);
 		chunks.add(c);
-		if(!Simulation.ant.saveState && Settings.detectHighways && !Simulation.ant.CYCLEFOUND && Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck) {
-			Simulation.ant.saveState = true;
+		if(!Ant.saveState && Settings.detectHighways && !Ant.CYCLEFOUND && Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck) {
+			Ant.saveState = true;
+			Ant.states[0] = (byte)(Ant.dir<<6 | Ant.state);
 //			int state = c.cells[getCellIndex(Ant.x, Ant.y)];
 //			int d = (Ant.dir + (Rule.colors[state].right ? 1:-1))&0b11;
 //			Simulation.ant.xs = Ant.x+Ant.directions[d][0];
 //			Simulation.ant.ys = Ant.y+Ant.directions[d][1];
-			Simulation.ant.xs = Ant.x;
-			Simulation.ant.ys = Ant.y;
 		}
 		return c;
 	}

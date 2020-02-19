@@ -11,27 +11,33 @@ public class Ant {
 	
 	static byte[] states = new byte[200000000];
 	
-	public Ant(int x, int y) {
-		Ant.x = x&Settings.cSIZEm;
-		Ant.y = y&Settings.cSIZEm;
-		Ant.xc = x>>Settings.cPOW;
-		Ant.yc = y>>Settings.cPOW;
-		Ant.dir = 0;
-
+	public static void init() {
+		x = 0;
+		y = 0;
+		xc = 0;
+		yc = 0;
+		dir = 0;
+		state = 0;
+		saveState = false;
+		currentCycleLength = 0;
+		index = 1;
+		minHighwayPeriod = 0;
+		CYCLEFOUND = false;
 	}
 	
+	static int state = 0;
 	/**
 	 * 
 	 * @return true if ant forms a highway
 	 */
-	public int move() {
+	public static int move() {
 		int i = 0;
 		for(; i < Settings.itpf; i++) {
+			if(checkCycle(dir, state)) break;
 			Chunk c = Level.getChunk(xc, yc, true);
 			int index = x|(y<<Settings.cPOW);
-			int state = c.cells[index];
+			state = c.cells[index];
 			boolean right = Rule.colors[state].right;
-			if(checkCycle(dir, state)) break;
 			dir = (dir + (right ? 1:-1))&0b11;
 			c.cells[index] = (state+1) % Rule.colors.length;
 			
@@ -56,44 +62,30 @@ public class Ant {
 		return i;
 	}
 	
-	boolean saveState = false;
-	private int currentCycleLength = 0;
-	private long index = 0;
+	static boolean saveState = false;
+	public static int currentCycleLength = 0;
+	public static long index = 1;
 	
-	long minHighwayPeriod = 0;  // This is the final cycle length
-	boolean CYCLEFOUND = false;
+	static long minHighwayPeriod = 0;  // This is the final cycle length
+	static boolean CYCLEFOUND = false;
 	
-	int xs = 0;
-	int ys = 0;
-	
-	private boolean checkCycle(int dir, int state) {
+	private static boolean checkCycle(int dir, int state) {
 		if(!saveState) return false;
-		try {
-			byte s1 = (byte)(dir<<6 | state); //Only works for rules with <= 64 colors
-			if(index < states.length) states[(int) index] = s1;
-			index+=1;
-			if(index > 1) {
-				if(currentCycleLength == 0) {
-					minHighwayPeriod = index-1;
-				}
-				
-				byte s2 = states[currentCycleLength];
-				if(s2==s1) currentCycleLength++;
-				else {
-					if(currentCycleLength > 2000)
-					System.out.println(minHighwayPeriod + ", " + currentCycleLength);
-					currentCycleLength = 0;
-				}
+		byte s1 = (byte)(dir<<6 | state); //Only works for rules with <= 64 colors
+		if(index < states.length) states[(int) index] = s1;
+		index++;		
+		byte s2 = states[currentCycleLength];
+		if(s2==s1) currentCycleLength++;
+		else {
+			currentCycleLength = 0;
+			minHighwayPeriod = index;
+		}
 
-				if(currentCycleLength == states.length || currentCycleLength > Settings.repeatcheck*minHighwayPeriod) {
-					CYCLEFOUND = true;
-					saveState = false;
+		if(currentCycleLength == states.length || currentCycleLength > Settings.repeatcheck*minHighwayPeriod) {
+			CYCLEFOUND = true;
+			saveState = false;
 //					System.out.println((x-xs-directions[dir][0]+1)/(Settings.repeatcheck+2)+ ", " + (y-ys-directions[dir][1]+1)/(Settings.repeatcheck+2));
-					return true;
-				}
-			}
-		} catch(Exception e) {
-			e.printStackTrace();
+			return true;
 		}
 		return false;
 	}
