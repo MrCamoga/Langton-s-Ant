@@ -136,7 +136,7 @@ In total I've tested 159980 rules and found 30507 highways.
 
 #### Biggest highways with unknown period
 | Tested to # iters	|	Rule String					|	Rule number		|	Size		|	Estimated period|
-|:-:|:-|:-:|:-:|:-:|:-:|
+|:-:|:-|:-:|:-:|:-:|
 |	1e13			|	RRRLRRLLRLRRRRLLRRRLLRLR	|	10960183		|	-			|					|
 |	2.19e12			|	RRRLRRLLRLRRRRRLLRLRRLRR	|	14318903		|	-			|					|
 |	1.74e12			|	RRRLRRLLRLRRRRRRRRRLR		|	1572151			|	-			|					|
