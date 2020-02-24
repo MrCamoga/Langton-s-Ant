@@ -1,14 +1,17 @@
 package com.camoga.ant.test;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.nio.ByteBuffer;
 import java.util.HashSet;
 
 import javax.imageio.ImageIO;
 
 public class FindPeriod {
 	public static void main(String[] args) throws Exception {
-		highwayWidth("LLRLRRLLRLLLLLRRLLLRRLRLR.png");
+		highwayWidth2("RRLRLLRRLRRRRRRRRRLLLLRLRR.bin");
 	}
 	
 	public static void highwayWidth(String path) throws Exception {
@@ -18,13 +21,44 @@ public class FindPeriod {
 		HashSet<Integer> subperiods = new HashSet<Integer>(); //Subperiod is the period of one row
 		boolean unknown = false;
 		h:for(int y = 0; y < height; y++) {
-			p:for(int period = 1; period < width*0.8; period++) {
+			p:for(int period = 1; period < width-1000; period++) {
 				for(int x = 0; x < width-period; x++) {
 					if(pixels[x+y*width] != pixels[x+period+y*width]) continue p;
 				}
+				System.out.println(y + ": " + period);
 				subperiods.add(period);
 				continue h;
 			}
+			System.out.println(y + ": Unknown");
+			unknown = true;
+		}
+		System.out.println("Subperiods: " + subperiods);
+		long lcm = lcm(subperiods.stream().mapToInt(e -> e).toArray());
+		if(!unknown) System.out.println("Period = " + lcm);
+		else System.out.println("Period >= " + lcm);
+	}
+	
+	public static void highwayWidth2(String path) throws Exception {
+		BufferedInputStream bis = new BufferedInputStream(new FileInputStream(new File(path)));
+		byte[] bw = new byte[4];
+		bis.read(bw);
+		int width = ByteBuffer.wrap(bw).getInt();
+		byte[] pixels = bis.readAllBytes();
+		bis.close();
+		int height = pixels.length/width;
+		System.out.println(width+ ","+height);
+		HashSet<Integer> subperiods = new HashSet<Integer>(); //Subperiod is the period of one row
+		boolean unknown = false;
+		h:for(int y = 0; y < height; y++) {
+			p:for(int period = 1; period < width-1000; period++) {
+				for(int x = 0; x < width-period; x++) {
+					if(pixels[x+y*width] != pixels[x+period+y*width]) continue p;
+				}
+				System.out.println(y + ": " + period);
+				subperiods.add(period);
+				continue h;
+			}
+			System.out.println(y + ": Unknown");
 			unknown = true;
 		}
 		System.out.println("Subperiods: " + subperiods);

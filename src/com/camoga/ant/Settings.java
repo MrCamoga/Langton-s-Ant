@@ -4,7 +4,7 @@ public class Settings {
 	
 	//GUI
 	
-	final static int canvasSize = 4; // size of canvas (and output image) in chunks (e.g. scale = 16, cSIZE = 64 => size = 1024x1024)
+	static int canvasSize = 8; // size of canvas (and output image) in chunks (e.g. scale = 16, cSIZE = 64 => size = 1024x1024)
 	static boolean gui = true;
 	static boolean followAnt = true;
 	static boolean smoothFollow = false; //TODO
@@ -31,16 +31,17 @@ public class Settings {
 	static boolean detectHighways = true; //Detects if the ant follows a periodic pattern
 	static long maxiterations = (long) 1e8; // After this many iterations, program moves to next rule
 	static boolean saverule = true; // saves rule to file
-	
-		//Total file size = fileSize*numOfFiles
-	static long fileChunkSize = (1<<29)-1; // File size in bytes to search for periods. This will create a permanent file of that size on your hard drive
-	static long maxNumOfChunks = 2000; // MappedByteBuffer cannot load files bigger than 2GB, this allows you to load bigger files in chunks
+
+	static int highwaySizew = 1000000;
+	static int highwaySizeh = 1000;
 	
 	//OUTPUT IMAGES
 	static boolean toot = false;
 	static boolean savepic = false; // saves pic if ant forms a highway
 	static int saveImageW = canvasSize*cSIZE;
 	static int saveImageH = canvasSize*cSIZE;
+//	static int saveImageW = 100000;
+//	static int saveImageH = 1200;
 	
 	//OTHER
 	static boolean deleteOldChunks = false; // only enable when you know old chunks are not going to be visited again

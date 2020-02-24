@@ -65,10 +65,6 @@ public class Level {
 		if(!Ant.saveState && Settings.detectHighways && !Ant.CYCLEFOUND && Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck) {
 			Ant.saveState = true;
 			Ant.states[0] = (byte)(Ant.dir<<6 | Ant.state);
-//			int state = c.cells[getCellIndex(Ant.x, Ant.y)];
-//			int d = (Ant.dir + (Rule.colors[state].right ? 1:-1))&0b11;
-//			Simulation.ant.xs = Ant.x+Ant.directions[d][0];
-//			Simulation.ant.ys = Ant.y+Ant.directions[d][1];
 		}
 		return c;
 	}
@@ -110,9 +106,9 @@ public class Level {
 				int xcf = xc<<Settings.cPOW;
 				int i = 0;
 				for(int yo = 0; yo < cSIZE; yo++) {
-					int y = yo+ycf;
+					int y = (yo|ycf) * width;
 					for(int xo = 0; xo < cSIZE; xo++) {
-						int index = (xo+xcf) + y*width;
+						int index = (xo|xcf) + y;
 						if(index >= pixels.length) continue;
 						pixels[index] = colors[c.cells[i]].color;
 						i++;
@@ -121,20 +117,62 @@ public class Level {
 			}
 		}
 		
-		// Shear (really slow)
-//		int xoffset = width;
-//		for(int y = 0; y < height; y++) {
-//			int yo = y+ya*cSIZE;
-//			for(int x = 0; x < width; x++) {
-//				int xo = x+xa*cSIZE;
-//				int a = xo-xoffset;
-//				int b = yo-x+width*2-height/2-xoffset;
-//				pixels[x+y*width] = Rule.colors[getChunkByCoord(a, b).cells[getCellIndex(a, b)]].color;
-////				System.out.println(xo + ", " +  yo +" : "+ (xo+yo));
+//		for(int xc = -1000/64; xc < 10; xc++) {
+//			int xcf = (xc+1000/64)<<Settings.cPOW;
+//			for(int yc = -1; yc < 25; yc++) {
+//				int ycf = (yc)<<Settings.cPOW;
+//				Chunk c = getChunk2(xc+xa-9, yc+ya-xc);
+//				if(c==null) continue;
+//				for(int yo = 0; yo < cSIZE; yo++) {
+//					int y = yo|ycf;
+//					for(int xo = 0; xo < cSIZE; xo++) {
+//						int xp = (xo|xcf);
+//						int yp = y+xo;
+//						if(xp < 0 || yp < 0 || yp >= height || xp >= width) continue;
+//						pixels[xp+yp*width] = colors[c.cells[xo+yo*cSIZE]].color;
+//					}
+//				}
 //			}
 //		}
+//		System.out.println(Ant.x|(Ant.xc<<Settings.cPOW));
+//		System.out.println("{"+(Ant.x|(Ant.xc<<Settings.cPOW)) + ", " + Simulation.iterations+"}");
+	}
+	
+	public static void renderHighway(byte[] pixels, int chunks, int width, int height, boolean followAnt) {
+		int xa = followAnt ? Ant.xc:0;
+		int ya = followAnt ? Ant.yc:0;
+		
+		if(!Settings.renderVoid) for(int i = 0; i < pixels.length; i++) {
+			pixels[i] = 0;
+		} 
+		else for(int i = 0; i < pixels.length; i++) {
+			pixels[i] = 0;
+		}
+		
+		int offset = 0;
+		
+		//Shear transformation		
+		for(int xc = -(Settings.highwaySizew>>Settings.cPOW); xc < 10; xc++) {
+//			System.out.println(xc);
+			int xcf = (xc+(Settings.highwaySizew>>Settings.cPOW))<<Settings.cPOW;
+			for(int yc = -1; yc < 25; yc++) {
+				int ycf = (yc-offset)<<Settings.cPOW;
+				Chunk c = getChunk2(xc+xa-9, yc+ya-xc);
+				if(c==null) continue;
+				for(int yo = 0; yo < cSIZE; yo++) {
+					int y = yo|ycf;
+					for(int xo = 0; xo < cSIZE; xo++) {
+						int xp = (xo|xcf);
+						int yp = y+xo;
+						if(xp < 0 || yp < 0 || yp >= height || xp >= width) continue;
+						pixels[xp+yp*width] = (byte) c.cells[xo+yo*cSIZE];
+					}
+				}
+			}
+		}
+//		System.out.println(Ant.x|(Ant.xc<<Settings.cPOW));
 //		
-//		System.out.println("{"+Ant.x + ", " + Window.iterations+"}");
+//		System.out.println("{"+(Ant.x|(Ant.xc<<Settings.cPOW)) + ", " + Simulation.iterations+"}");
 		
 	}
 }

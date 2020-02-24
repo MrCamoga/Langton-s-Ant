@@ -1,5 +1,16 @@
 # Langton's Ant 
-Multicolor extension of Langton's Ant cellular automaton program that finds highways
+Multicolor extension of Langton's Ant cellular automaton program that finds highways and its period
+
+## TODO
+- [ ] Make it faster
+- [ ] Create server to submit ants tested by users (in PHP or Java)
+	-Send rules to clients to test so that no rule is tested multiple times
+	-Verify rules by different clients
+	-Store rules tested and verified by each user for credit
+	-Prevent people from sending false data (trust system based on rule verification by other users, maybe user auth with twitter)
+- [ ] Improve GUI
+- [x] Save huge raster of highway to estimate its period. This could be use to determine if computing the period is feasible (i.e. if the estimated period is 1e17 it'd take 50 years!!)
+- [ ] Autosave ant state
 
 ## How does it work?
 The program will run through all the rules and try to automatically detect highways
@@ -102,32 +113,40 @@ In total I've tested 159980 rules and found 30507 highways.
 
 |Rule Number|Period|Rule String|
 |:-:|-:|:-|  
-|15416631           |  	 117440512200 |	 RRRLRRLLRLRRRRLLRRLRLRRR|
-|13025588           |  	 66487151028 |	 LLRLRRLLRLLLLLRRLRRLLLRR|
-|13730100           |  	 13498292016 |	 LLRLRRLLRLLLLLLRRLLLRLRR | 
-|3539252            | 	 6740764524 |	 LLRLRRLLRLLLLLLLLRRLRR    |                                  
-|786123             |  	 5307264488 |	 RRLRLLRRLRRRRRRRRRLR       |                                     
-|1605323            |  	 1078710528 |	 RRLRLLRRLRRRRRRLLLLRR       |                                    
-|130123             |  	 320374420  |	 RRLRLLRLLLRRRRRRR            |                                   
-|39795787           |  	 223586484  |	 RRLRLLRLLLRRRRLLRRRRRLRLLR    |                                  
-|34028619          |   	 143634980  |	 RRLRLLRLLLRRRRLLRRRLLLLLLR     |                                 
-|12483659         |    	 136647312  |	 RRLRLLRLLLRRRRRLLRRRRRLR       |                                
-|32144459        |     	 41875566   |	 RRLRLLRLLLRRRRRLLRLRLRRRR      |                               
-|5193419        |      	 41320192   |	 RRLRLLRRLRRRRRLLRRRRLLR        |                              
-|31819         |       	 34911892   |	 RRLRLLRLLLRRRRR                |                             
-|7666763      |        	 33868240   |	 RRLRLLRLLLRRRRRRLLRLRRR        |                           
-|13418804    |         	 33372780   |	 LLRLRRLLRLLLLLRRLLRRLLRR       |
+|15416631       |      	 117440512200 	| RRRLRRLLRLRRRRLLRRLRLRRR    |                                    
+|13025588       |      	 66487151028 	| LLRLRRLLRLLLLLRRLRRLLLRR    |                                    
+|22593844       |      	 28299602536 	| LLRLRRLLRLLLLLRRLLLRRLRLR   |                                    
+|13730100       |      	 13498292016 	| LLRLRRLLRLLLLLLRRLLLRLRR    |                                    
+|3539252        |      	 6740764524 	| LLRLRRLLRLLLLLLLLRRLRR      |                                    
+|786123         |      	 5307264488 	| RRLRLLRRLRRRRRRRRRLR        |                                    
+|1605323        |      	 1078710528 	| RRLRLLRRLRRRRRRLLLLRR       |                                    
+|130123         |      	 320374420  	| RRLRLLRLLLRRRRRRR           |                                    
+|2596555        |      	 281077180  	| RRLRLLRRLRRRRLLRRRRLLR      |                                    
+|39795787       |      	 223586484  	| RRLRLLRLLLRRRRLLRRRRRLRLLR  |                                    
+|34028619       |      	 143634980  	| RRLRLLRLLLRRRRLLRRRLLLLLLR  |                                    
+|12483659       |      	 136647312  	| RRLRLLRLLLRRRRRLLRRRRRLR    |                                    
+|26542388       |      	 79800524   	| LLRLRRLLRLLLLLLLRLRLRLLRR   |                                    
+|1875083        |      	 53908956   	| RRLRLLLRLLRRRLLRLLRRR       |                                    
+|32144459       |      	 41875566   	| RRLRLLRLLLRRRRRLLRLRLRRRR   |                                    
+|5193419        |      	 41320192   	| RRLRLLRRLRRRRRLLRRRRLLR     |                                    
+|41614411       |      	 39359140   	| RRLRLLRLLLRRRRRRLRLRRRRLLR  |                                    
+|31819          |      	 34911892   	| RRLRLLRLLLRRRRR             |                                    
+|7666763        |      	 33868240   	| RRLRLLRLLLRRRRRRLLRLRRR     |                                    
+|13418804       |      	 33372780   	| LLRLRRLLRLLLLLRRLLRRLLRR    |                                    
 
 #### Biggest highways with unknown period
-|Bigger than|Rule String|Rule number|
-|:-:|:-|:-:|
-|83373374780|RRLRLLRRLRRRRRRLLRLLRRR|7503563|
-|1.74e12|RRRLRRLLRLRRRRRRRRRLR|1572151|
-||LLRLRRLRRRLLLLLRRLLLLLRR|| ????
-|6e11|RRRLRRLLRLRRRRRLLRLRRLRR|14318903|
-|1.7e11|RRRLRRLLRLRRRRLLRRRLLRLR|10960183|
-| 586782472424 | \*\* **LLRLRRLLRLLLLLL**RRLLLR |1147188| // 3084,1060,1044. lcm = 71101620
-|1.3e11 |     **LLRLRRLLRLLLLLL**LLLLRLRLR | 11010356 |
+| Tested to # iters	|	Rule String					|	Rule number		|	Size		|	Estimated period|
+|:-:|:-|:-:|:-:|:-:|:-:|
+|	1e13			|	RRRLRRLLRLRRRRLLRRRLLRLR	|	10960183		|	-			|					|
+|	2.19e12			|	RRRLRRLLRLRRRRRLLRLRRLRR	|	14318903		|	-			|					|
+|	1.74e12			|	RRRLRRLLRLRRRRRRRRRLR		|	1572151			|	-			|					|
+|	1.4e10			|	RRLRLLRRLRRRRRRRRRLRLLLLLR	|	34340555   		|	-			|					|
+|  	0				|	RRLRLLRRLRRRRRRRRRLLLLLLRR	|	50593483		|	-			|					|
+|	2.01e12	31%		|	RRLRLLRRLRRRRRRRRRLLLLRLRR	|	54787787		|	777109320	|	6507894229248	|
+|	0				|	RRLRLLRRLRRRRRRRRRLRRLRLRR	|	56360651		|	-			|					|
+|	1.4e12			|	LLRLRRLLRLLLLLLLLRRRLLRLR	|	21889332		|	>= 1573560	|					|
+|	7.6e11   		|	LLRLRRLLRLLLLLLLLLLRLRLR 	| 	11010356		| 	>= 146880	|					|
+| 	586782472424  	| 	LLRLRRLLRLLLLLLRRLLLR 		|	1147188			|   >= 1422032400|	>=11745987624000|
 
 
 #### How I found these huge highways
@@ -136,12 +155,7 @@ Whenever I found a big highway such as <span style="color:red">**RRLRLLRLLLRRRR*
 Since I read the rules backwards (e.g. RRRLRR -> 110111 = 55) I can test rules that start with the same **n** letters really easily:
 
 ```java
-	window.rule = 31819;
-	window.nextrule = new IRule() {
-		public long nextRule(int current) {
-    		return current + (1<<n);
-		}
-	};
+	new Simulation(31819, r -> r+(1<<n));
 ```
 This code will test the following rules (with **n=14** will test every **16384th** rule)
 

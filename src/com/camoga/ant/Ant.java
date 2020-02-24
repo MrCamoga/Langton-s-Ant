@@ -19,7 +19,7 @@ public class Ant {
 		dir = 0;
 		state = 0;
 		saveState = false;
-		currentCycleLength = 0;
+		repeatLength = 0;
 		index = 1;
 		minHighwayPeriod = 0;
 		CYCLEFOUND = false;
@@ -45,6 +45,10 @@ public class Ant {
 			y += directions[dir][1];
 			
 			//OPTIMIZE (chunk coordinates can only change if x/y = 0/cSIZE)
+//			xc += x>>Settings.cPOW;
+//			yc += y>>Settings.cPOW;
+//			x = x&Settings.cSIZEm;
+//			y = y&Settings.cSIZEm;
 			if(x > Settings.cSIZEm) {
 				x = 0;
 				xc++;
@@ -63,7 +67,7 @@ public class Ant {
 	}
 	
 	static boolean saveState = false;
-	public static int currentCycleLength = 0;
+	public static int repeatLength = 0;
 	public static long index = 1;
 	
 	static long minHighwayPeriod = 0;  // This is the final cycle length
@@ -73,18 +77,17 @@ public class Ant {
 		if(!saveState) return false;
 		byte s1 = (byte)(dir<<6 | state); //Only works for rules with <= 64 colors
 		if(index < states.length) states[(int) index] = s1;
-		index++;		
-		byte s2 = states[currentCycleLength];
-		if(s2==s1) currentCycleLength++;
+		index++;
+		if(states[repeatLength]==s1) repeatLength++;
 		else {
-			currentCycleLength = 0;
+			repeatLength = 0;
 			minHighwayPeriod = index;
+			return false;
 		}
 
-		if(currentCycleLength == states.length || currentCycleLength > Settings.repeatcheck*minHighwayPeriod) {
+		if(repeatLength == states.length || repeatLength > Settings.repeatcheck*minHighwayPeriod) {
 			CYCLEFOUND = true;
 			saveState = false;
-//					System.out.println((x-xs-directions[dir][0]+1)/(Settings.repeatcheck+2)+ ", " + (y-ys-directions[dir][1]+1)/(Settings.repeatcheck+2));
 			return true;
 		}
 		return false;

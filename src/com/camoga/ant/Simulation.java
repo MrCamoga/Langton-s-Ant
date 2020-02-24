@@ -5,9 +5,9 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -26,7 +26,6 @@ import com.camoga.ant.Level.Chunk;
 
 public class Simulation {
 
-
 	static long rule = 1;
 //	static Ant ant;
 	static long iterations = 0;
@@ -37,7 +36,7 @@ public class Simulation {
 	
 	static Thread thread;
 	static boolean running;
-	static boolean finished;
+	static boolean finished = true;
 	
 	public Simulation(long startingrule, IRule nextrule) {
 		Simulation.rule = startingrule;
@@ -58,6 +57,7 @@ public class Simulation {
 			Simulation.nextrule = nextrule;
 			Ant.init();
 			Ant.dir = ois.readInt();
+			Ant.state = ois.readInt();
 			Ant.x = ois.readInt();
 			Ant.y = ois.readInt();
 			Ant.xc = ois.readInt();
@@ -65,7 +65,7 @@ public class Simulation {
 			Ant.saveState = ois.readBoolean();
 			if(Ant.saveState) {
 				Ant.index = ois.readLong();
-				Ant.currentCycleLength = ois.readInt();
+				Ant.repeatLength = ois.readInt();
 				Ant.minHighwayPeriod = ois.readLong();
 				Ant.states = ois.readNBytes(200000000);
 			}
@@ -81,11 +81,14 @@ public class Simulation {
 		start();
 	}
 	
-	public static void start() {
+	public static boolean start() {
+		if(!finished) return false;
+		LangtonMain.tray.getTrayIcons()[0].setToolTip("Langton's Ant " + rule);
 		thread = new Thread(() -> run(),"Simulation");
 		thread.start();
 		running = true;
 		finished = false;
+		return true;
 	}
 	
 	public static void stop() {
@@ -108,6 +111,20 @@ public class Simulation {
 			}
 		}
 		finished = true;
+	}
+	
+	protected static void saveBinHighway(File file) {
+		byte[] pixels = new byte[Settings.highwaySizew*Settings.highwaySizeh]; //TODO Use mappedbytebuffer for >= 2GB files
+		Level.renderHighway(pixels, Settings.canvasSize, Settings.highwaySizew, Settings.highwaySizeh, Settings.followAnt);
+		
+		try {
+			FileOutputStream baos = new FileOutputStream(file);
+			baos.write(ByteBuffer.allocate(4).putInt(Settings.highwaySizew).array());
+			baos.write(pixels);
+			baos.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	protected static void saveImage(File file) {
@@ -136,7 +153,7 @@ public class Simulation {
 	public static void saveRule() {
 		try {
 			if(Ant.CYCLEFOUND) {
-				if(Settings.toot && Ant.minHighwayPeriod > 5000) {
+				if(Settings.toot && Ant.minHighwayPeriod > 10000) {
 					//MASTODON BOT mastodon.social/@langtonant
 					BufferedReader fr = new BufferedReader(new FileReader("utctimeschedule.txt"));
 					long utctime = Long.parseLong(fr.readLine());
