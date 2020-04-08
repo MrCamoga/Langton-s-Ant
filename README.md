@@ -46,25 +46,25 @@ In LangtonsMain.java you have to put the starting rule and the function that gen
 ### Some examples:
 #### Test all rules
 ```java
-	new Simulation(1, r->r+1);
+	Simulation.init(1, r->r+1);
 	
 ```
 	
 #### Test rules that start with LRRLLR (test every 2^6 rules, I talk more about this in [Huge Highways](#how-i-found-these-huge-highways))
 ```java
-	new Simulation(0b100110, r -> r+64); //Rules are written backwards (LRRLLR -> 011001 -> 100110)
+	Simulation.init(0b100110, r -> r+64); //Rules are written backwards (LRRLLR -> 011001 -> 100110)
 ```
 
 #### Test random rules
 ```java
-	new Simulation(new Random().nextLong(), r -> new Random().nextLong());
+	Simulation.init(new Random().nextLong(), r -> new Random().nextLong());
 ```
 
 #### Test list of rules
 ```java
 	static int i = 0;
 	long[] rules = new long[]{1,2,27,3873};
-	new Simulation(rules[0], r -> rules[++i]);
+	Simulation.init(rules[0], r -> rules[++i]);
 ```
 	
 ## Settings
@@ -76,10 +76,6 @@ In LangtonsMain.java you have to put the starting rule and the function that gen
 *	**chunkCheck**: when the ant exits that chunk, the program will start finding the highway
 *	**repeatcheck**: # of times the period has to repeat before the highway period is confirmed
 *	**maxiterations**: skip to next rule if limit reached
-
-The program will use save the ant stats to a file to find the highways:
-*	**fileChunkSize**: minimum file size. (Default 2GB)
-*	**maxNumOfChunks**: every time the file is filled its size will increase by 2GB up to "maxNumOfChunks" times
 
 #### Save images:
 *	**savepic**: if true rules with highways will be saved to disk in the folder /"period"/"rule".png (e.g. the regular Langton's Ant would be saved to /104/2.png)
@@ -103,50 +99,66 @@ That's self explanatory
 Returns long[] with all rules that have been tested. If highways == true, only rules that form highways will be returned
 
 ## My findings
-I've tested all rules up to 17 letters (131072) to 100 million iterations each, 16551 of them formed highways
-
-In total I've tested 159980 rules and found 30507 highways.
-
-1921 different periods in total
+932422 rules have been tested
+Of which 429551 form a highway
+5978 distinct periods found
+All rules up to 524292 tested
+All rules up to 19 letters have been tested
+Rules of 20 letters left to test: 487337
 
 #### TOP highways with longest period
 
 |Rule Number|Period|Rule String|
 |:-:|-:|:-|  
-|15416631       |      	 117440512200 	| RRRLRRLLRLRRRRLLRRLRLRRR    |                                    
-|13025588       |      	 66487151028 	| LLRLRRLLRLLLLLRRLRRLLLRR    |                                    
-|22593844       |      	 28299602536 	| LLRLRRLLRLLLLLRRLLLRRLRLR   |                                    
-|13730100       |      	 13498292016 	| LLRLRRLLRLLLLLLRRLLLRLRR    |                                    
-|3539252        |      	 6740764524 	| LLRLRRLLRLLLLLLLLRRLRR      |                                    
-|786123         |      	 5307264488 	| RRLRLLRRLRRRRRRRRRLR        |                                    
-|1605323        |      	 1078710528 	| RRLRLLRRLRRRRRRLLLLRR       |                                    
-|130123         |      	 320374420  	| RRLRLLRLLLRRRRRRR           |                                    
-|2596555        |      	 281077180  	| RRLRLLRRLRRRRLLRRRRLLR      |                                    
-|39795787       |      	 223586484  	| RRLRLLRLLLRRRRLLRRRRRLRLLR  |                                    
-|34028619       |      	 143634980  	| RRLRLLRLLLRRRRLLRRRLLLLLLR  |                                    
-|12483659       |      	 136647312  	| RRLRLLRLLLRRRRRLLRRRRRLR    |                                    
-|26542388       |      	 79800524   	| LLRLRRLLRLLLLLLLRLRLRLLRR   |                                    
-|1875083        |      	 53908956   	| RRLRLLLRLLRRRLLRLLRRR       |                                    
-|32144459       |      	 41875566   	| RRLRLLRLLLRRRRRLLRLRLRRRR   |                                    
-|5193419        |      	 41320192   	| RRLRLLRRLRRRRRLLRRRRLLR     |                                    
-|41614411       |      	 39359140   	| RRLRLLRLLLRRRRRRLRLRRRRLLR  |                                    
-|31819          |      	 34911892   	| RRLRLLRLLLRRRRR             |                                    
-|7666763        |      	 33868240   	| RRLRLLRLLLRRRRRRLLRLRRR     |                                    
-|13418804       |      	 33372780   	| LLRLRRLLRLLLLLRRLLRRLLRR    |                                    
+|54787787             	 |6518789812888   	 |RRLRLLRRLRRRRRRRRRLLLLRLRR                                      |
+|34340555             	 |3409034558708   	 |RRLRLLRRLRRRRRRRRRLRLLLLLR                                      |
+|45089076             	 |200631077404    	 |LLRLRRLLRLLLLLLLLLLLRRLRLR                                      |
+|15416631             	 |117440512200    	 |RRRLRRLLRLRRRRLLRRLRLRRR                                        |
+|52116791             	 |113816934400    	 |RRRLRRLLRLRRRRLLRRLRRLLLRR                                      |
+|5403410740           	 |99463945900     	 |LLRLRRLLRLLLLLLRRLLLRLLLLRLLLLRLR                               |
+|13025588             	 |66487151028     	 |LLRLRRLLRLLLLLRRLRRLLLRR                                        |
+|22593844             	 |28299602536     	 |LLRLRRLLRLLLLLRRLLLRRLRLR                                       |
+|18858376907          	 |26423448520     	 |RRLRLLRRLRRRRRRRRRLRLLLLLLRLLRRLLLR                             |
+|96567604             	 |14264116224     	 |LLRLRRLLRLLLLLLRRLLLLLRRRLR                                     |
+|13730100             	 |13498292016     	 |LLRLRRLLRLLLLLLRRLLLRLRR                                        |
+|23723769547          	 |7112124816      	 |RRLRLLRRLRRRRRRRRRLRLLLLLRRLLLLRRLR                             |
+|3539252              	 |6740764524      	 |LLRLRRLLRLLLLLLLLRRLRR                                          |
+|786123               	 |5307264488      	 |RRLRLLRRLRRRRRRRRRLR                                            |
+|31575506635          	 |3886098700      	 |RRLRLLRRLRRRRRRRRRLRLLLLLRLRRLRLRRR                             |
+|3477339851           	 |3289325504      	 |RRLRLLRRLRRRRRRRRRLLLLRLRRRRLLRR                                |
+|15433015             	 |2868904096      	 |RRRLRRLLRLRRRRRLRRLRLRRR                                        |
+|79790388             	 |2836260568      	 |LLRLRRLLRLLLLLLRRLLLLLRRLLR                                     |
+|50593483             	 |2679229088      	 |RRLRLLRRLRRRRRRRRRLLLLLLRR                                      |
+|6812696884           	 |2147378216      	 |LLRLRRLLRLLLLLLRRLLLRLLLLRRLRLLRR                               |
+                                 
 
 #### Biggest highways with unknown period
-| Tested to # iters	|	Rule String					|	Rule number		|	Size		|	Estimated period|
-|:-:|:-|:-:|:-:|:-:|
-|	1e13			|	RRRLRRLLRLRRRRLLRRRLLRLR	|	10960183		|	-			|					|
-|	2.19e12			|	RRRLRRLLRLRRRRRLLRLRRLRR	|	14318903		|	-			|					|
-|	1.74e12			|	RRRLRRLLRLRRRRRRRRRLR		|	1572151			|	-			|					|
-|	1.4e10			|	RRLRLLRRLRRRRRRRRRLRLLLLLR	|	34340555   		|	-			|					|
-|  	0				|	RRLRLLRRLRRRRRRRRRLLLLLLRR	|	50593483		|	-			|					|
-|	2.01e12	31%		|	RRLRLLRRLRRRRRRRRRLLLLRLRR	|	54787787		|	777109320	|	6507894229248	|
-|	0				|	RRLRLLRRLRRRRRRRRRLRRLRLRR	|	56360651		|	-			|					|
-|	1.4e12			|	LLRLRRLLRLLLLLLLLRRRLLRLR	|	21889332		|	>= 1573560	|					|
-|	7.6e11   		|	LLRLRRLLRLLLLLLLLLLRLRLR 	| 	11010356		| 	>= 146880	|					|
-| 	586782472424  	| 	LLRLRRLLRLLLLLLRRLLLR 		|	1147188			|   >= 1422032400|	>=11745987624000|
+| Tested to # iters	|	Rule String					|	Rule number		|	Highway size	|	Estimated period	|	Real period		|	Rel. Error	|
+|:-:|:-|:-:|:-:|:-:|:-:|:-:|
+|	1.1e13			|	RRLRLLRRLRRRRRRRRRLLLRLLRLR	|	86245067		|	>= 4707316320	|	>=4.18492189e13 	|					| 				|
+| 	1e11		  	| 	LLRLRRLLRLLLLLLRRLLLR 		|	1147188			|   >= 133671045600	|	>=1.104122836656e15	|					|				|
+|	1e13			|	RRRLRRLLRLRRRRLLRRRLLRLR	|	10960183		|	2^42*3 ??		|	3.77616273e16 ??	|					|				|
+|	1.74e12			|	RRRLRRLLRLRRRRRRRRRLR		|	1572151			|	2^40*3 ??		|	5.64742157e15 ??	|					|				|
+|	7.6e11   		|	LLRLRRLLRLLLLLLLLLLRLRLR 	| 	11010356		| 	>= 146880		|						|					|				|
+|	1.4e12			|	LLRLRRLLRLLLLLLLLRRRLLRLR	|	21889332		|	>= 1573560		|						|					|				|
+|	1.5e10			|	RRLRLLRRLRRRRRRRRRLRRLRLRR	|	56360651		|	>= 2364582528	|						|					|				|
+|					|								|	287258857		|					|						|					|				|
+|					|								|	2618392884		|					|						|					|				|
+|					|								|	5470519604		|					|						|					|				|
+|					|								|	5772148427		|					|						|					|				|
+|					|								|	10369105611		|					|						|					|				|
+|					|								|	16241131211		|	>= 65597220		|						|					|				|
+|					|								|	25065946827		|					|						|					|				|
+|					|								|	26106134219		|					|						|					|				|
+|					|								|	28052291275		|					|						|					|				|
+|					|								|	34763177675		|					|						|					|				|
+|					|	LLRLRRLLRLLLLLLLLLLLRRLRLR	|	45089076		|	31460520		|	202740399826		|	200631077404	|	1.05%		|
+|					|	RRLRLLRRLRRRRRRRRRLRLLLLLR	|	34340555   		|	478474920		|	3406262955480 		|	3409034558708	|	0.081%		|
+|					|	RRLRLLRRLRRRRRRRRRLLLLRLRR	|	54787787		|	777109320		|	6524244609340		|	6518789812888	|	0.083%		|
+
+
+
+
 
 
 #### How I found these huge highways
@@ -155,7 +167,7 @@ Whenever I found a big highway such as <span style="color:red">**RRLRLLRLLLRRRR*
 Since I read the rules backwards (e.g. RRRLRR -> 110111 = 55) I can test rules that start with the same **n** letters really easily:
 
 ```java
-	new Simulation(31819, r -> r+(1<<n));
+	Simulation.init(31819, r -> r+(1<<n));
 ```
 This code will test the following rules (with **n=14** will test every **16384th** rule)
 
