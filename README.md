@@ -100,10 +100,15 @@ Returns long[] with all rules that have been tested. If highways == true, only r
 
 ## My findings
 932422 rules have been tested
+
 Of which 429551 form a highway
+
 5978 distinct periods found
+
 All rules up to 524292 tested
+
 All rules up to 19 letters have been tested
+
 Rules of 20 letters left to test: 487337
 
 #### TOP highways with longest period
@@ -112,6 +117,8 @@ Rules of 20 letters left to test: 487337
 |:-:|-:|:-|  
 |54787787             	 |6518789812888   	 |RRLRLLRRLRRRRRRRRRLLLLRLRR                                      |
 |34340555             	 |3409034558708   	 |RRLRLLRRLRRRRRRRRRLRLLLLLR                                      |
+|120192715            	 |317869216552    	 |RRLRLLRRLRRRRRRRRLLRLRLLRRR                                     |
+|5772148427           	 |241836027556    	 |RRLRLLRRLRRRRRRRRRLRLLLLLLLRRLRLR                               |
 |45089076             	 |200631077404    	 |LLRLRRLLRLLLLLLLLLLLRRLRLR                                      |
 |15416631             	 |117440512200    	 |RRRLRRLLRLRRRRLLRRLRLRRR                                        |
 |52116791             	 |113816934400    	 |RRRLRRLLRLRRRRLLRRLRRLLLRR                                      |
@@ -119,17 +126,15 @@ Rules of 20 letters left to test: 487337
 |13025588             	 |66487151028     	 |LLRLRRLLRLLLLLRRLRRLLLRR                                        |
 |22593844             	 |28299602536     	 |LLRLRRLLRLLLLLRRLLLRRLRLR                                       |
 |18858376907          	 |26423448520     	 |RRLRLLRRLRRRRRRRRRLRLLLLLLRLLRRLLLR                             |
+|113508043            	 |20009040104     	 |RRLRLLRRLRRRRRRRRRLLLLRRLRR                                     |
 |96567604             	 |14264116224     	 |LLRLRRLLRLLLLLLRRLLLLLRRRLR                                     |
 |13730100             	 |13498292016     	 |LLRLRRLLRLLLLLLRRLLLRLRR                                        |
 |23723769547          	 |7112124816      	 |RRLRLLRRLRRRRRRRRRLRLLLLLRRLLLLRRLR                             |
+|141229771            	 |6902623604      	 |RRLRLLRRLRRRRRRRLRLRLRRLLLLR                                    |
 |3539252              	 |6740764524      	 |LLRLRRLLRLLLLLLLLRRLRR                                          |
 |786123               	 |5307264488      	 |RRLRLLRRLRRRRRRRRRLR                                            |
 |31575506635          	 |3886098700      	 |RRLRLLRRLRRRRRRRRRLRLLLLLRLRRLRLRRR                             |
 |3477339851           	 |3289325504      	 |RRLRLLRRLRRRRRRRRRLLLLRLRRRRLLRR                                |
-|15433015             	 |2868904096      	 |RRRLRRLLRLRRRRRLRRLRLRRR                                        |
-|79790388             	 |2836260568      	 |LLRLRRLLRLLLLLLRRLLLLLRRLLR                                     |
-|50593483             	 |2679229088      	 |RRLRLLRRLRRRRRRRRRLLLLLLRR                                      |
-|6812696884           	 |2147378216      	 |LLRLRRLLRLLLLLLRRLLLRLLLLRRLRLLRR                               |
                                  
 
 #### Biggest highways with unknown period
@@ -139,13 +144,13 @@ Rules of 20 letters left to test: 487337
 | 	1e11		  	| 	LLRLRRLLRLLLLLLRRLLLR 		|	1147188			|   >= 133671045600	|	>=1.104122836656e15	|					|				|
 |	1e13			|	RRRLRRLLRLRRRRLLRRRLLRLR	|	10960183		|	2^42*3 ??		|	3.77616273e16 ??	|					|				|
 |	1.74e12			|	RRRLRRLLRLRRRRRRRRRLR		|	1572151			|	2^40*3 ??		|	5.64742157e15 ??	|					|				|
+|	4.7e11			|	LLRLRRRLRRLLLRRLLLLLLRLLRLRR|	220226420   	|	> 2^500		??	|						|					|				|
 |	7.6e11   		|	LLRLRRLLRLLLLLLLLLLRLRLR 	| 	11010356		| 	>= 146880		|						|					|				|
 |	1.4e12			|	LLRLRRLLRLLLLLLLLRRRLLRLR	|	21889332		|	>= 1573560		|						|					|				|
 |	1.5e10			|	RRLRLLRRLRRRRRRRRRLRRLRLRR	|	56360651		|	>= 2364582528	|						|					|				|
-|					|								|	287258857		|					|						|					|				|
-|					|								|	2618392884		|					|						|					|				|
+|	4e11			|	LLRLRRLLRLLLLLLLLRRRRRRLRLR	|	92143924		|	>= 886624056	|	>=5.730524292850e12	|					|				|
+|					|								|	96534219		|					|						|					|				|
 |					|								|	5470519604		|					|						|					|				|
-|					|								|	5772148427		|					|						|					|				|
 |					|								|	10369105611		|					|						|					|				|
 |					|								|	16241131211		|	>= 65597220		|						|					|				|
 |					|								|	25065946827		|					|						|					|				|
@@ -153,6 +158,8 @@ Rules of 20 letters left to test: 487337
 |					|								|	28052291275		|					|						|					|				|
 |					|								|	34763177675		|					|						|					|				|
 |					|	LLRLRRLLRLLLLLLLLLLLRRLRLR	|	45089076		|	31460520		|	202740399826		|	200631077404	|	1.05%		|
+|					|								|	5772148427		|	28301520		|	242294338124		|	241836027556	|	0.189%		|
+|					|								|	120192715		|	34543080		|	318476375254		|	317869216552	|	0.191%		|
 |					|	RRLRLLRRLRRRRRRRRRLRLLLLLR	|	34340555   		|	478474920		|	3406262955480 		|	3409034558708	|	0.081%		|
 |					|	RRLRLLRRLRRRRRRRRRLLLLRLRR	|	54787787		|	777109320		|	6524244609340		|	6518789812888	|	0.083%		|
 
@@ -181,6 +188,8 @@ This code will test the following rules (with **n=14** will test every **16384th
 
 #### Some functions that generate lots of highways
 
+5006196
+
 |functions| longest highway | longest highway period | % form highways | info |
 |:-:|:-:|:-:|:-:|:-:|
 |16384n+16075		| **RRLRLLRRLRRRRR**RRRRLR| 5307264488	| 28.1% | biggest highway found |
@@ -207,4 +216,3 @@ This code will test the following rules (with **n=14** will test every **16384th
 |2<sup>n</sup>  for n≥3 | 16n+4 |
 |R**L...L**R**L...L**...R (n L's in each block): __2<sup>n</sup>*(2<sup>n+1</sup>*(2k-1)+1)__ for n>1,  k>0 | same period as 2<sup>n</sup>|
 |L**R...R**L**R...R**...R (n R's in each block): __2<sup>n</sup>*(2<sup>n+1</sup>*(2k+1)-1)-1__ for n>1,  k>0 | same period as 2<sup>n</sup>|
-

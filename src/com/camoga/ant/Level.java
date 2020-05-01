@@ -4,6 +4,7 @@ import static com.camoga.ant.Settings.cSIZE;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import com.camoga.ant.Rule.CellColor;
 
@@ -45,7 +46,7 @@ public class Level {
 	 * @param create chunk if doesn't exist
 	 * @return
 	 */
-	public static Chunk getChunk(int xc, int yc, boolean create) {
+	public static Chunk getChunk(int xc, int yc) {
 		if(xc == lastChunk.x && yc == lastChunk.y) {
 			lastChunk.lastVisit = Simulation.iterations;
 			return lastChunk;
@@ -59,7 +60,6 @@ public class Level {
 				return c;
 			}
 		}
-		if(!create) return null;
 		Chunk c = new Chunk(xc, yc);
 		chunks.add(c);
 		if(!Ant.saveState && Settings.detectHighways && !Ant.CYCLEFOUND && Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck) {
@@ -88,6 +88,8 @@ public class Level {
 	public static void render(int[] pixels, int chunks, int width, int height, boolean followAnt) {
 		int xa = followAnt ? Ant.xc:0;
 		int ya = followAnt ? Ant.yc:0;
+		
+//		System.out.println(xa+","+ya);
 
 		CellColor[] colors = Rule.colors;
 		
@@ -110,19 +112,30 @@ public class Level {
 					for(int xo = 0; xo < cSIZE; xo++) {
 						int index = (xo|xcf) + y;
 						if(index >= pixels.length) continue;
-						pixels[index] = colors[c.cells[i]].color;
+						pixels[index] = colors[c.cells[i]%Rule.colors.length].color;
 						i++;
 					}
 				}
 			}
 		}
 		
-//		for(int xc = -1000/64; xc < 10; xc++) {
-//			int xcf = (xc+1000/64)<<Settings.cPOW;
+//		for(int xc = -(Settings.highwaySizew/128>>Settings.cPOW); xc < 10; xc++) {
+//			int xcf = (xc+(Settings.highwaySizew/128>>Settings.cPOW))<<Settings.cPOW;
 //			for(int yc = -1; yc < 25; yc++) {
-//				int ycf = (yc)<<Settings.cPOW;
+//				int ycf = (yc-7)<<Settings.cPOW;
 //				Chunk c = getChunk2(xc+xa-9, yc+ya-xc);
-//				if(c==null) continue;
+//				if(c==null) {
+//					for(int yo = 0; yo < cSIZE; yo++) {
+//						int y = yo|ycf;
+//						for(int xo = 0; xo < cSIZE; xo++) {
+//							int xp = (xo|xcf);
+//							int yp = y+xo;
+//							if(xp < 0 || yp < 0 || yp >= height || xp >= width) continue;
+//							pixels[xp+yp*width] = 0xffff0000;
+//						}
+//					}
+//					continue;
+//				};
 //				for(int yo = 0; yo < cSIZE; yo++) {
 //					int y = yo|ycf;
 //					for(int xo = 0; xo < cSIZE; xo++) {
@@ -135,21 +148,20 @@ public class Level {
 //			}
 //		}
 //		System.out.println(Ant.x|(Ant.xc<<Settings.cPOW));
+//		Settings.highwaySizew = 1000000;
+//		Settings.highwaySizeh = 768;
+//		Settings.deleteOldChunks = true;
+//		Settings.toot = true; 
+//		System.out.println(Settings.highwaySizeh+","+Settings.highwaySizew);
+//		Settings.itpf = 100;
 //		System.out.println("{"+(Ant.x|(Ant.xc<<Settings.cPOW)) + ", " + Simulation.iterations+"}");
 	}
 	
 	public static void renderHighway(byte[] pixels, int chunks, int width, int height, boolean followAnt) {
 		int xa = followAnt ? Ant.xc:0;
 		int ya = followAnt ? Ant.yc:0;
-		
-		if(!Settings.renderVoid) for(int i = 0; i < pixels.length; i++) {
-			pixels[i] = 0;
-		} 
-		else for(int i = 0; i < pixels.length; i++) {
-			pixels[i] = 0;
-		}
-		
-		int offset = 0;
+//		int ya = -xa+1;
+		int offset = 7;
 		
 		//Shear transformation		
 		for(int xc = -(Settings.highwaySizew>>Settings.cPOW); xc < 10; xc++) {

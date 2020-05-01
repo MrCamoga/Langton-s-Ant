@@ -34,12 +34,12 @@ public class Ant {
 		int i = 0;
 		for(; i < Settings.itpf; i++) {
 			if(checkCycle(dir, state)) break;
-			Chunk c = Level.getChunk(xc, yc, true);
+			Chunk c = Level.getChunk(xc, yc);
 			int index = x|(y<<Settings.cPOW);
 			state = c.cells[index];
 			boolean right = Rule.colors[state].right;
 			dir = (dir + (right ? 1:-1))&0b11;
-			c.cells[index] = (state+1) % Rule.colors.length;
+			if(++c.cells[index] == Rule.colors.length) c.cells[index] = 0;
 			
 			x += directions[dir][0];
 			y += directions[dir][1];

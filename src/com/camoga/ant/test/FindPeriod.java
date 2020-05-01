@@ -5,13 +5,14 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.HashSet;
 
 import javax.imageio.ImageIO;
 
 public class FindPeriod {
 	public static void main(String[] args) throws Exception {
-		highwayWidth2("RRLRLLRRLRRRRRRRRRLLLLRLRR.bin");
+		highwayWidth2("92143924.bin");
 	}
 	
 	public static void highwayWidth(String path) throws Exception {
@@ -21,8 +22,9 @@ public class FindPeriod {
 		HashSet<Integer> subperiods = new HashSet<Integer>(); //Subperiod is the period of one row
 		boolean unknown = false;
 		h:for(int y = 0; y < height; y++) {
-			p:for(int period = 1; period < width-1000; period++) {
-				for(int x = 0; x < width-period; x++) {
+			p:for(int period = 1; period < width; period++) {
+				System.out.println(period);
+				for(int x = 10000; x < width-period-10000; x++) {
 					if(pixels[x+y*width] != pixels[x+period+y*width]) continue p;
 				}
 				System.out.println(y + ": " + period);
@@ -40,19 +42,21 @@ public class FindPeriod {
 	
 	public static void highwayWidth2(String path) throws Exception {
 		BufferedInputStream bis = new BufferedInputStream(new FileInputStream(new File(path)));
-		byte[] bw = new byte[4];
+		byte[] bw = new byte[8];
 		bis.read(bw);
-		int width = ByteBuffer.wrap(bw).getInt();
-		byte[] pixels = bis.readAllBytes();
-		bis.close();
-		int height = pixels.length/width;
+		ByteBuffer bb = ByteBuffer.wrap(bw);
+		int width = bb.getInt();
+		int height = bb.getInt();
 		System.out.println(width+ ","+height);
 		HashSet<Integer> subperiods = new HashSet<Integer>(); //Subperiod is the period of one row
 		boolean unknown = false;
 		h:for(int y = 0; y < height; y++) {
-			p:for(int period = 1; period < width-1000; period++) {
-				for(int x = 0; x < width-period; x++) {
-					if(pixels[x+y*width] != pixels[x+period+y*width]) continue p;
+			byte[] pixels = bis.readNBytes(width);
+			int xs = 0;
+			p:for(int period = 1; period < width*0.9; period++) {
+//				System.out.println(period);
+				for(int x = xs; x < width-period; x++) {
+					if(pixels[x] != pixels[x+period]) continue p;
 				}
 				System.out.println(y + ": " + period);
 				subperiods.add(period);

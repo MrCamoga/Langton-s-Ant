@@ -4,13 +4,11 @@ public class Settings {
 	
 	//GUI
 	
-	static int canvasSize = 8; // size of canvas (and output image) in chunks (e.g. scale = 16, cSIZE = 64 => size = 1024x1024)
-	static boolean gui = true;
+	static int canvasSize = 4; // size of canvas (and output image) in chunks (e.g. scale = 16, cSIZE = 64 => size = 1024x1024)
 	static boolean followAnt = true;
 	static boolean smoothFollow = false; //TODO
 	static boolean renderVoid = false; // draws black where no chunk has been generated
 	static int itpf = 33333334; // iterations between frames
-	static boolean printlog = true;
 	
 	//LEVEL
 	
@@ -25,15 +23,16 @@ public class Settings {
 	//FIND HIGHWAYS
 	
 	static boolean ignoreSavedRules = true; // If true skips all rules that have already been tested
-	static final String file = "ruleperiods.langton";
+	public static final String file = "ruleperiods.langton";
 	static int chunkCheck = 90; // Check if the ant forms a highway when the ant goes further than this chunk from the origin
 	static float repeatcheck = 40; // Number of times the period has to repeat to confirm that it's correct (e.g. You're more certain that 10101010101010101010 has a period of 2 than 1010)
 	static boolean detectHighways = true; //Detects if the ant follows a periodic pattern
-	static long maxiterations = (long) 1e8; // After this many iterations, program moves to next rule
-	static boolean saverule = true; // saves rule to file
-
-	static int highwaySizew = 1000000;
-	static int highwaySizeh = 1000;
+	static long maxiterations = (long) 1.2e8; // After this many iterations, program moves to next rule
+	static boolean autosave = false;
+	
+	static int highwaySizew = 400000;
+	static int highwaySizeh = 800;
+	
 	
 	//OUTPUT IMAGES
 	static boolean toot = false;
