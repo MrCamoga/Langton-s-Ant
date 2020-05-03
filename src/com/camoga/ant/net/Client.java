@@ -208,12 +208,12 @@ public class Client {
 		boolean gui = true;
 		for(int i = 0; i < args.length; i++) {
 			String cmd = args[i];
-			if(cmd.startsWith("-")) {
+			if(cmd.startsWith("--")) {
+				if(cmd.equalsIgnoreCase("--nogui")) gui = false;
+			} else if(cmd.startsWith("-")) {
 				if(cmd.equalsIgnoreCase("-h")) {
 					host = args[++i];
 				}
-			} else if(cmd.startsWith("--")) {
-				if(cmd.equalsIgnoreCase("--nogui")) gui = false;
 			}
 		}
 		
