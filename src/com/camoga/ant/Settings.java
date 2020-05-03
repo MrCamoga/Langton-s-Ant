@@ -4,7 +4,7 @@ public class Settings {
 	
 	//GUI
 	
-	static int canvasSize = 4; // size of canvas (and output image) in chunks (e.g. scale = 16, cSIZE = 64 => size = 1024x1024)
+	public static int canvasSize = 8; // size of canvas (and output image) in chunks (e.g. scale = 16, cSIZE = 64 => size = 1024x1024)
 	static boolean followAnt = true;
 	static boolean smoothFollow = false; //TODO
 	static boolean renderVoid = false; // draws black where no chunk has been generated
@@ -17,7 +17,7 @@ public class Settings {
 	 *  Size of chunks = 2^cPOW
 	 */
 	static final int cPOW = 7;
-	static final int cSIZE = 1<<cPOW;
+	public static final int cSIZE = 1<<cPOW;
 	static final int cSIZEm = cSIZE-1;
 	
 	//FIND HIGHWAYS

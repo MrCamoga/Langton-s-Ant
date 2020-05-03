@@ -12,6 +12,7 @@ public class Ant {
 	static byte[] states = new byte[200000000];
 	
 	public static void init() {
+		if(states == null) states = new byte[Settings.maxiterations == -1 ? 200000000:(int) Math.min(Settings.maxiterations, 200000000)];
 		x = 0;
 		y = 0;
 		xc = 0;
@@ -66,12 +67,12 @@ public class Ant {
 		return i;
 	}
 	
-	static boolean saveState = false;
+	public static boolean saveState = false;
 	public static int repeatLength = 0;
 	public static long index = 1;
 	
-	static long minHighwayPeriod = 0;  // This is the final cycle length
-	static boolean CYCLEFOUND = false;
+	public static long minHighwayPeriod = 0;  // This is the final cycle length
+	public static boolean CYCLEFOUND = false;
 	
 	private static boolean checkCycle(int dir, int state) {
 		if(!saveState) return false;

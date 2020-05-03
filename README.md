@@ -2,15 +2,27 @@
 Multicolor extension of Langton's Ant cellular automaton program that finds highways and its period
 
 ## TODO
-- [ ] Make it faster
-- [ ] Create server to submit ants tested by users (in PHP or Java)
-	-Send rules to clients to test so that no rule is tested multiple times
+- [x] Create server to submit ants tested by users (in PHP or Java)
+
+	-[x]Send rules to clients to test so that no rule is tested multiple times
+	
 	-Verify rules by different clients
-	-Store rules tested and verified by each user for credit
-	-Prevent people from sending false data (trust system based on rule verification by other users, maybe user auth with twitter)
+	-[x]Store rules tested and verified by each user for credit
+	-Prevent people from sending false data (trust system based on rule verification by other users)
 - [ ] Improve GUI
 - [x] Save huge raster of highway to estimate its period. This could be use to determine if computing the period is feasible (i.e. if the estimated period is 1e17 it'd take 50 years!!)
-- [ ] Autosave ant state
+- [x] Autosave ant state
+- [ ] Different work types:
+
+	- Check new rules
+	
+	- Verify rules (mostly periods)
+	
+	- Approximate period of big highways (or triangles/squares to discard them)
+	
+	- Find exact period of big highways
+	
+- [ ] Alg to differenciate between highways/triangles/squares
 
 ## How does it work?
 The program will run through all the rules and try to automatically detect highways
@@ -70,9 +82,7 @@ In LangtonsMain.java you have to put the starting rule and the function that gen
 ## Settings
 #### Find highways:
 *	**detectHighways**: program will try to detect highways if this is true
-*	**saverule**: if true rules will be saved to file
 *	**ignoreSavedRules**: ignores rules that have already been tested
-*	**file**: file where tested rules will be saved
 *	**chunkCheck**: when the ant exits that chunk, the program will start finding the highway
 *	**repeatcheck**: # of times the period has to repeat before the highway period is confirmed
 *	**maxiterations**: skip to next rule if limit reached
@@ -84,32 +94,18 @@ In LangtonsMain.java you have to put the starting rule and the function that gen
 *	**deleteOldChunks**: deletes chunks that haven't been visited by the ant in the last 100M steps  to free up memory
 
 
-## IORules.java
-
-At the start of this class I explain how the rules are stored in the binary file.
-
-This class implements some methods to read the rules from the file
-#### cleanRulesFile()
-Removes repeated rules, and sorts them by rule id
-#### getInfo()
-Prints info about the rules tested (# of rules tested, how many highways there are, biggest highways found,...)
-#### saveRulesToTxt()
-That's self explanatory
-#### searchSavedRules(boolean highways)
-Returns long[] with all rules that have been tested. If highways == true, only rules that form highways will be returned
-
 ## My findings
-932422 rules have been tested
+1242908 rules have been tested
 
-Of which 429551 form a highway
+Of which 471980 form a highway
 
-5978 distinct periods found
+7320 distinct periods found
 
-All rules up to 524292 tested
+All rules up to 773204 tested
 
 All rules up to 19 letters have been tested
 
-Rules of 20 letters left to test: 487337
+Rules of 20 letters left to test: 204565
 
 #### TOP highways with longest period
 

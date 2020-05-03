@@ -1,4 +1,4 @@
-package com.camoga.ant.test.net;
+package com.camoga.ant.net;
 
 public enum PacketType {
 	INVALID(-1),

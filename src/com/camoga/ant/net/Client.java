@@ -1,4 +1,4 @@
-package com.camoga.ant.test.net;
+package com.camoga.ant.net;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -7,7 +7,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Properties;
@@ -19,9 +22,9 @@ import com.camoga.ant.Rule;
 import com.camoga.ant.Simulation;
 import com.camoga.ant.gui.Window;
 
-public class Client {
+public class Client {	
 	
-	static final Logger LOG = Logger.getLogger("Client");
+	public static final Logger LOG = Logger.getLogger("Client");
 	Socket socket;
 	DataOutputStream os;
 	DataInputStream is;
@@ -31,17 +34,16 @@ public class Client {
 	Thread ant;
 	Thread connectionthread;
 	boolean running = true;
-	boolean antrunning = false;
+	public boolean antrunning = false;
 	public boolean logged = false;
 	public static String username;
 	
-	int ruleindex = 0;
-	public ArrayList<long[]> assignments;
+	public ArrayList<long[]> assignments = new ArrayList<long[]>();
 	public ByteBuffer results;
 	
 	public static Client client;
 	
-	public Client() throws IOException{
+	public Client(String host) throws IOException{
 		LOG.setLevel(java.util.logging.Level.INFO);
 		System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s: %5$s%n");
 		
@@ -52,19 +54,33 @@ public class Client {
 			new File("langton.properties").createNewFile();
 		}
 		
-		socket = new Socket("langtonsant.sytes.net",7357);
+		socket = new Socket(host,7357);
 		os = new DataOutputStream(socket.getOutputStream());
 		is = new DataInputStream(socket.getInputStream());
 		
 		LOG.info("Connected to server");
 		
 		if(properties.getProperty("username") != null) {
-			LOG.info("Logging automatically");
+			LOG.info("Logging in automatically");
 			login(properties.getProperty("username"), new BigInteger(Client.properties.getProperty("hash"),16).toString(16));
 		}
 		
 		connectionthread = new Thread(() -> run(), "Client Thread");
 		connectionthread.start();
+	}
+	
+	public void register(String username, String hash) {
+		if(logged) return;
+		
+		try {
+			os.writeByte(PacketType.REGISTER.getId());
+			os.writeByte(hash.length());
+			os.write(hash.getBytes());
+			os.writeByte(username.length());
+			os.write(username.getBytes());
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void login(String username, String hash) {
@@ -82,7 +98,7 @@ public class Client {
 	}
 	
 	public void getAssigment(int size) {
-		if(!logged || antrunning) return;
+		if(!logged) return;
 		try {
 			os.write(PacketType.GETASSIGNMENT.getId());
 			os.writeInt(size);
@@ -97,8 +113,9 @@ public class Client {
 			os.write(PacketType.SENDRESULTS.getId());
 			os.writeInt(assignments.get(0).length);
 			os.write(results.array());
-
-			results = ByteBuffer.allocate(24*assignments.get(1).length); //TODO error
+			
+			assignments.remove(0);
+			if(assignments.size() > 0)	results = ByteBuffer.allocate(24*assignments.get(0).length);
 		} catch(IOException e) {
 			e.printStackTrace();
 		}
@@ -113,8 +130,10 @@ public class Client {
 					byte result = is.readByte();
 					if(result == 0) {
 						username = new String(is.readNBytes(is.readByte()));
-						LOG.info("Logged as " + username);
+						LOG.info("Logged in as " + username);
 						logged = true;
+						getAssigment(20);
+						getAssigment(20);
 					} else if(result == 1) {
 						Client.username = null;
 						LOG.warning("Wrong username or password!");
@@ -127,9 +146,17 @@ public class Client {
 					for(int i = 0; i < size; i++) {
 						rules[i] = bb.getLong();
 					}
+					if(results == null) {
+						results = ByteBuffer.allocate(size*24);
+					}
 					LOG.info("New assignment of " + size + " rules!");
-					ruleindex = 0;
+					assignments.add(rules);
 					testRules();
+					break;
+				case REGISTER:
+					int ok = is.readByte();
+					if(ok==0) LOG.info("Account registered");
+					else if(ok==1) LOG.warning("Username already registered");
 					break;
 				default:
 					break;
@@ -137,27 +164,32 @@ public class Client {
 			}
 		
 			socket.close();
+		} catch(SocketException e) {
+			LOG.warning("Lost connection with the server");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public void testRules() {
+	public synchronized void testRules() {
 		if(antrunning) return;
 		antrunning = true;
 		ant = new Thread(() -> {
-			for(int i = 0; i < assignments.get(0).length; i++) {
-				Ant.init();
-				long rule = getRule();
-				Rule.createRule(rule);
-				Level.init();
-				Simulation.iterations = 0;
-				LOG.fine(rule + "\t" + Rule.string(rule));
-				storeRule(Simulation.runRule(rule));
+			long time = System.currentTimeMillis();
+			while(assignments.size() > 0) {
+				for(int i = 0; i < assignments.get(0).length; i++) {
+					Ant.init();
+					long rule = assignments.get(0)[i];
+					Rule.createRule(rule);
+					Level.init();
+					Simulation.iterations = 0;
+					storeRule(Simulation.runRule(rule));
+					LOG.info(rule + "\t" + Rule.string(rule) + "\t " + (-time + (time = System.currentTimeMillis()))/1000.0 + "s");
+				}
+				sendResults();
+				getAssigment(20);
+				time = System.currentTimeMillis();
 			}
-			sendResults();
-			antrunning = false;
-			getAssigment(200);
 		}, "Langtons Ant");
 		ant.start();
 		
@@ -172,12 +204,21 @@ public class Client {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		new Window();
-		client = new Client();
-	}
-	
-	public synchronized long getRule() {
-		return assignments.get(0)[ruleindex++];
+		String host = "langtonsant.sytes.net";
+		boolean gui = true;
+		for(int i = 0; i < args.length; i++) {
+			String cmd = args[i];
+			if(cmd.startsWith("-")) {
+				if(cmd.equalsIgnoreCase("-h")) {
+					host = args[++i];
+				}
+			} else if(cmd.startsWith("--")) {
+				if(cmd.equalsIgnoreCase("--nogui")) gui = false;
+			}
+		}
+		
+		client = new Client(host);
+		if(gui) new Window();
 	}
 	
 	public void storeRule(long[] rule) {

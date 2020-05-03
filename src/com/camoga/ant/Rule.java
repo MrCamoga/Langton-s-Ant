@@ -5,6 +5,7 @@ import java.util.Random;
 public class Rule {
 	
 	public static CellColor[] colors;
+	public static long rule;
 	
 	public static class CellColor {
 		int color;
@@ -17,6 +18,7 @@ public class Rule {
 	}
 	
 	public static void createRule(long rule) {
+		Rule.rule = rule;
 		colors = new CellColor[(int) (Math.log(rule)/Math.log(2)+1)];
 		long seed = -8485983343335656213L;
 		Random r = new Random();
