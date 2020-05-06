@@ -9,6 +9,7 @@ Multicolor extension of Langton's Ant cellular automaton program that finds high
 	-Verify rules by different clients
 	-[x]Store rules tested and verified by each user for credit
 	-Prevent people from sending false data (trust system based on rule verification by other users)
+- [ ] Webpage to visualize all the data
 - [ ] Improve GUI
 - [x] Save huge raster of highway to estimate its period. This could be use to determine if computing the period is feasible (i.e. if the estimated period is 1e17 it'd take 50 years!!)
 - [x] Autosave ant state
@@ -32,52 +33,22 @@ After the ant reaches maximum iterations or highway has been found, the program 
 **Example output:**
 
 ```
-  134987	3096
-  134991	160
-  134995	292
-  135001	?
-  135003	18
-  135011	264
-  135012	18
-  135015	210
-  135018	180
-  135027	1692
-  135031	52
-  135034	132
+INFO: 1010973	RLRRRLLLRLRRLRRLRRRR	 5.9763936E7 it/s	2.231s
+INFO: 1010974	LRRRRLLLRLRRLRRLRRRR	 5.8737152E7 it/s	2.27s
+INFO: 1010975	RRRRRLLLRLRRLRRLRRRR	 6.1585836E7 it/s	2.165s
+INFO: 1010976	LLLLLRLLRLRRLRRLRRRR	 6.1814248E7 it/s	2.157s
+INFO: 1010977	RLLLLRLLRLRRLRRLRRRR	 5.9023168E7 it/s	2.259s
+INFO: 1010978	LRLLLRLLRLRRLRRLRRRR	 5.4869684E7 it/s	2.43s
+INFO: 1010979	RRLLLRLLRLRRLRRLRRRR	 6.2334428E7 it/s	2.139s
+INFO: 1010981	RLRLLRLLRLRRLRRLRRRR	 6.1022124E7 it/s	2.185s
+INFO: 1010982	LRRLLRLLRLRRLRRLRRRR	 6.0468636E7 it/s	2.205s
+INFO: 1010983	RRRLLRLLRLRRLRRLRRRR	 5.8505192E7 it/s	2.279s
+INFO: 1010984	LLLRLRLLRLRRLRRLRRRR	 6.068882E7 it/s	2.197s
 ```
 
-That **?** means that the program had started finding the highway but the ant reached max iterations before finding the highway.
+it/s = iterations per second
 
-All rules tested are saved to a binary file if **Settings.saverule** is set to true.
-
-In IORules.java I explain how the rules are stored in the binary file.
-	
-## Usage
-In LangtonsMain.java you have to put the starting rule and the function that generates the next rule to be tested.
-
-### Some examples:
-#### Test all rules
-```java
-	Simulation.init(1, r->r+1);
-	
-```
-	
-#### Test rules that start with LRRLLR (test every 2^6 rules, I talk more about this in [Huge Highways](#how-i-found-these-huge-highways))
-```java
-	Simulation.init(0b100110, r -> r+64); //Rules are written backwards (LRRLLR -> 011001 -> 100110)
-```
-
-#### Test random rules
-```java
-	Simulation.init(new Random().nextLong(), r -> new Random().nextLong());
-```
-
-#### Test list of rules
-```java
-	static int i = 0;
-	long[] rules = new long[]{1,2,27,3873};
-	Simulation.init(rules[0], r -> rules[++i]);
-```
+All rules tested are sent to the server and stored in the database.
 	
 ## Settings
 #### Find highways:
@@ -94,18 +65,18 @@ In LangtonsMain.java you have to put the starting rule and the function that gen
 *	**deleteOldChunks**: deletes chunks that haven't been visited by the ant in the last 100M steps  to free up memory
 
 
-## My findings
-1242908 rules have been tested
+## Our findings
+1421748 rules have been tested
 
-Of which 471980 form a highway
+Of which 484646 form a highway
 
-7320 distinct periods found
+7405 distinct periods found
 
-All rules up to 773204 tested
+All rules up to 1010929 tested
 
 All rules up to 19 letters have been tested
 
-Rules of 20 letters left to test: 204565
+Rules of 20 letters left to test: 25545
 
 #### TOP highways with longest period
 

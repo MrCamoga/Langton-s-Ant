@@ -7,8 +7,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.net.Inet4Address;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
@@ -19,6 +17,7 @@ import java.util.logging.Logger;
 import com.camoga.ant.Ant;
 import com.camoga.ant.Level;
 import com.camoga.ant.Rule;
+import com.camoga.ant.Settings;
 import com.camoga.ant.Simulation;
 import com.camoga.ant.gui.Window;
 
@@ -175,7 +174,7 @@ public class Client {
 		if(antrunning) return;
 		antrunning = true;
 		ant = new Thread(() -> {
-			long time = System.currentTimeMillis();
+			long time;
 			while(assignments.size() > 0) {
 				for(int i = 0; i < assignments.get(0).length; i++) {
 					Ant.init();
@@ -183,12 +182,15 @@ public class Client {
 					Rule.createRule(rule);
 					Level.init();
 					Simulation.iterations = 0;
+					time = System.currentTimeMillis();
 					storeRule(Simulation.runRule(rule));
-					LOG.info(rule + "\t" + Rule.string(rule) + "\t " + (-time + (time = System.currentTimeMillis()))/1000.0 + "s");
+					float seconds = (-time + (time = System.currentTimeMillis()))/1000f;
+					LOG.info(rule + "\t" + Rule.string(rule) + "\t " + Simulation.iterations/seconds + " it/s\t" + seconds+ "s");
+//					LOG.info((Runtime.getRuntime().totalMemory() -Runtime.getRuntime().freeMemory())/1e6+"MB");
 				}
 				sendResults();
 				getAssigment(20);
-				time = System.currentTimeMillis();
+				System.gc();
 			}
 		}, "Langtons Ant");
 		ant.start();
@@ -211,14 +213,22 @@ public class Client {
 			if(cmd.startsWith("--")) {
 				if(cmd.equalsIgnoreCase("--nogui")) gui = false;
 			} else if(cmd.startsWith("-")) {
-				if(cmd.equalsIgnoreCase("-h")) {
-					host = args[++i];
+				String param = args[++i];
+				switch(cmd) {
+				case "-h":
+					host = param;
+					break;
+				case "-cs":
+					Settings.setChunkSize(Integer.parseInt(param));
+					break;
 				}
+			} else {
+				throw new RuntimeException("Invalid parameters");
 			}
 		}
 		
 		client = new Client(host);
-		if(gui) new Window();
+		if(gui) new Window();		
 	}
 	
 	public void storeRule(long[] rule) {

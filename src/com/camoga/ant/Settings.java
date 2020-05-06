@@ -16,9 +16,16 @@ public class Settings {
 	 * 	Map is stored in chunks
 	 *  Size of chunks = 2^cPOW
 	 */
-	static final int cPOW = 7;
-	public static final int cSIZE = 1<<cPOW;
-	static final int cSIZEm = cSIZE-1;
+	static int cPOW = 7;
+	public static int cSIZE = 1<<cPOW;
+	static int cSIZEm = cSIZE-1;
+	
+	public static void setChunkSize(int pow) {
+		if(pow < 1 || pow > 10) throw new RuntimeException("Invalid chunk size");
+		cPOW = pow;
+		cSIZE = 1<<pow;
+		cSIZEm = cSIZE-1;
+	}
 	
 	//FIND HIGHWAYS
 	

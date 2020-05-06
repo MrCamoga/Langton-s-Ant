@@ -9,10 +9,10 @@ public class Ant {
 	
 	static final int[][] directions = new int[][] {{0,-1},{1,0},{0,1},{-1,0}};
 	
-	static byte[] states = new byte[200000000];
+	static byte[] states;
 	
 	public static void init() {
-		if(states == null) states = new byte[Settings.maxiterations == -1 ? 200000000:(int) Math.min(Settings.maxiterations, 200000000)];
+		if(states == null) states = new byte[Settings.maxiterations == -1 ? 200000000:(int) Math.min(Settings.maxiterations/Settings.repeatcheck, 200000000)];
 		x = 0;
 		y = 0;
 		xc = 0;

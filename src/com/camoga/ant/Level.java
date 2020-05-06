@@ -4,7 +4,6 @@ import static com.camoga.ant.Settings.cSIZE;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 
 import com.camoga.ant.Rule.CellColor;
 
@@ -23,7 +22,7 @@ public class Level {
 		
 		long lastVisit;
 		
-		public int[] cells = new int[cSIZE*cSIZE];
+		public byte[] cells = new byte[cSIZE*cSIZE];
 		
 		public Chunk(int x, int y) {
 			this.x = x;
