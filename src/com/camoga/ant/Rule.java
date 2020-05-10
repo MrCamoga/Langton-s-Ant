@@ -6,6 +6,7 @@ public class Rule {
 	
 	public static CellColor[] colors;
 	public static long rule;
+	public static byte size;
 	
 	public static class CellColor {
 		int color;
@@ -20,6 +21,7 @@ public class Rule {
 	public static void createRule(long rule) {
 		Rule.rule = rule;
 		colors = new CellColor[(int) (Math.log(rule)/Math.log(2)+1)];
+		size = (byte) colors.length;
 		long seed = -8485983343335656213L;
 		Random r = new Random();
 		for(int i = 0; i < colors.length; i++) {

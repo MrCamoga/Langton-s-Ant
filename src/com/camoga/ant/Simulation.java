@@ -6,16 +6,13 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Date;
 
 import javax.imageio.ImageIO;
@@ -30,38 +27,38 @@ public class Simulation {
 	static boolean running;
 	static long autosavetimer;
 	
-	public static void init(String file, IRule nextrule) {
-		try {
-			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
-			iterations = ois.readLong();
-			long rule = ois.readLong();
-			System.out.println(rule);
-			Rule.createRule(rule);
-//			Simulation.nextrule = nextrule;
-			Ant.init();
-			Ant.dir = ois.readInt();
-			Ant.state = ois.readInt();
-			Ant.x = ois.readInt();
-			Ant.y = ois.readInt();
-			Ant.xc = ois.readInt();
-			Ant.yc = ois.readInt();
-			Ant.saveState = ois.readBoolean();
-			if(Ant.saveState) {
-				Ant.index = ois.readLong();
-				Ant.repeatLength = ois.readInt();
-				Ant.minHighwayPeriod = ois.readLong();
-				Ant.states = ois.readNBytes(200000000);
-			}
-			Level.chunks = (ArrayList<Level.Chunk>)ois.readObject();
-			Level.lastChunk = Level.chunks.get(0);
-			ois.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-//		if(Settings.ignoreSavedRules) savedRules = IORules.searchSavedRules(false);
-		autosavetimer = System.currentTimeMillis();
-	}
+//	public static void init(String file, IRule nextrule) {
+//		try {
+//			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
+//			iterations = ois.readLong();
+//			long rule = ois.readLong();
+//			System.out.println(rule);
+//			Rule.createRule(rule);
+////			Simulation.nextrule = nextrule;
+//			Ant.init();
+//			Ant.dir = ois.readInt();
+//			Ant.state = ois.readInt();
+//			Ant.x = ois.readInt();
+//			Ant.y = ois.readInt();
+//			Ant.xc = ois.readInt();
+//			Ant.yc = ois.readInt();
+//			Ant.saveState = ois.readBoolean();
+//			if(Ant.saveState) {
+//				Ant.index = ois.readLong();
+//				Ant.repeatLength = ois.readInt();
+//				Ant.minHighwayPeriod = ois.readLong();
+//				Ant.states = ois.readNBytes(200000000);
+//			}
+//			Level.chunks = (ArrayList<Level.Chunk>)ois.readObject();
+//			Level.lastChunk = Level.chunks.get(0);
+//			ois.close();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//
+////		if(Settings.ignoreSavedRules) savedRules = IORules.searchSavedRules(false);
+//		autosavetimer = System.currentTimeMillis();
+//	}
 	
 	
 	public static void stop() {
@@ -148,32 +145,6 @@ public class Simulation {
 			FileWriter fw = new FileWriter("utctimeschedule.txt", false);
 			fw.write(utctime+7200+"");
 			fw.close();
-		}
-	}
-	
-	public static void saveRule(long rule) {
-		try {
-			if(Ant.CYCLEFOUND) {
-				toot(rule);
-				if(Settings.savepic) {
-					File dir = new File(Ant.minHighwayPeriod+"");
-					boolean newdir = !dir.exists() ? dir.mkdir():false;
-					saveImage(rule, new File(Ant.minHighwayPeriod + "/"+rule+".png"));
-				}
-			} else if(Ant.saveState) {
-				if(Settings.savepic) saveImage(rule, new File(0 + "/" + rule+".png"));
-			}
-			long period = Ant.CYCLEFOUND ? Ant.minHighwayPeriod:(Ant.saveState ? 1:0);
-//			FileOutputStream fos = new FileOutputStream(Settings.file, true);
-//			fos.write(ByteBuffer.allocate(16).putLong(rule).putLong(period).array());
-//			fos.close();
-			
-//			if(savedRules!=null) {
-//				int index = Collections.binarySearch(savedRules, rule);
-//				if(index < 0) savedRules.add(-index-1, rule);				
-//			}
-		} catch (IOException e1) {
-			e1.printStackTrace();
 		}
 	}
 }

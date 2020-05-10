@@ -4,7 +4,6 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileOutputStream;
-import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.Arrays;
 
@@ -24,8 +23,8 @@ public class ServerActionListener implements ActionListener {
 		case "Connect to Server":
 			JPanel panel = new JPanel();
 			if(Client.client.logged) {
-				JOptionPane.showConfirmDialog(Window.f, "You are already logged as " + Client.client.username, "Connect to Server", JOptionPane.OK_CANCEL_OPTION);
-			} else if(Client.properties.getProperty("username") == null){
+				JOptionPane.showConfirmDialog(Window.f, "You are already logged as " + Client.username, "Connect to Server", JOptionPane.OK_CANCEL_OPTION);
+			} else if(Client.properties.getProperty("username") == null || Client.properties.getProperty("hash") == null){
 				Object[] options = new Object[] {"Cancel", "Register", "Login"};
 				
 				JTextField username = new JTextField(20);

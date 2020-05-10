@@ -6,6 +6,9 @@ public class Ant {
 	static int dir;
 	static int xc,yc;
 	static int x, y;
+
+	static Chunk chunk;
+	static int state = 0;
 	
 	static final int[][] directions = new int[][] {{0,-1},{1,0},{0,1},{-1,0}};
 	
@@ -24,9 +27,9 @@ public class Ant {
 		index = 1;
 		minHighwayPeriod = 0;
 		CYCLEFOUND = false;
+		chunk = Level.chunks.get(0);
 	}
 	
-	static int state = 0;
 	/**
 	 * 
 	 * @return true if ant forms a highway
@@ -35,12 +38,30 @@ public class Ant {
 		int i = 0;
 		for(; i < Settings.itpf; i++) {
 			if(checkCycle(dir, state)) break;
-			Chunk c = Level.getChunk(xc, yc);
+			
+			if(x > Settings.cSIZEm) { //Only get chunk when changed
+				x = 0;
+				xc++;
+				chunk = Level.getChunk(xc, yc);
+			} else if(x < 0) {
+				x = Settings.cSIZEm;
+				xc--;
+				chunk = Level.getChunk(xc, yc);
+			} else if(y > Settings.cSIZEm) {
+				y = 0;
+				yc++;
+				chunk = Level.getChunk(xc, yc);
+			} else if(y < 0) {
+				y = Settings.cSIZEm;
+				yc--;
+				chunk = Level.getChunk(xc, yc);
+			}
+			
 			int index = x|(y<<Settings.cPOW);
-			state = c.cells[index];
+			state = chunk.cells[index];
 			boolean right = Rule.colors[state].right;
 			dir = (dir + (right ? 1:-1))&0b11;
-			if(++c.cells[index] == Rule.colors.length) c.cells[index] = 0;
+			if(++chunk.cells[index] == Rule.size) chunk.cells[index] = 0;
 			
 			x += directions[dir][0];
 			y += directions[dir][1];
@@ -50,19 +71,6 @@ public class Ant {
 //			yc += y>>Settings.cPOW;
 //			x = x&Settings.cSIZEm;
 //			y = y&Settings.cSIZEm;
-			if(x > Settings.cSIZEm) {
-				x = 0;
-				xc++;
-			} else if(x < 0) {
-				x = Settings.cSIZEm;
-				xc--;
-			} else if(y > Settings.cSIZEm) {
-				y = 0;
-				yc++;
-			} else if(y < 0) {
-				y = Settings.cSIZEm;
-				yc--;
-			}
 		}
 		return i;
 	}

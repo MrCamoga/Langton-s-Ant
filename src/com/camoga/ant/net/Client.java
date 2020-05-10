@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Properties;
@@ -27,6 +28,10 @@ public class Client {
 	Socket socket;
 	DataOutputStream os;
 	DataInputStream is;
+	static String host;
+	
+	static int worktype = 0;
+	static int ASSIGN_SIZE = 50;
 	
 	public static Properties properties;
 	
@@ -35,14 +40,16 @@ public class Client {
 	boolean running = true;
 	public boolean antrunning = false;
 	public boolean logged = false;
-	public static String username;
+	public static String username, password;
+	public boolean tryToReconnect = true;
 	
 	public ArrayList<long[]> assignments = new ArrayList<long[]>();
 	public ByteBuffer results;
+	public ArrayList<byte[]> savedrules = new ArrayList<byte[]>();
 	
 	public static Client client;
 	
-	public Client(String host) throws IOException{
+	public Client() throws IOException{
 		LOG.setLevel(java.util.logging.Level.INFO);
 		System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s: %5$s%n");
 		
@@ -53,23 +60,16 @@ public class Client {
 			new File("langton.properties").createNewFile();
 		}
 		
-		socket = new Socket(host,7357);
-		os = new DataOutputStream(socket.getOutputStream());
-		is = new DataInputStream(socket.getInputStream());
-		
-		LOG.info("Connected to server");
-		
-		if(properties.getProperty("username") != null) {
-			LOG.info("Logging in automatically");
-			login(properties.getProperty("username"), new BigInteger(Client.properties.getProperty("hash"),16).toString(16));
-		}
-		
 		connectionthread = new Thread(() -> run(), "Client Thread");
 		connectionthread.start();
 	}
 	
 	public void register(String username, String hash) {
 		if(logged) return;
+		
+		Client.username = username;
+		Client.password = hash;
+		
 		
 		try {
 			os.writeByte(PacketType.REGISTER.getId());
@@ -84,6 +84,8 @@ public class Client {
 	
 	public void login(String username, String hash) {
 		if(logged) return;
+		Client.username = username;
+		Client.password = hash;
 
 		try {
 			os.writeByte(PacketType.AUTH.getId());
@@ -106,68 +108,116 @@ public class Client {
 		}
 	}
 	
-	public void sendResults() {
+	public void sendSavedRules() {
+		for(int i = savedrules.size()-1; i >= 0; i--) {
+			try {
+				byte[] rules = savedrules.get(i);
+				os.write(PacketType.SENDRESULTS.getId());
+				os.writeInt(rules.length/24);
+				os.write(rules);
+			} catch(IOException e) {
+				continue;
+			}
+			savedrules.remove(i);
+		}
+		System.out.println("savedrules");
+	}
+	
+	public void sendAssignmentResult() {
 		if(results == null) return;
 		try {
 			os.write(PacketType.SENDRESULTS.getId());
 			os.writeInt(assignments.get(0).length);
 			os.write(results.array());
-			
+		} catch(IOException e) {
+			LOG.warning("Could not send rules to server, saving to file...");
+			savedrules.add(results.array());
+		} finally {
 			assignments.remove(0);
 			if(assignments.size() > 0)	results = ByteBuffer.allocate(24*assignments.get(0).length);
-		} catch(IOException e) {
-			e.printStackTrace();
 		}
 	}
 	
 	
 	private void run() {
-		try {
-			while(running) {
-				switch(PacketType.getPacketType(is.readByte())) {
-				case AUTH:
-					byte result = is.readByte();
-					if(result == 0) {
-						username = new String(is.readNBytes(is.readByte()));
-						LOG.info("Logged in as " + username);
-						logged = true;
-						getAssigment(20);
-						getAssigment(20);
-					} else if(result == 1) {
-						Client.username = null;
-						LOG.warning("Wrong username or password!");
-					}
-					break;
-				case GETASSIGNMENT:
-					int size = is.readInt();
-					ByteBuffer bb = ByteBuffer.wrap(is.readNBytes(size*8));
-					long[] rules = new long[size];
-					for(int i = 0; i < size; i++) {
-						rules[i] = bb.getLong();
-					}
-					if(results == null) {
-						results = ByteBuffer.allocate(size*24);
-					}
-					LOG.info("New assignment of " + size + " rules!");
-					assignments.add(rules);
-					testRules();
-					break;
-				case REGISTER:
-					int ok = is.readByte();
-					if(ok==0) LOG.info("Account registered");
-					else if(ok==1) LOG.warning("Username already registered");
-					break;
-				default:
-					break;
+		while(tryToReconnect) {
+			try {
+				socket = new Socket(host,7357);
+				os = new DataOutputStream(socket.getOutputStream());
+				is = new DataInputStream(socket.getInputStream());
+				
+				LOG.info("Connected to server");
+				
+				if(username != null && password != null) {
+					login(username,password);
+				} else if(properties.getProperty("username") != null && properties.getProperty("hash") != null) {
+					login(properties.getProperty("username"), new BigInteger(Client.properties.getProperty("hash"),16).toString(16));
 				}
-			}
-		
-			socket.close();
-		} catch(SocketException e) {
-			LOG.warning("Lost connection with the server");
-		} catch (IOException e) {
-			e.printStackTrace();
+			
+				while(running) {
+					switch(PacketType.getPacketType(is.readByte())) {
+					case AUTH:
+						byte result = is.readByte();
+						if(result == 0) {
+							byte[] buffer = new byte[is.readByte()];
+							is.read(buffer);
+							username = new String(buffer);
+							LOG.info("Logged in as " + username);
+							logged = true;
+
+							sendSavedRules();
+							
+							getAssigment(ASSIGN_SIZE);
+							getAssigment(ASSIGN_SIZE);
+						} else if(result == 1) {
+							Client.username = null;
+							Client.password = null;
+							LOG.warning("Wrong username or password!");
+						}
+						break;
+					case GETASSIGNMENT:
+						int size = is.readInt();
+						byte[] buffer = new byte[size*8];
+						is.read(buffer);
+						ByteBuffer bb = ByteBuffer.wrap(buffer);
+						long[] rules = new long[size];
+						for(int i = 0; i < size; i++) {
+							rules[i] = bb.getLong();
+						}
+						if(assignments.size() == 0) {
+							results = ByteBuffer.allocate(size*24);
+						}
+						LOG.info("New assignment of " + size + " rules!");
+						assignments.add(rules);
+						testRules();
+						break;
+					case REGISTER:
+						int ok = is.readByte();
+						if(ok==0) LOG.info("Account registered");
+						else if(ok==1) {
+							LOG.warning("Username already registered");
+							username = null;
+							password = null;
+						}
+						break;
+					default:
+						break;
+					}
+				}
+				
+			} catch(UnknownHostException | SocketException e) {
+				LOG.warning("Could not connect to the server");
+				logged = false;
+				try {
+					Thread.sleep(10000);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			} 
 		}
+			
 	}
 	
 	public synchronized void testRules() {
@@ -177,10 +227,10 @@ public class Client {
 			long time;
 			while(assignments.size() > 0) {
 				for(int i = 0; i < assignments.get(0).length; i++) {
+					Level.init();
 					Ant.init();
 					long rule = assignments.get(0)[i];
 					Rule.createRule(rule);
-					Level.init();
 					Simulation.iterations = 0;
 					time = System.currentTimeMillis();
 					storeRule(Simulation.runRule(rule));
@@ -188,10 +238,11 @@ public class Client {
 					LOG.info(rule + "\t" + Rule.string(rule) + "\t " + Simulation.iterations/seconds + " it/s\t" + seconds+ "s");
 //					LOG.info((Runtime.getRuntime().totalMemory() -Runtime.getRuntime().freeMemory())/1e6+"MB");
 				}
-				sendResults();
-				getAssigment(20);
+				sendAssignmentResult();
+				getAssigment(ASSIGN_SIZE);
 				System.gc();
 			}
+			antrunning = false;
 		}, "Langtons Ant");
 		ant.start();
 		
@@ -206,7 +257,8 @@ public class Client {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		String host = "langtonsant.sytes.net";
+		host = "langtonsant.sytes.net";
+		worktype = 0;
 		boolean gui = true;
 		for(int i = 0; i < args.length; i++) {
 			String cmd = args[i];
@@ -221,14 +273,19 @@ public class Client {
 				case "-cs":
 					Settings.setChunkSize(Integer.parseInt(param));
 					break;
+				case "-w":
+					int work = Integer.parseInt(param);
+					if(work < 0 || work > 2) throw new RuntimeException("Illegal work type");
+					worktype = work;
 				}
 			} else {
 				throw new RuntimeException("Invalid parameters");
 			}
 		}
 		
-		client = new Client(host);
-		if(gui) new Window();		
+		client = new Client();
+		if(gui) 
+			new Window();		
 	}
 	
 	public void storeRule(long[] rule) {

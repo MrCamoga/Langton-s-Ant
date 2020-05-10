@@ -37,7 +37,6 @@ public class Window {
 	public static JFrame f;
 	static AntCanvas canvas;
 	
-	
 	public Window() {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -108,9 +107,7 @@ public class Window {
 		BufferedImage canvasImage = new BufferedImage(Settings.cSIZE*Settings.canvasSize, Settings.cSIZE*Settings.canvasSize, BufferedImage.TYPE_INT_RGB);
 		int[] pixels = ((DataBufferInt) canvasImage.getRaster().getDataBuffer()).getData();
 		
-		public AntCanvas() {
-			super();
-		}
+		public AntCanvas() {}
 		
 		public void run() {
 			createBufferStrategy(3);

@@ -15,7 +15,6 @@ import com.camoga.ant.Rule.CellColor;
 public class Level {
 	
 	public static ArrayList<Chunk> chunks = new ArrayList<Chunk>();
-	public static Chunk lastChunk;
 	
 	static class Chunk implements Serializable {
 		int x, y;
@@ -35,7 +34,6 @@ public class Level {
 		chunks.clear();
 		chunks = new ArrayList<Chunk>();
 		chunks.add(new Chunk(0, 0));
-		lastChunk = chunks.get(0);
 	}
 	
 	/**
@@ -46,22 +44,17 @@ public class Level {
 	 * @return
 	 */
 	public static Chunk getChunk(int xc, int yc) {
-		if(xc == lastChunk.x && yc == lastChunk.y) {
-			lastChunk.lastVisit = Simulation.iterations;
-			return lastChunk;
-		}
 		for(int i = chunks.size()-1; i >= 0; i--) {
 			Chunk c = chunks.get(i);
 			if(xc == c.x && yc == c.y) {
-				lastChunk = c;
-				lastChunk.lastVisit = Simulation.iterations;
+				c.lastVisit = Simulation.iterations;
 //				Collections.swap(chunks, i, chunks.size()-1); // faster in some situations
 				return c;
 			}
 		}
 		Chunk c = new Chunk(xc, yc);
 		chunks.add(c);
-		if(!Ant.saveState && Settings.detectHighways && !Ant.CYCLEFOUND && Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck) {
+		if(!Ant.saveState && !Ant.CYCLEFOUND && Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck) {
 			Ant.saveState = true;
 			Ant.states[0] = (byte)(Ant.dir<<6 | Ant.state);
 		}
@@ -91,6 +84,7 @@ public class Level {
 //		System.out.println(xa+","+ya);
 
 		CellColor[] colors = Rule.colors;
+		if(colors == null || colors[0] == null) return;
 		
 		if(!Settings.renderVoid) for(int i = 0; i < pixels.length; i++) {
 			pixels[i] = colors[0].color;
@@ -111,7 +105,7 @@ public class Level {
 					for(int xo = 0; xo < cSIZE; xo++) {
 						int index = (xo|xcf) + y;
 						if(index >= pixels.length) continue;
-						pixels[index] = colors[c.cells[i]%Rule.colors.length].color;
+						pixels[index] = colors[c.cells[i]%Rule.size].color;
 						i++;
 					}
 				}
