@@ -3,7 +3,8 @@ package com.camoga.ant;
 import static com.camoga.ant.Settings.cSIZE;
 
 import java.io.Serializable;
-import java.util.ArrayList;
+
+import org.apache.commons.collections4.map.MultiKeyMap;
 
 import com.camoga.ant.Rule.CellColor;
 
@@ -14,46 +15,39 @@ import com.camoga.ant.Rule.CellColor;
  */
 public class Level {
 	
-	public static ArrayList<Chunk> chunks = new ArrayList<Chunk>();
+	public static MultiKeyMap<Integer,Chunk> chunks = new MultiKeyMap<Integer,Chunk>();
 	
-	static class Chunk implements Serializable {
-		int x, y;
-		
+	static class Chunk implements Serializable {		
 		long lastVisit;
 		
 		public byte[] cells = new byte[cSIZE*cSIZE];
 		
-		public Chunk(int x, int y) {
-			this.x = x;
-			this.y = y;
+		public Chunk() {
 			lastVisit = Simulation.iterations;
 		}
 	}
 	
 	public static void init() {
 		chunks.clear();
-		chunks = new ArrayList<Chunk>();
-		chunks.add(new Chunk(0, 0));
+		chunks = new MultiKeyMap<Integer,Chunk>();
+		chunks.put(0,0,new Chunk());
 	}
 	
 	/**
 	 * 
 	 * @param xc x coord of chunk
 	 * @param yc y coord of chunk
-	 * @param create chunk if doesn't exist
 	 * @return
 	 */
 	public static Chunk getChunk(int xc, int yc) {
-		for(int i = chunks.size()-1; i >= 0; i--) {
-			Chunk c = chunks.get(i);
-			if(xc == c.x && yc == c.y) {
-				c.lastVisit = Simulation.iterations;
-//				Collections.swap(chunks, i, chunks.size()-1); // faster in some situations
-				return c;
-			}
+		Chunk result = chunks.get(xc,yc);
+		if(result != null) {
+			result.lastVisit = Simulation.iterations;
+			return result;
 		}
-		Chunk c = new Chunk(xc, yc);
-		chunks.add(c);
+
+		Chunk c = new Chunk();
+		chunks.put(xc,yc,c);
 		if(!Ant.saveState && !Ant.CYCLEFOUND && Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck) {
 			Ant.saveState = true;
 			Ant.states[0] = (byte)(Ant.dir<<6 | Ant.state);
@@ -62,18 +56,7 @@ public class Level {
 	}
 	
 	public static Chunk getChunk2(int xc, int yc) {
-		for(int i = chunks.size()-1; i >= 0; i--) {
-			try {
-				Chunk c = chunks.get(i);
-				if(c==null) continue;
-				if(xc == c.x && yc == c.y) {
-					return c;
-				}				
-			} catch(IndexOutOfBoundsException e) {
-				continue;
-			}
-		}
-		return null;
+		return chunks.get(xc,yc);
 	}
 
 	//TODO improve render

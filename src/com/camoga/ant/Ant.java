@@ -14,12 +14,13 @@ public class Ant {
 	
 	static byte[] states;
 	
-	public static void init() {
-		if(states == null) states = new byte[Settings.maxiterations == -1 ? 200000000:(int) Math.min(Settings.maxiterations/Settings.repeatcheck, 200000000)];
+	public static void init(long iterations) {
+		int stateslen = iterations == -1 ? 200000000:(int) Math.min(iterations/Settings.repeatcheck, 200000000);
+		if(states == null || states.length != stateslen) states = new byte[stateslen];
 		x = 0;
 		y = 0;
 		xc = 0;
-		yc = 0;
+		yc = 0;		
 		dir = 0;
 		state = 0;
 		saveState = false;
@@ -27,7 +28,7 @@ public class Ant {
 		index = 1;
 		minHighwayPeriod = 0;
 		CYCLEFOUND = false;
-		chunk = Level.chunks.get(0);
+		chunk = Level.chunks.get(0,0);
 	}
 	
 	/**

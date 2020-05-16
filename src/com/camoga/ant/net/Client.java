@@ -1,5 +1,6 @@
 package com.camoga.ant.net;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -32,6 +33,9 @@ public class Client {
 	
 	static int worktype = 0;
 	static int ASSIGN_SIZE = 50;
+	static long lastResultsTime;
+	static long DELAY_BETWEEN_RESULTS = 120000;
+	static int RECONNECT_TIME = 60000;
 	
 	public static Properties properties;
 	
@@ -44,8 +48,7 @@ public class Client {
 	public boolean tryToReconnect = true;
 	
 	public ArrayList<long[]> assignments = new ArrayList<long[]>();
-	public ByteBuffer results;
-	public ArrayList<byte[]> savedrules = new ArrayList<byte[]>();
+	public ByteArrayOutputStream storedrules = new ByteArrayOutputStream();
 	
 	public static Client client;
 	
@@ -108,38 +111,25 @@ public class Client {
 		}
 	}
 	
-	public void sendSavedRules() {
-		for(int i = savedrules.size()-1; i >= 0; i--) {
-			try {
-				byte[] rules = savedrules.get(i);
-				os.write(PacketType.SENDRESULTS.getId());
-				os.writeInt(rules.length/24);
-				os.write(rules);
-			} catch(IOException e) {
-				continue;
-			}
-			savedrules.remove(i);
-		}
-		System.out.println("savedrules");
-	}
-	
 	public void sendAssignmentResult() {
-		if(results == null) return;
+		if(System.currentTimeMillis()-lastResultsTime < DELAY_BETWEEN_RESULTS) return;
+		
 		try {
 			os.write(PacketType.SENDRESULTS.getId());
-			os.writeInt(assignments.get(0).length);
-			os.write(results.array());
+			os.writeInt(storedrules.size()/24);
+			os.write(storedrules.toByteArray());
+			storedrules.reset();
+			LOG.info("Data sent to server");
 		} catch(IOException e) {
-			LOG.warning("Could not send rules to server, saving to file...");
-			savedrules.add(results.array());
-		} finally {
-			assignments.remove(0);
-			if(assignments.size() > 0)	results = ByteBuffer.allocate(24*assignments.get(0).length);
+			LOG.warning("Could not send rules to server");
 		}
+		
+		lastResultsTime = System.currentTimeMillis();
 	}
 	
 	
 	private void run() {
+		lastResultsTime = System.currentTimeMillis()-DELAY_BETWEEN_RESULTS;
 		while(tryToReconnect) {
 			try {
 				socket = new Socket(host,7357);
@@ -164,8 +154,6 @@ public class Client {
 							username = new String(buffer);
 							LOG.info("Logged in as " + username);
 							logged = true;
-
-							sendSavedRules();
 							
 							getAssigment(ASSIGN_SIZE);
 							getAssigment(ASSIGN_SIZE);
@@ -184,10 +172,7 @@ public class Client {
 						for(int i = 0; i < size; i++) {
 							rules[i] = bb.getLong();
 						}
-						if(assignments.size() == 0) {
-							results = ByteBuffer.allocate(size*24);
-						}
-						LOG.info("New assignment of " + size + " rules!");
+						LOG.info("New assignment of " + size/2 + " rules!");
 						assignments.add(rules);
 						testRules();
 						break;
@@ -209,7 +194,7 @@ public class Client {
 				LOG.warning("Could not connect to the server");
 				logged = false;
 				try {
-					Thread.sleep(10000);
+					Thread.sleep(RECONNECT_TIME);
 				} catch (InterruptedException e1) {
 					e1.printStackTrace();
 				}
@@ -226,18 +211,22 @@ public class Client {
 		ant = new Thread(() -> {
 			long time;
 			while(assignments.size() > 0) {
-				for(int i = 0; i < assignments.get(0).length; i++) {
+				for(int i = 0; i < assignments.get(0).length/2; i++) {
+
+					long rule = assignments.get(0)[2*i];
+					long iterations = assignments.get(0)[2*i+1];
+					
 					Level.init();
-					Ant.init();
-					long rule = assignments.get(0)[i];
+					Ant.init(iterations);
 					Rule.createRule(rule);
 					Simulation.iterations = 0;
 					time = System.currentTimeMillis();
-					storeRule(Simulation.runRule(rule));
+					storeRule(Simulation.runRule(rule,iterations));
 					float seconds = (-time + (time = System.currentTimeMillis()))/1000f;
 					LOG.info(rule + "\t" + Rule.string(rule) + "\t " + Simulation.iterations/seconds + " it/s\t" + seconds+ "s");
 //					LOG.info((Runtime.getRuntime().totalMemory() -Runtime.getRuntime().freeMemory())/1e6+"MB");
 				}
+				assignments.remove(0);
 				sendAssignmentResult();
 				getAssigment(ASSIGN_SIZE);
 				System.gc();
@@ -284,12 +273,16 @@ public class Client {
 		}
 		
 		client = new Client();
-		if(gui) 
-			new Window();		
+		if(gui)
+			new Window();
 	}
 	
 	public void storeRule(long[] rule) {
 		if(rule[1] > 1) LOG.info(rule[0] + "\t" + Rule.string(rule[0]) + " \t" + rule[1]);
-		results.putLong(rule[0]).putLong(rule[1]).putLong(rule[2]);
+		try {
+			storedrules.write(ByteBuffer.allocate(24).putLong(rule[0]).putLong(rule[1]).putLong(rule[2]).array());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

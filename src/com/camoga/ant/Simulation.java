@@ -65,12 +65,12 @@ public class Simulation {
 		running = false;
 	}
 	
-	public static long[] runRule(long rule) {
-		while(!Ant.CYCLEFOUND && (Settings.maxiterations == -1 || iterations < Settings.maxiterations)) {
+	public static long[] runRule(long rule, long maxiterations) {
+		while(!Ant.CYCLEFOUND && (maxiterations == -1 || iterations < maxiterations)) {
 			iterations += Ant.move();
 			if(Settings.deleteOldChunks) { //Delete old chunks
 				// TODO write to highway file before deleting
-				Level.chunks.removeIf((Chunk c) -> iterations - c.lastVisit >= 100000000);
+//				Level.chunks.removeIf((Chunk c) -> iterations - c.lastVisit >= 100000000);
 			}
 			
 			if(Settings.autosave && System.currentTimeMillis()-autosavetimer > 900000) { // Autosave every 15 mins

@@ -128,7 +128,7 @@ public class Window {
 				g.drawImage(canvasImage, 0, 0, 800, 800, null);
 				g.setColor(Color.WHITE);
 				g.drawString("Iterations: " + Simulation.iterations, 10, 30); 
-				g.drawString("Rule: " + Rule.string() + " ("+Rule.rule+")", 10, 46);
+				g.drawString("Rule: " + Rule.string(Rule.rule) + " ("+Rule.rule+")", 10, 46);
 			}
 			
 			if(Ant.saveState) {
