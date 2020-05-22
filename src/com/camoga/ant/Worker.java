@@ -67,12 +67,6 @@ public class Worker {
 			
 			float seconds = (-time + (time = System.currentTimeMillis()))/1000f;
 			Client.LOG.info(rule + "\t" + Rule.string(rule) + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s" + (result[1] > 1 ? "\t"+result[1]:"") + "\t nc: " + level.chunks.size());
-			try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 		}
 		Client.LOG.warning("Worker " + workerid + " has stopped");
 		running = false;
