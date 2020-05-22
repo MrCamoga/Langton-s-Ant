@@ -4,11 +4,12 @@ import java.util.Random;
 
 public class Rule {
 	
-	public static CellColor[] colors;
-	public static long rule;
-	public static byte size;
+	public int[] colors;
+	public boolean[] turn;
+	public long rule;
+	public byte size;
 	
-	public static class CellColor {
+	public class CellColor {
 		int color;
 		boolean right;
 		
@@ -18,16 +19,18 @@ public class Rule {
 		}
 	}
 	
-	public static void createRule(long rule) {
-		Rule.rule = rule;
-		colors = new CellColor[(int) (Math.log(rule)/Math.log(2)+1)];
-		size = (byte) colors.length;
+	public void createRule(long rule) {
+		this.rule = rule;
+		size = (byte) (Math.log(rule)/Math.log(2)+1);
+		colors = new int[size];
+		turn = new boolean[size];
 		long seed = -8485983343335656213L;
 		Random r = new Random();
 		for(int i = 0; i < colors.length; i++) {
 			boolean right = rule%2 != 0;
 			rule = rule>>1;
-			colors[i] = new CellColor(r.nextInt(0x1000000), right);
+			colors[i] = r.nextInt(0x1000000);
+			turn[i] = right;
 		}
 		if(colors.length > 64) throw new RuntimeException("More than 64 states not supported");
 	}
@@ -50,10 +53,10 @@ public class Rule {
 	 * Returns rule string currently being simulated
 	 * @return
 	 */
-	public static String string() {
+	public String string() {
 		String rule = "";
-		for(int i = 0; i < colors.length; i++) {
-			rule += colors[i].right ? "R":"L";
+		for(int i = 0; i < turn.length; i++) {
+			rule += turn[i] ? "R":"L";
 		}
 		return rule;
 	}

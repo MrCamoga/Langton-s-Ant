@@ -15,19 +15,25 @@ import com.camoga.ant.Rule.CellColor;
  */
 public class Level {
 	
-	public static MultiKeyMap<Integer,Chunk> chunks = new MultiKeyMap<Integer,Chunk>();
+	public MultiKeyMap<Integer,Chunk> chunks = new MultiKeyMap<Integer,Chunk>();
 	
-	static class Chunk implements Serializable {		
+	class Chunk implements Serializable {		
 		long lastVisit;
 		
 		public byte[] cells = new byte[cSIZE*cSIZE];
 		
 		public Chunk() {
-			lastVisit = Simulation.iterations;
+			lastVisit = worker.iterations;
 		}
 	}
 	
-	public static void init() {
+	private Worker worker;
+	
+	public Level(Worker worker) {
+		this.worker = worker;
+	}
+	
+	public void init() {
 		chunks.clear();
 		chunks = new MultiKeyMap<Integer,Chunk>();
 		chunks.put(0,0,new Chunk());
@@ -39,38 +45,38 @@ public class Level {
 	 * @param yc y coord of chunk
 	 * @return
 	 */
-	public static Chunk getChunk(int xc, int yc) {
+	public Chunk getChunk(int xc, int yc) {
 		Chunk result = chunks.get(xc,yc);
 		if(result != null) {
-			result.lastVisit = Simulation.iterations;
+			result.lastVisit = worker.iterations;
 			return result;
 		}
 
 		Chunk c = new Chunk();
 		chunks.put(xc,yc,c);
-		if(!Ant.saveState && !Ant.CYCLEFOUND && Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck) {
-			Ant.saveState = true;
-			Ant.states[0] = (byte)(Ant.dir<<6 | Ant.state);
+		if(!worker.ant.saveState && !worker.ant.CYCLEFOUND && Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck) {
+			worker.ant.saveState = true;
+			worker.ant.states[0] = (byte)(worker.ant.dir<<6 | worker.ant.state);
 		}
 		return c;
 	}
 	
-	public static Chunk getChunk2(int xc, int yc) {
+	public Chunk getChunk2(int xc, int yc) {
 		return chunks.get(xc,yc);
 	}
 
 	//TODO improve render
-	public static void render(int[] pixels, int chunks, int width, int height, boolean followAnt) {
-		int xa = followAnt ? Ant.xc:0;
-		int ya = followAnt ? Ant.yc:0;
+	public void render(int[] pixels, int chunks, int width, int height, boolean followAnt) {
+		int xa = followAnt ? worker.ant.xc:0;
+		int ya = followAnt ? worker.ant.yc:0;
 		
 //		System.out.println(xa+","+ya);
 
-		CellColor[] colors = Rule.colors;
-		if(colors == null || colors[0] == null) return;
+		int[] colors = worker.rule.colors;
+		if(colors == null) return;
 		
 		if(!Settings.renderVoid) for(int i = 0; i < pixels.length; i++) {
-			pixels[i] = colors[0].color;
+			pixels[i] = colors[0];
 		} 
 		else for(int i = 0; i < pixels.length; i++) {
 			pixels[i] = 0xff000000;
@@ -88,7 +94,7 @@ public class Level {
 					for(int xo = 0; xo < cSIZE; xo++) {
 						int index = (xo|xcf) + y;
 						if(index >= pixels.length) continue;
-						pixels[index] = colors[c.cells[i]%Rule.size].color;
+						pixels[index] = colors[c.cells[i]%worker.rule.size];
 						i++;
 					}
 				}
@@ -133,9 +139,9 @@ public class Level {
 //		System.out.println("{"+(Ant.x|(Ant.xc<<Settings.cPOW)) + ", " + Simulation.iterations+"}");
 	}
 	
-	public static void renderHighway(byte[] pixels, int chunks, int width, int height, boolean followAnt) {
-		int xa = followAnt ? Ant.xc:0;
-		int ya = followAnt ? Ant.yc:0;
+	public void renderHighway(byte[] pixels, int chunks, int width, int height, boolean followAnt) {
+		int xa = followAnt ? worker.ant.xc:0;
+		int ya = followAnt ? worker.ant.yc:0;
 //		int ya = -xa+1;
 		int offset = 7;
 		

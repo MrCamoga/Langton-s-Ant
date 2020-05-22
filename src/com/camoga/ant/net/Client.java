@@ -7,11 +7,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.management.ThreadMXBean;
 import java.math.BigInteger;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.FileLockInterruptionException;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -20,39 +25,40 @@ import com.camoga.ant.Ant;
 import com.camoga.ant.Level;
 import com.camoga.ant.Rule;
 import com.camoga.ant.Settings;
-import com.camoga.ant.Simulation;
+import com.camoga.ant.Worker;
 import com.camoga.ant.gui.Window;
 
 public class Client {	
 	
 	public static final Logger LOG = Logger.getLogger("Client");
 	Socket socket;
-	DataOutputStream os;
-	DataInputStream is;
+	static DataOutputStream os;
+	static DataInputStream is;
 	static String host;
 	
-	static int worktype = 0;
+	static Worker[] workers;
+	static int numworkers;
+	
 	static int ASSIGN_SIZE = 50;
 	static long lastResultsTime;
 	static long DELAY_BETWEEN_RESULTS = 120000;
 	static int RECONNECT_TIME = 60000;
+	static boolean STOP_ON_DISCONNECT;
 	
 	public static Properties properties;
 	
 	Thread ant;
 	Thread connectionthread;
-	boolean running = true;
-	public boolean antrunning = false;
-	public boolean logged = false;
+	public static boolean logged = false;
 	public static String username, password;
 	public boolean tryToReconnect = true;
 	
-	public ArrayList<long[]> assignments = new ArrayList<long[]>();
-	public ByteArrayOutputStream storedrules = new ByteArrayOutputStream();
+	public static ArrayList<Long> assignments = new ArrayList<Long>();
+	public static ByteArrayOutputStream storedrules = new ByteArrayOutputStream();
 	
 	public static Client client;
 	
-	public Client() throws IOException{
+	public Client(int numworkers) throws IOException {
 		LOG.setLevel(java.util.logging.Level.INFO);
 		System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s: %5$s%n");
 		
@@ -61,7 +67,20 @@ public class Client {
 			properties.load(new FileInputStream("langton.properties"));			
 		} catch(FileNotFoundException e) {
 			new File("langton.properties").createNewFile();
+		} catch(IOException e) {
+			e.printStackTrace();
+			System.exit(0);
 		}
+
+		String prop_workers = properties.getProperty("workers");
+		if(numworkers == -1) {
+			if(prop_workers != null) {
+				int n;
+				if((n = Integer.parseInt(prop_workers)) > Runtime.getRuntime().availableProcessors()) throw new RuntimeException("Num of workers greater than the number of threads");
+				else numworkers = n;				
+			} else numworkers = 1;
+		}
+		Client.numworkers = numworkers;
 		
 		connectionthread = new Thread(() -> run(), "Client Thread");
 		connectionthread.start();
@@ -101,17 +120,18 @@ public class Client {
 		}
 	}
 	
-	public void getAssigment(int size) {
+	private static void getAssigment() {
 		if(!logged) return;
 		try {
 			os.write(PacketType.GETASSIGNMENT.getId());
-			os.writeInt(size);
+			os.writeInt(numworkers*ASSIGN_SIZE);
+			System.out.println(numworkers*ASSIGN_SIZE);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public void sendAssignmentResult() {
+	public static void sendAssignmentResult() {
 		if(System.currentTimeMillis()-lastResultsTime < DELAY_BETWEEN_RESULTS) return;
 		
 		try {
@@ -128,9 +148,29 @@ public class Client {
 	}
 	
 	
+	FileChannel fc;
 	private void run() {
-		lastResultsTime = System.currentTimeMillis()-DELAY_BETWEEN_RESULTS;
-		while(tryToReconnect) {
+
+//		System.out.println(Runtime.getRuntime().availableProcessors());
+		try {
+			fc = FileChannel.open(new File("langton.properties").toPath(), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+			FileLock lock = fc.tryLock();
+			if(lock == null) {
+				LOG.info("Another instance is running");
+				System.exit(0);
+			}
+		} catch (IOException e) {
+			LOG.info("Another instance is running");
+			System.exit(0);
+		}
+//		File file = new File("langton.properties");
+//		if(!file.delete()) {
+//			LOG.info("Another instance is running");
+//			System.exit(0);
+//		}
+				
+		lastResultsTime = System.currentTimeMillis();
+		while(!STOP_ON_DISCONNECT) {
 			try {
 				socket = new Socket(host,7357);
 				os = new DataOutputStream(socket.getOutputStream());
@@ -144,19 +184,16 @@ public class Client {
 					login(properties.getProperty("username"), new BigInteger(Client.properties.getProperty("hash"),16).toString(16));
 				}
 			
-				while(running) {
+				while(true) {
 					switch(PacketType.getPacketType(is.readByte())) {
 					case AUTH:
 						byte result = is.readByte();
 						if(result == 0) {
-							byte[] buffer = new byte[is.readByte()];
-							is.read(buffer);
-							username = new String(buffer);
+							username = new String(is.readNBytes(is.readByte()));
 							LOG.info("Logged in as " + username);
 							logged = true;
 							
-							getAssigment(ASSIGN_SIZE);
-							getAssigment(ASSIGN_SIZE);
+							getAssigment();
 						} else if(result == 1) {
 							Client.username = null;
 							Client.password = null;
@@ -165,16 +202,21 @@ public class Client {
 						break;
 					case GETASSIGNMENT:
 						int size = is.readInt();
-						byte[] buffer = new byte[size*8];
-						is.read(buffer);
-						ByteBuffer bb = ByteBuffer.wrap(buffer);
-						long[] rules = new long[size];
+						ByteBuffer bb = ByteBuffer.wrap(is.readNBytes(size*8));
 						for(int i = 0; i < size; i++) {
-							rules[i] = bb.getLong();
+							assignments.add(bb.getLong());
 						}
 						LOG.info("New assignment of " + size/2 + " rules!");
-						assignments.add(rules);
-						testRules();
+						if(workers == null) {
+							workers = new Worker[numworkers];
+							for(int i = 0; i < workers.length; i++) {
+								workers[i] = new Worker(i);
+							}
+						} else {
+							for(int i = 0; i < workers.length; i++) {
+								workers[i].start();
+							}
+						}
 						break;
 					case REGISTER:
 						int ok = is.readByte();
@@ -204,38 +246,6 @@ public class Client {
 		}
 			
 	}
-	
-	public synchronized void testRules() {
-		if(antrunning) return;
-		antrunning = true;
-		ant = new Thread(() -> {
-			long time;
-			while(assignments.size() > 0) {
-				for(int i = 0; i < assignments.get(0).length/2; i++) {
-
-					long rule = assignments.get(0)[2*i];
-					long iterations = assignments.get(0)[2*i+1];
-					
-					Level.init();
-					Ant.init(iterations);
-					Rule.createRule(rule);
-					Simulation.iterations = 0;
-					time = System.currentTimeMillis();
-					storeRule(Simulation.runRule(rule,iterations));
-					float seconds = (-time + (time = System.currentTimeMillis()))/1000f;
-					LOG.info(rule + "\t" + Rule.string(rule) + "\t " + Simulation.iterations/seconds + " it/s\t" + seconds+ "s");
-//					LOG.info((Runtime.getRuntime().totalMemory() -Runtime.getRuntime().freeMemory())/1e6+"MB");
-				}
-				assignments.remove(0);
-				sendAssignmentResult();
-				getAssigment(ASSIGN_SIZE);
-				System.gc();
-			}
-			antrunning = false;
-		}, "Langtons Ant");
-		ant.start();
-		
-	}
 
 	public static String toHexString(byte[] data) {
 		String result = "";
@@ -247,8 +257,8 @@ public class Client {
 	
 	public static void main(String[] args) throws IOException {
 		host = "langtonsant.sytes.net";
-		worktype = 0;
 		boolean gui = true;
+		int numworkers = -1;
 		for(int i = 0; i < args.length; i++) {
 			String cmd = args[i];
 			if(cmd.startsWith("--")) {
@@ -263,26 +273,43 @@ public class Client {
 					Settings.setChunkSize(Integer.parseInt(param));
 					break;
 				case "-w":
-					int work = Integer.parseInt(param);
-					if(work < 0 || work > 2) throw new RuntimeException("Illegal work type");
-					worktype = work;
+					numworkers = Integer.parseInt(param);
+					break;
+				case "-sd":
+					STOP_ON_DISCONNECT = true;
+					break;
 				}
 			} else {
 				throw new RuntimeException("Invalid parameters");
 			}
 		}
 		
-		client = new Client();
+		client = new Client(numworkers);
 		if(gui)
 			new Window();
 	}
 	
-	public void storeRule(long[] rule) {
-		if(rule[1] > 1) LOG.info(rule[0] + "\t" + Rule.string(rule[0]) + " \t" + rule[1]);
+	public synchronized static long[] getRule() {
+		if(assignments.size() < 2*numworkers*ASSIGN_SIZE) {
+			getAssigment();
+			if(assignments.size() == 0) return new long[] {-1};
+		}
+		long[] p = new long[] {assignments.remove(0), assignments.remove(0)};
+		return p;
+	}
+	
+	
+	public synchronized static void storeRule(long[] rule) {
 		try {
 			storedrules.write(ByteBuffer.allocate(24).putLong(rule[0]).putLong(rule[1]).putLong(rule[2]).array());
+			sendAssignmentResult();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static Worker getWorker(int id) {
+		if(workers == null || id < 0 || id >= workers.length) return null;
+		return workers[id];
 	}
 }

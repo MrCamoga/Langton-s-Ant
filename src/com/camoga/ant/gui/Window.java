@@ -26,7 +26,7 @@ import com.camoga.ant.Ant;
 import com.camoga.ant.Level;
 import com.camoga.ant.Rule;
 import com.camoga.ant.Settings;
-import com.camoga.ant.Simulation;
+import com.camoga.ant.Worker;
 import com.camoga.ant.net.Client;
 
 public class Window {
@@ -123,20 +123,24 @@ public class Window {
 		
 		public void render() {
 			Graphics g = getBufferStrategy().getDrawGraphics();
-			if(Client.client.antrunning) {
-				Level.render(pixels, Settings.canvasSize, canvasImage.getWidth(), canvasImage.getHeight(), false);				
+			Worker w = Client.getWorker(0);
+			
+			if(w != null && w.isRunning()) {
+				w.getLevel().render(pixels, Settings.canvasSize, canvasImage.getWidth(), canvasImage.getHeight(), false);				
 				g.drawImage(canvasImage, 0, 0, 800, 800, null);
 				g.setColor(Color.WHITE);
-				g.drawString("Iterations: " + Simulation.iterations, 10, 30); 
-				g.drawString("Rule: " + Rule.string(Rule.rule) + " ("+Rule.rule+")", 10, 46);
+				g.drawString("Iterations: " + w.getIterations(), 10, 30); 
+				g.drawString("Rule: " + Rule.string(w.getRule().rule) + " ("+w.getRule().rule+")", 10, 46);
 			}
 			
-			if(Ant.saveState) {
+			Ant ant = w.getAnt();
+			
+			if(ant.saveState) {
 				g.setColor(Color.red);
-				g.drawString("Finding period... " + Ant.minHighwayPeriod, 10, 62);
-			} else if(Ant.CYCLEFOUND) {
+				g.drawString("Finding period... " + ant.minHighwayPeriod, 10, 62);
+			} else if(ant.CYCLEFOUND) {
 				g.setColor(Color.WHITE);
-				g.drawString("Period: " + Ant.minHighwayPeriod, 10, 62);
+				g.drawString("Period: " + ant.minHighwayPeriod, 10, 62);
 			}
 			
 			g.dispose();
@@ -149,15 +153,12 @@ public class Window {
 			JMenu server = new JMenu("Server");
 				ServerActionListener sa = new ServerActionListener();
 				JMenuItem connect = new JMenuItem("Connect to Server");
-				JMenuItem assign = new JMenuItem("Get Assignments");
 				JMenuItem serversettings = new JMenuItem("Settings");
 
 				connect.addActionListener(sa);
-				assign.addActionListener(sa);
 				serversettings.addActionListener(sa);
 
 				server.add(connect);
-				server.add(assign);
 				server.add(serversettings);
 				
 		menu.add(server);

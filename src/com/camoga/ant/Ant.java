@@ -3,18 +3,24 @@ package com.camoga.ant;
 import com.camoga.ant.Level.Chunk;
 
 public class Ant {
-	static int dir;
-	static int xc,yc;
-	static int x, y;
+	int dir;
+	int xc,yc;
+	int x, y;
 
-	static Chunk chunk;
-	static int state = 0;
+	Chunk chunk;
+	int state = 0;
 	
 	static final int[][] directions = new int[][] {{0,-1},{1,0},{0,1},{-1,0}};
 	
-	static byte[] states;
+	byte[] states;
 	
-	public static void init(long iterations) {
+	private Worker worker;
+	
+	public Ant(Worker worker) {
+		this.worker = worker;
+	}
+	
+	public void init(long iterations) {
 		int stateslen = iterations == -1 ? 200000000:(int) Math.min(iterations/Settings.repeatcheck, 200000000);
 		if(states == null || states.length != stateslen) states = new byte[stateslen];
 		x = 0;
@@ -28,14 +34,14 @@ public class Ant {
 		index = 1;
 		minHighwayPeriod = 0;
 		CYCLEFOUND = false;
-		chunk = Level.chunks.get(0,0);
+		chunk = worker.level.chunks.get(0,0);
 	}
 	
 	/**
 	 * 
 	 * @return true if ant forms a highway
 	 */
-	public static int move() {
+	public int move() {
 		int i = 0;
 		for(; i < Settings.itpf; i++) {
 			if(checkCycle(dir, state)) break;
@@ -43,26 +49,26 @@ public class Ant {
 			if(x > Settings.cSIZEm) { //Only get chunk when changed
 				x = 0;
 				xc++;
-				chunk = Level.getChunk(xc, yc);
+				chunk = worker.level.getChunk(xc, yc);
 			} else if(x < 0) {
 				x = Settings.cSIZEm;
 				xc--;
-				chunk = Level.getChunk(xc, yc);
+				chunk = worker.level.getChunk(xc, yc);
 			} else if(y > Settings.cSIZEm) {
 				y = 0;
 				yc++;
-				chunk = Level.getChunk(xc, yc);
+				chunk = worker.level.getChunk(xc, yc);
 			} else if(y < 0) {
 				y = Settings.cSIZEm;
 				yc--;
-				chunk = Level.getChunk(xc, yc);
+				chunk = worker.level.getChunk(xc, yc);
 			}
 			
 			int index = x|(y<<Settings.cPOW);
 			state = chunk.cells[index];
-			boolean right = Rule.colors[state].right;
+			boolean right = worker.rule.turn[state];
 			dir = (dir + (right ? 1:-1))&0b11;
-			if(++chunk.cells[index] == Rule.size) chunk.cells[index] = 0;
+			if(++chunk.cells[index] == worker.rule.size) chunk.cells[index] = 0;
 			
 			x += directions[dir][0];
 			y += directions[dir][1];
@@ -76,14 +82,14 @@ public class Ant {
 		return i;
 	}
 	
-	public static boolean saveState = false;
-	public static int repeatLength = 0;
-	public static long index = 1;
+	public boolean saveState = false;
+	public int repeatLength = 0;
+	public long index = 1;
 	
-	public static long minHighwayPeriod = 0;  // This is the final cycle length
-	public static boolean CYCLEFOUND = false;
+	public long minHighwayPeriod = 0;  // This is the final cycle length
+	public boolean CYCLEFOUND = false;
 	
-	private static boolean checkCycle(int dir, int state) {
+	private boolean checkCycle(int dir, int state) {
 		if(!saveState) return false;
 		byte s1 = (byte)(dir<<6 | state); //Only works for rules with <= 64 colors
 		if(index < states.length) states[(int) index] = s1;
