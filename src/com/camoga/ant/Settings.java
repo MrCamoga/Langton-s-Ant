@@ -28,9 +28,6 @@ public class Settings {
 	}
 	
 	//FIND HIGHWAYS
-	
-	static boolean ignoreSavedRules = true; // If true skips all rules that have already been tested
-	public static final String file = "ruleperiods.langton";
 	static int chunkCheck = 90; // Check if the ant forms a highway when the ant goes further than this chunk from the origin
 	static float repeatcheck = 40; // Number of times the period has to repeat to confirm that it's correct (e.g. You're more certain that 10101010101010101010 has a period of 2 than 1010)
 	static boolean autosave = false;

@@ -21,7 +21,7 @@ public class Ant {
 	}
 	
 	public void init(long iterations) {
-		int stateslen = iterations == -1 ? 200000000:(int) Math.min(iterations/Settings.repeatcheck, 200000000);
+		int stateslen = iterations == -1 ? 200000000:(int) Math.min(iterations/Settings.repeatcheck*2, 200000000);
 		if(states == null || states.length != stateslen) states = new byte[stateslen];
 		x = 0;
 		y = 0;

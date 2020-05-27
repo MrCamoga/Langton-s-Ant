@@ -1,30 +1,25 @@
 package com.camoga.ant.net;
 
 import java.io.ByteArrayOutputStream;
+import java.io.Console;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.management.ThreadMXBean;
+import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.nio.channels.FileLockInterruptionException;
-import java.nio.file.StandardOpenOption;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-import com.camoga.ant.Ant;
-import com.camoga.ant.Level;
-import com.camoga.ant.Rule;
-import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
 import com.camoga.ant.gui.Window;
 
@@ -41,6 +36,7 @@ public class Client {
 	
 	static int ASSIGN_SIZE = 50;
 	static long lastResultsTime;
+	static long lastAssign;
 	static long DELAY_BETWEEN_RESULTS = 120000;
 	static int RECONNECT_TIME = 60000;
 	static boolean STOP_ON_DISCONNECT;
@@ -64,7 +60,7 @@ public class Client {
 		
 		properties = new Properties();
 		try {
-			properties.load(new FileInputStream("langton.properties"));			
+			properties.load(new InputStreamReader(new FileInputStream("langton.properties"),Charset.forName("UTF-8")));			
 		} catch(FileNotFoundException e) {
 			new File("langton.properties").createNewFile();
 		} catch(IOException e) {
@@ -76,7 +72,8 @@ public class Client {
 		if(numworkers == -1) {
 			if(prop_workers != null) {
 				int n;
-				if((n = Integer.parseInt(prop_workers)) > Runtime.getRuntime().availableProcessors()) throw new RuntimeException("Num of workers greater than the number of threads");
+				if((n = Integer.parseInt(prop_workers)) > Runtime.getRuntime().availableProcessors()) 
+					throw new RuntimeException("Num of workers greater than the number of threads");
 				else numworkers = n;				
 			} else numworkers = 1;
 		}
@@ -120,8 +117,10 @@ public class Client {
 		}
 	}
 	
-	private static void getAssigment() {
+	private synchronized static void getAssigment() {
 		if(!logged) return;
+		if(System.currentTimeMillis()-lastAssign < 15000) return;
+		lastAssign = System.currentTimeMillis();
 		try {
 			os.write(PacketType.GETASSIGNMENT.getId());
 			os.writeInt(numworkers*ASSIGN_SIZE);
@@ -152,17 +151,17 @@ public class Client {
 	private void run() {
 
 //		System.out.println(Runtime.getRuntime().availableProcessors());
-		try {
-			fc = FileChannel.open(new File("langton.properties").toPath(), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-			FileLock lock = fc.tryLock();
-			if(lock == null) {
-				LOG.info("Another instance is running");
-				System.exit(0);
-			}
-		} catch (IOException e) {
-			LOG.info("Another instance is running");
-			System.exit(0);
-		}
+//		try {
+//			fc = FileChannel.open(new File("langton.properties").toPath(), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+//			FileLock lock = fc.tryLock();
+//			if(lock == null) {
+//				LOG.info("Another instance is running");
+//				System.exit(0);
+//			}
+//		} catch (IOException e) {
+//			LOG.info("Another instance is running");
+//			System.exit(0);
+//		}
 //		File file = new File("langton.properties");
 //		if(!file.delete()) {
 //			LOG.info("Another instance is running");
@@ -259,29 +258,33 @@ public class Client {
 		host = "langtonsant.sytes.net";
 		boolean gui = true;
 		int numworkers = -1;
+		String username = "";
+		String password = "";
 		for(int i = 0; i < args.length; i++) {
 			String cmd = args[i];
-			if(cmd.startsWith("--")) {
-				if(cmd.equalsIgnoreCase("--nogui")) gui = false;
-			} else if(cmd.startsWith("-")) {
-				String param = args[++i];
 				switch(cmd) {
-				case "-h":
-					host = param;
+				case "--nogui":
+					gui = false;
 					break;
-				case "-cs":
-					Settings.setChunkSize(Integer.parseInt(param));
+				case "--host":
+					host = args[++i];
 					break;
 				case "-w":
-					numworkers = Integer.parseInt(param);
+					String param = args[++i];
+					if(param.equalsIgnoreCase("max")) {
+						numworkers = Runtime.getRuntime().availableProcessors();
+					} else numworkers = Integer.parseInt(param);
 					break;
 				case "-sd":
 					STOP_ON_DISCONNECT = true;
 					break;
+//				case "-u":
+//					username = args[i++];
+//					char[] pass = System.console().readPassword();
+//					break;
+				default:
+					throw new RuntimeException("Invalid parameters");
 				}
-			} else {
-				throw new RuntimeException("Invalid parameters");
-			}
 		}
 		
 		client = new Client(numworkers);
@@ -297,7 +300,6 @@ public class Client {
 		long[] p = new long[] {assignments.remove(0), assignments.remove(0)};
 		return p;
 	}
-	
 	
 	public synchronized static void storeRule(long[] rule) {
 		try {

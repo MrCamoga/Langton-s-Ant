@@ -124,8 +124,8 @@ public class Window {
 		public void render() {
 			Graphics g = getBufferStrategy().getDrawGraphics();
 			Worker w = Client.getWorker(0);
-			
-			if(w != null && w.isRunning()) {
+			if(w==null) return;
+			if(w.isRunning()) {
 				w.getLevel().render(pixels, Settings.canvasSize, canvasImage.getWidth(), canvasImage.getHeight(), false);				
 				g.drawImage(canvasImage, 0, 0, 800, 800, null);
 				g.setColor(Color.WHITE);
