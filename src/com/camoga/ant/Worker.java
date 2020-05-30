@@ -17,6 +17,8 @@ import org.apache.commons.collections4.keyvalue.MultiKey;
 
 import com.camoga.ant.Level.Chunk;
 import com.camoga.ant.net.Client;
+import com.camoga.ant.test.hex.HexAnt;
+import com.camoga.ant.test.hex.IAnt;
 
 public class Worker {
 
@@ -27,15 +29,21 @@ public class Worker {
 	int workerid;
 	
 	long autosavetimer;
-	Ant ant;
+	IAnt ant;
 	Level level;
-	Rule rule;
 	
-	public Worker(int ID) {
+	public enum AntType {
+		NORMAL, HEX;
+	}
+	
+	public Worker(int ID, AntType type) {
 		this.workerid = ID;
-		ant = new Ant(this);
+		if(type==AntType.NORMAL) {
+			ant = new Ant(this);
+		} else if(type==AntType.HEX) {
+			ant = new HexAnt(this);
+		}
 		level = new Level(this);
-		rule = new Rule();
 		start();
 	}
 	
@@ -55,8 +63,7 @@ public class Worker {
 			long iterations = p[1];
 
 			level.init();
-			ant.init(iterations);
-			this.rule.createRule(rule);
+			ant.init(rule, iterations);
 			this.iterations = 0;
 			
 			time = System.currentTimeMillis();
@@ -65,14 +72,19 @@ public class Worker {
 			
 			float seconds = (-time + (time = System.currentTimeMillis()))/1000f;
 //			Client.LOG.info(rule + "\t" + Rule.string(rule) + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s" + (result[1] > 1 ? "\t"+result[1]:"") + "\t nc: " + level.chunks.size());
-			Client.LOG.info(rule + "\t" + Rule.string(rule) + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s" + (result[1] > 1 ? "\t"+result[1]:""));
+			Client.LOG.info(rule + "\t" + ant.getRule().string() + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s" + (result[1] > 1 ? "\t"+result[1]:""));
+//			try {
+//				Thread.sleep(1000);
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
 		}
 		Client.LOG.warning("Worker " + workerid + " has stopped");
 		running = false;
 	}
 	
 	public long[] runRule(long rule, long maxiterations) {
-		while(!ant.PERIODFOUND && (maxiterations == -1 || iterations < maxiterations)) {
+		while(!ant.periodFound() && (maxiterations == -1 || iterations < maxiterations)) {
 			iterations += ant.move();
 			if(Settings.deleteOldChunks) { //Delete old chunks
 				// TODO write to highway file before deleting
@@ -80,46 +92,14 @@ public class Worker {
 			}
 			
 			if(Settings.autosave && System.currentTimeMillis()-autosavetimer > 900000) { // Autosave every 15 mins
-				saveState();
+				ant.saveState();
 				System.out.println("Autosave");
 				autosavetimer = System.currentTimeMillis();
 			}
 		}
-		long period = ant.PERIODFOUND ? ant.minHighwayPeriod:(ant.saveState ? 1:0);
+		long period = ant.periodFound() ? ant.getPeriod():(ant.findingPeriod() ? 1:0);
 		
 		return new long[] {rule,period,iterations};
-//		saveRule();
-	}
-	
-	private void saveState() {
-		try {
-			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(rule.rule+".state"));
-			oos.writeLong(rule.rule);
-			oos.writeLong(iterations);
-			oos.writeInt(ant.dir);
-			oos.writeInt(ant.state);
-			oos.writeInt(ant.x);
-			oos.writeInt(ant.y);
-			oos.writeInt(ant.xc);
-			oos.writeInt(ant.yc);
-			oos.writeBoolean(ant.saveState);
-			if(ant.saveState) {
-				oos.writeLong(ant.index);
-				oos.writeInt(ant.repeatLength);
-				oos.writeLong(ant.minHighwayPeriod);
-				oos.write(ant.states);
-			}
-			oos.writeByte(Settings.cPOW);
-			oos.writeInt(level.chunks.size());
-			for(Entry<MultiKey<? extends Integer>, Chunk> c : level.chunks.entrySet()) {
-				MultiKey<? extends Integer> key = c.getKey();
-				oos.writeInt(key.getKey(0));
-				oos.writeInt(key.getKey(1));
-				oos.write(c.getValue().cells);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	protected void saveBinHighway(File file) {
@@ -150,13 +130,13 @@ public class Worker {
 			//TODO merge with render method
 			g.setColor(Color.WHITE);
 			g.drawString("Iterations: " + iterations, 10, 30); 
-			g.drawString("Rule: " + rule.string() + " ("+rule.rule+")", 10, 46);
-			if(ant.saveState) {
+			g.drawString("Rule: " + ant.getRule().string() + " ("+ant.getRule().getRule()+")", 10, 46);
+			if(ant.findingPeriod()) {
 				g.setColor(Color.red);
-				g.drawString("Finding period... " + ant.minHighwayPeriod, 10, 62);
-			} else if(ant.PERIODFOUND) {
+				g.drawString("Finding period... " + ant.getPeriod(), 10, 62);
+			} else if(ant.periodFound()) {
 				g.setColor(Color.WHITE);
-				g.drawString("Period: " + ant.minHighwayPeriod, 10, 62);
+				g.drawString("Period: " + ant.getPeriod(), 10, 62);
 			}			
 		}
 		
@@ -167,15 +147,11 @@ public class Worker {
 		}
 	}
 	
-	public Rule getRule() {
-		return rule;
-	}
-	
 	public long getIterations() {
 		return iterations;
 	}
 	
-	public Ant getAnt() {
+	public IAnt getAnt() {
 		return ant;
 	}
 	

@@ -54,9 +54,9 @@ public class Level {
 
 		Chunk c = new Chunk();
 		chunks.put(xc,yc,c);
-		if(!worker.ant.saveState && !worker.ant.PERIODFOUND && Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck) {
-			worker.ant.saveState = true;
-			worker.ant.states[0] = (byte)(worker.ant.dir<<6 | worker.ant.state);
+		if(!worker.ant.findingPeriod() && !worker.ant.periodFound() && Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck) {
+			worker.ant.setFindingPeriod(true);
+			worker.getAnt().initPeriodFinding();
 		}
 		return c;
 	}
@@ -67,12 +67,12 @@ public class Level {
 
 	//TODO improve render
 	public void render(int[] pixels, int chunks, int width, int height, boolean followAnt) {
-		int xa = followAnt ? worker.ant.xc:0;
-		int ya = followAnt ? worker.ant.yc:0;
+		int xa = followAnt ? worker.ant.getXC():0;
+		int ya = followAnt ? worker.ant.getYC():0;
 		
 //		System.out.println(xa+","+ya);
 
-		int[] colors = worker.rule.colors;
+		int[] colors = worker.getAnt().getRule().getColors();
 		if(colors == null) return;
 		
 		if(!Settings.renderVoid) for(int i = 0; i < pixels.length; i++) {
@@ -94,7 +94,7 @@ public class Level {
 					for(int xo = 0; xo < cSIZE; xo++) {
 						int index = (xo|xcf) + y;
 						if(index >= pixels.length) continue;
-						pixels[index] = colors[c.cells[i]%worker.rule.size];
+						pixels[index] = colors[c.cells[i]%colors.length];
 						i++;
 					}
 				}
@@ -140,8 +140,8 @@ public class Level {
 	}
 	
 	public void renderHighway(byte[] pixels, int chunks, int width, int height, boolean followAnt) {
-		int xa = followAnt ? worker.ant.xc:0;
-		int ya = followAnt ? worker.ant.yc:0;
+		int xa = followAnt ? worker.ant.getXC():0;
+		int ya = followAnt ? worker.ant.getYC():0;
 //		int ya = -xa+1;
 		int offset = 7;
 		

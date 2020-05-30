@@ -21,6 +21,7 @@ import java.util.logging.Logger;
 
 import com.camoga.ant.Rule;
 import com.camoga.ant.Worker;
+import com.camoga.ant.Worker.AntType;
 import com.camoga.ant.gui.Window;
 
 public class Client {	
@@ -240,7 +241,7 @@ public class Client {
 	
 	private void startWorkers(int num) {
 		for(int i = workers.size(); i < num; i++) {
-			workers.add(new Worker(i));
+			workers.add(new Worker(i,AntType.NORMAL));
 		}
 		for(Worker w : workers) {
 			w.start();
@@ -293,7 +294,7 @@ public class Client {
 		}
 		
 		client = new Client(numworkers, nolog);
-		if(gui)
+//		if(gui)
 			new Window();
 	}
 	

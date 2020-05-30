@@ -1,4 +1,6 @@
-package com.camoga.ant;
+package com.camoga.ant.test.hex;
+
+import com.camoga.ant.Level.Chunk;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -7,11 +9,10 @@ import java.util.Map.Entry;
 
 import org.apache.commons.collections4.keyvalue.MultiKey;
 
-import com.camoga.ant.Level.Chunk;
-import com.camoga.ant.test.hex.IAnt;
-import com.camoga.ant.test.hex.IRule;
+import com.camoga.ant.Settings;
+import com.camoga.ant.Worker;
 
-public class Ant implements IAnt {
+public class HexAnt implements IAnt {
 	int dir;
 	int xc,yc;
 	int x, y;
@@ -19,22 +20,22 @@ public class Ant implements IAnt {
 	Chunk chunk;
 	int state = 0;
 	
-	static final int[][] directions = new int[][] {{0,-1},{1,0},{0,1},{-1,0}};
+	static final int[][] directions = new int[][] {{-1,-1},{0,-1},{1,0},{1,1},{0,1},{-1,0}};
 	
-	byte[] states;
-	public boolean saveState = false;
-	public int repeatLength = 0;
-	public long index = 1;
+	private byte[] states;
+	private boolean saveState = false;
+	private int repeatLength = 0;
+	private long index = 1;
 	
-	public long minHighwayPeriod = 0;  // This is the final period length
-	public boolean PERIODFOUND = false;
+	private long minHighwayPeriod = 0;  // This is the final period length
+	private boolean PERIODFOUND = false;
 	
 	private Worker worker;
-	private Rule rule;
+	private HexRule rule;
 	
-	public Ant(Worker worker) {
+	public HexAnt(Worker worker) {
 		this.worker = worker;
-		rule = new Rule();
+		rule = new HexRule();
 	}
 	
 	public void init(long rule, long iterations) {
@@ -52,7 +53,7 @@ public class Ant implements IAnt {
 		index = 1;
 		minHighwayPeriod = 0;
 		PERIODFOUND = false;
-		chunk = worker.level.chunks.get(0,0);
+		chunk = worker.getLevel().chunks.get(0,0);
 	}
 	
 	/**
@@ -63,7 +64,7 @@ public class Ant implements IAnt {
 		int i = 0;
 		for(; i < Settings.itpf; i++) {			
 			if(saveState) {
-				byte s1 = (byte)(dir<<6 | state); //Only works for rules with <= 64 colors
+				byte s1 = (byte)(dir<<5 | state); //Only works for rules with <= 32 colors
 				if(index < states.length) states[(int) index] = s1;
 				index++;
 				if(states[repeatLength]!=s1) {
@@ -82,24 +83,26 @@ public class Ant implements IAnt {
 			if(x > Settings.cSIZEm) {
 				x = 0;
 				xc++;
-				chunk = worker.level.getChunk(xc, yc);
+				chunk = worker.getLevel().getChunk(xc, yc);
 			} else if(x < 0) {
 				x = Settings.cSIZEm;
 				xc--;
-				chunk = worker.level.getChunk(xc, yc);
-			} else if(y > Settings.cSIZEm) {
+				chunk = worker.getLevel().getChunk(xc, yc);
+			} 
+			if(y > Settings.cSIZEm) {
 				y = 0;
 				yc++;
-				chunk = worker.level.getChunk(xc, yc);
+				chunk = worker.getLevel().getChunk(xc, yc);
 			} else if(y < 0) {
 				y = Settings.cSIZEm;
 				yc--;
-				chunk = worker.level.getChunk(xc, yc);
+				chunk = worker.getLevel().getChunk(xc, yc);
 			}
 			
 			int index = x|(y<<Settings.cPOW);
 			state = chunk.cells[index];
-			dir = (dir + rule.turn[state])&0b11;
+			dir += rule.turn[state];
+			if(dir > 5) dir -= 6;
 			if(++chunk.cells[index] == rule.size) chunk.cells[index] = 0;
 			
 			x += directions[dir][0];
@@ -116,7 +119,7 @@ public class Ant implements IAnt {
 	
 	public void saveState() {
 		try {
-			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(rule.rule+".state"));
+			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(rule.rule+".hexstate"));
 			oos.writeLong(rule.rule);
 			oos.writeLong(worker.getIterations());
 			oos.writeInt(dir);
@@ -157,14 +160,6 @@ public class Ant implements IAnt {
 		return PERIODFOUND;
 	}
 
-	public void setFindingPeriod(boolean b) {
-		saveState = b;
-	}
-
-	public void initPeriodFinding() {
-		states[0] = (byte)(dir<<6 | state);
-	}
-
 	public int getXC() {
 		return xc;
 	}
@@ -172,7 +167,15 @@ public class Ant implements IAnt {
 	public int getYC() {
 		return yc;
 	}
-	
+
+	public void setFindingPeriod(boolean b) {
+		saveState = b;
+	}
+
+	public void initPeriodFinding() {
+		states[0] = (byte)(dir<<5 | state);
+	}
+
 	public IRule getRule() {
 		return rule;
 	}

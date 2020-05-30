@@ -1,15 +1,15 @@
-package com.camoga.ant;
+package com.camoga.ant.test.hex;
 
 import java.util.Random;
 
-import com.camoga.ant.test.hex.IRule;
-
-public class Rule implements IRule {
+public class HexRule implements IRule {
 	
 	public int[] colors;
 	public int[] turn;
 	public long rule;
 	public byte size;
+	
+	private static final String[] letters = new String[] {"F","R","S","B","P","L"};
 	
 	public class CellColor {
 		int color;
@@ -23,18 +23,17 @@ public class Rule implements IRule {
 	
 	public void createRule(long rule) {
 		this.rule = rule;
-		size = (byte) (Math.log(rule)/Math.log(2)+1);
+		size = (byte) (Math.log(rule)/Math.log(6)+1);
 		colors = new int[size];
+		if(size > 32) throw new RuntimeException("More than 32 states not supported");
 		turn = new int[size];
 		long seed = -8485983343335656213L;
 		Random r = new Random();
 		for(int i = 0; i < colors.length; i++) {
-			boolean right = rule%2 != 0;
-			rule = rule>>1;
 			colors[i] = r.nextInt(0x1000000);
-			turn[i] = right ? 1:-1;
+			turn[i] = (int) (rule%6);
+			rule /= 6;
 		}
-		if(colors.length > 64) throw new RuntimeException("More than 64 states not supported");
 	}
 	
 	/**
@@ -45,8 +44,8 @@ public class Rule implements IRule {
 	public static String string(long rule) {
 		String result = "";
 		while(rule != 0) {
-			result += rule%2==0 ? "L":"R";
-			rule >>= 1;
+			result += letters[(int) (rule%6)];
+			rule /= 6;
 		}
 		return result;
 	}
@@ -58,7 +57,7 @@ public class Rule implements IRule {
 	public String string() {
 		String rule = "";
 		for(int i = 0; i < turn.length; i++) {
-			rule += turn[i] == 1 ? "R":"L";
+			rule += letters[turn[i]];
 		}
 		return rule;
 	}
