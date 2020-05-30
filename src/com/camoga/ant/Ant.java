@@ -87,8 +87,7 @@ public class Ant {
 			
 			int index = x|(y<<Settings.cPOW);
 			state = chunk.cells[index];
-			boolean right = worker.rule.turn[state];
-			dir = (dir + (right ? 1:-1))&0b11;
+			dir = (dir + worker.rule.turn[state])&0b11;
 			if(++chunk.cells[index] == worker.rule.size) chunk.cells[index] = 0;
 			
 			x += directions[dir][0];

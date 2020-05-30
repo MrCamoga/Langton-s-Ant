@@ -17,7 +17,7 @@ public class Level {
 	
 	public MultiKeyMap<Integer,Chunk> chunks = new MultiKeyMap<Integer,Chunk>();
 	
-	class Chunk implements Serializable {		
+	public class Chunk implements Serializable {		
 		long lastVisit;
 		
 		public byte[] cells = new byte[cSIZE*cSIZE];
