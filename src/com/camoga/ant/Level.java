@@ -54,7 +54,7 @@ public class Level {
 
 		Chunk c = new Chunk();
 		chunks.put(xc,yc,c);
-		if(!worker.ant.saveState && !worker.ant.CYCLEFOUND && Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck) {
+		if(!worker.ant.saveState && !worker.ant.PERIODFOUND && Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck) {
 			worker.ant.saveState = true;
 			worker.ant.states[0] = (byte)(worker.ant.dir<<6 | worker.ant.state);
 		}

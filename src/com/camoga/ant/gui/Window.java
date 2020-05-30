@@ -138,7 +138,7 @@ public class Window {
 			if(ant.saveState) {
 				g.setColor(Color.red);
 				g.drawString("Finding period... " + ant.minHighwayPeriod, 10, 62);
-			} else if(ant.CYCLEFOUND) {
+			} else if(ant.PERIODFOUND) {
 				g.setColor(Color.WHITE);
 				g.drawString("Period: " + ant.minHighwayPeriod, 10, 62);
 			}
@@ -209,7 +209,7 @@ public class Window {
 //		if(Ant.saveState) {
 //			g.setColor(Color.red);
 //			g.drawString("Finding period... " + Ant.minHighwayPeriod, 10, 62);
-//		} else if(Ant.CYCLEFOUND) {
+//		} else if(Ant.PERIODFOUND) {
 //			g.setColor(Color.WHITE);
 //			g.drawString("Period: " + Ant.minHighwayPeriod, 10, 62);
 //		}

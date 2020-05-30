@@ -1,7 +1,6 @@
 package com.camoga.ant.net;
 
 import java.io.ByteArrayOutputStream;
-import java.io.Console;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -20,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+import com.camoga.ant.Rule;
 import com.camoga.ant.Worker;
 import com.camoga.ant.gui.Window;
 
@@ -31,7 +31,7 @@ public class Client {
 	static DataInputStream is;
 	static String host;
 	
-	static Worker[] workers;
+	static ArrayList<Worker> workers = new ArrayList<Worker>();
 	static int numworkers;
 	
 	static int ASSIGN_SIZE = 50;
@@ -43,20 +43,22 @@ public class Client {
 	
 	public static Properties properties;
 	
-	Thread ant;
 	Thread connectionthread;
 	public static boolean logged = false;
 	public static String username, password;
-	public boolean tryToReconnect = true;
 	
 	public static ArrayList<Long> assignments = new ArrayList<Long>();
 	public static ByteArrayOutputStream storedrules = new ByteArrayOutputStream();
 	
 	public static Client client;
 	
-	public Client(int numworkers) throws IOException {
-		LOG.setLevel(java.util.logging.Level.INFO);
-		System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s: %5$s%n");
+	public Client(int numworkers, boolean nolog) throws IOException {
+		if(nolog) {
+			LOG.setLevel(java.util.logging.Level.OFF);
+		} else {
+			LOG.setLevel(java.util.logging.Level.INFO);
+			System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s: %5$s%n");			
+		}
 		
 		properties = new Properties();
 		try {
@@ -124,7 +126,6 @@ public class Client {
 		try {
 			os.write(PacketType.GETASSIGNMENT.getId());
 			os.writeInt(numworkers*ASSIGN_SIZE);
-			System.out.println(numworkers*ASSIGN_SIZE);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -206,16 +207,7 @@ public class Client {
 							assignments.add(bb.getLong());
 						}
 						LOG.info("New assignment of " + size/2 + " rules!");
-						if(workers == null) {
-							workers = new Worker[numworkers];
-							for(int i = 0; i < workers.length; i++) {
-								workers[i] = new Worker(i);
-							}
-						} else {
-							for(int i = 0; i < workers.length; i++) {
-								workers[i].start();
-							}
-						}
+						startWorkers(numworkers);
 						break;
 					case REGISTER:
 						int ok = is.readByte();
@@ -245,6 +237,15 @@ public class Client {
 		}
 			
 	}
+	
+	private void startWorkers(int num) {
+		for(int i = workers.size(); i < num; i++) {
+			workers.add(new Worker(i));
+		}
+		for(Worker w : workers) {
+			w.start();
+		}
+	}
 
 	public static String toHexString(byte[] data) {
 		String result = "";
@@ -257,6 +258,7 @@ public class Client {
 	public static void main(String[] args) throws IOException {
 		host = "langtonsant.sytes.net";
 		boolean gui = true;
+		boolean nolog = false;
 		int numworkers = -1;
 		String username = "";
 		String password = "";
@@ -268,6 +270,9 @@ public class Client {
 					break;
 				case "--host":
 					host = args[++i];
+					break;
+				case "--nolog":
+					nolog = true;
 					break;
 				case "-w":
 					String param = args[++i];
@@ -287,7 +292,7 @@ public class Client {
 				}
 		}
 		
-		client = new Client(numworkers);
+		client = new Client(numworkers, nolog);
 		if(gui)
 			new Window();
 	}
@@ -311,7 +316,7 @@ public class Client {
 	}
 
 	public static Worker getWorker(int id) {
-		if(workers == null || id < 0 || id >= workers.length) return null;
-		return workers[id];
+		if(workers == null || id < 0 || id >= workers.size()) return null;
+		return workers.get(id);
 	}
 }

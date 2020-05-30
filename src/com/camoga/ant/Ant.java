@@ -13,6 +13,12 @@ public class Ant {
 	static final int[][] directions = new int[][] {{0,-1},{1,0},{0,1},{-1,0}};
 	
 	byte[] states;
+	public boolean saveState = false;
+	public int repeatLength = 0;
+	public long index = 1;
+	
+	public long minHighwayPeriod = 0;  // This is the final period length
+	public boolean PERIODFOUND = false;
 	
 	private Worker worker;
 	
@@ -21,7 +27,7 @@ public class Ant {
 	}
 	
 	public void init(long iterations) {
-		int stateslen = iterations == -1 ? 200000000:(int) Math.min(iterations/Settings.repeatcheck*2, 200000000);
+		int stateslen = iterations == -1 ? 200000000:(int) Math.min(Math.max(5000000,iterations/(int)Settings.repeatcheck*2), 200000000);
 		if(states == null || states.length != stateslen) states = new byte[stateslen];
 		x = 0;
 		y = 0;
@@ -33,7 +39,7 @@ public class Ant {
 		repeatLength = 0;
 		index = 1;
 		minHighwayPeriod = 0;
-		CYCLEFOUND = false;
+		PERIODFOUND = false;
 		chunk = worker.level.chunks.get(0,0);
 	}
 	
@@ -43,10 +49,25 @@ public class Ant {
 	 */
 	public int move() {
 		int i = 0;
-		for(; i < Settings.itpf; i++) {
-			if(checkCycle(dir, state)) break;
+		for(; i < Settings.itpf; i++) {			
+			if(saveState) {
+				byte s1 = (byte)(dir<<6 | state); //Only works for rules with <= 64 colors
+				if(index < states.length) states[(int) index] = s1;
+				index++;
+				if(states[repeatLength]!=s1) {
+					repeatLength = 0;
+					minHighwayPeriod = index;
+				} else {
+					repeatLength++;
+					if(repeatLength == states.length || repeatLength > Settings.repeatcheck*minHighwayPeriod) {
+						PERIODFOUND = true;
+						saveState = false;
+						break;
+					}
+				}
+			}
 			
-			if(x > Settings.cSIZEm) { //Only get chunk when changed
+			if(x > Settings.cSIZEm) {
 				x = 0;
 				xc++;
 				chunk = worker.level.getChunk(xc, yc);
@@ -82,30 +103,4 @@ public class Ant {
 		return i;
 	}
 	
-	public boolean saveState = false;
-	public int repeatLength = 0;
-	public long index = 1;
-	
-	public long minHighwayPeriod = 0;  // This is the final cycle length
-	public boolean CYCLEFOUND = false;
-	
-	private boolean checkCycle(int dir, int state) {
-		if(!saveState) return false;
-		byte s1 = (byte)(dir<<6 | state); //Only works for rules with <= 64 colors
-		if(index < states.length) states[(int) index] = s1;
-		index++;
-		if(states[repeatLength]==s1) repeatLength++;
-		else {
-			repeatLength = 0;
-			minHighwayPeriod = index;
-			return false;
-		}
-
-		if(repeatLength == states.length || repeatLength > Settings.repeatcheck*minHighwayPeriod) {
-			CYCLEFOUND = true;
-			saveState = false;
-			return true;
-		}
-		return false;
-	}
 }

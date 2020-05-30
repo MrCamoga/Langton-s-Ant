@@ -4,18 +4,16 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.util.Date;
+import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
+
+import org.apache.commons.collections4.keyvalue.MultiKey;
 
 import com.camoga.ant.Level.Chunk;
 import com.camoga.ant.net.Client;
@@ -74,7 +72,7 @@ public class Worker {
 	}
 	
 	public long[] runRule(long rule, long maxiterations) {
-		while(!ant.CYCLEFOUND && (maxiterations == -1 || iterations < maxiterations)) {
+		while(!ant.PERIODFOUND && (maxiterations == -1 || iterations < maxiterations)) {
 			iterations += ant.move();
 			if(Settings.deleteOldChunks) { //Delete old chunks
 				// TODO write to highway file before deleting
@@ -82,15 +80,46 @@ public class Worker {
 			}
 			
 			if(Settings.autosave && System.currentTimeMillis()-autosavetimer > 900000) { // Autosave every 15 mins
-				LangtonMain.saveState();
+				saveState();
 				System.out.println("Autosave");
 				autosavetimer = System.currentTimeMillis();
 			}
 		}
-		long period = ant.CYCLEFOUND ? ant.minHighwayPeriod:(ant.saveState ? 1:0);
+		long period = ant.PERIODFOUND ? ant.minHighwayPeriod:(ant.saveState ? 1:0);
 		
 		return new long[] {rule,period,iterations};
 //		saveRule();
+	}
+	
+	private void saveState() {
+		try {
+			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(rule.rule+".state"));
+			oos.writeLong(rule.rule);
+			oos.writeLong(iterations);
+			oos.writeInt(ant.dir);
+			oos.writeInt(ant.state);
+			oos.writeInt(ant.x);
+			oos.writeInt(ant.y);
+			oos.writeInt(ant.xc);
+			oos.writeInt(ant.yc);
+			oos.writeBoolean(ant.saveState);
+			if(ant.saveState) {
+				oos.writeLong(ant.index);
+				oos.writeInt(ant.repeatLength);
+				oos.writeLong(ant.minHighwayPeriod);
+				oos.write(ant.states);
+			}
+			oos.writeByte(Settings.cPOW);
+			oos.writeInt(level.chunks.size());
+			for(Entry<MultiKey<? extends Integer>, Chunk> c : level.chunks.entrySet()) {
+				MultiKey<? extends Integer> key = c.getKey();
+				oos.writeInt(key.getKey(0));
+				oos.writeInt(key.getKey(1));
+				oos.write(c.getValue().cells);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	protected void saveBinHighway(File file) {
@@ -111,22 +140,24 @@ public class Worker {
 		}
 	}
 	
-	protected void saveImage(long rule, File file) {
+	protected void saveImage(File file, boolean info) {
 //		Simulation.saveBinHighway(new File(Simulation.rule+".bin"));
 //		if(0==0) return;
 		BufferedImage image = new BufferedImage(Settings.saveImageW, Settings.saveImageH, BufferedImage.TYPE_INT_RGB);
-		level.render(((DataBufferInt)(image.getRaster().getDataBuffer())).getData(), Settings.canvasSize, image.getWidth(), image.getHeight(), Settings.followAnt);
-		Graphics g = image.createGraphics();
-		//TODO merge with render method
-		g.setColor(Color.WHITE);
-		g.drawString("Iterations: " + iterations, 10, 30); 
-		g.drawString("Rule: " + this.rule.string() + " ("+rule+")", 10, 46);
-		if(ant.saveState) {
-			g.setColor(Color.red);
-			g.drawString("Finding period... " + ant.minHighwayPeriod, 10, 62);
-		} else if(ant.CYCLEFOUND) {
+		level.render(((DataBufferInt)(image.getRaster().getDataBuffer())).getData(), Settings.canvasSize, image.getWidth(), image.getHeight(), true);
+		if(info) {
+			Graphics g = image.createGraphics();
+			//TODO merge with render method
 			g.setColor(Color.WHITE);
-			g.drawString("Period: " + ant.minHighwayPeriod, 10, 62);
+			g.drawString("Iterations: " + iterations, 10, 30); 
+			g.drawString("Rule: " + rule.string() + " ("+rule.rule+")", 10, 46);
+			if(ant.saveState) {
+				g.setColor(Color.red);
+				g.drawString("Finding period... " + ant.minHighwayPeriod, 10, 62);
+			} else if(ant.PERIODFOUND) {
+				g.setColor(Color.WHITE);
+				g.drawString("Period: " + ant.minHighwayPeriod, 10, 62);
+			}			
 		}
 		
 		try {
