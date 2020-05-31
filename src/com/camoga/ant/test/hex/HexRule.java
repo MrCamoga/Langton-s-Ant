@@ -24,12 +24,11 @@ public class HexRule implements IRule {
 	public void createRule(long rule) {
 		this.rule = rule;
 		size = (byte) (Math.log(rule)/Math.log(6)+1);
-		colors = new int[size];
 		if(size > 32) throw new RuntimeException("More than 32 states not supported");
+		colors = new int[size];
 		turn = new int[size];
-		long seed = -8485983343335656213L;
 		Random r = new Random();
-		for(int i = 0; i < colors.length; i++) {
+		for(int i = 0; i < size; i++) {
 			colors[i] = r.nextInt(0x1000000);
 			turn[i] = (int) (rule%6);
 			rule /= 6;

@@ -12,6 +12,7 @@ import java.nio.ByteBuffer;
 import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
+import javax.management.RuntimeErrorException;
 
 import org.apache.commons.collections4.keyvalue.MultiKey;
 
@@ -25,26 +26,29 @@ public class Worker {
 	long iterations = 0;
 	
 	Thread thread;	
+	boolean kill;
 	boolean running;
 	int workerid;
 	
 	long autosavetimer;
 	IAnt ant;
 	Level level;
+	int type;
 	
 	public enum AntType {
 		NORMAL, HEX;
 	}
 	
-	public Worker(int ID, AntType type) {
+	public Worker(int ID, int type) {
 		this.workerid = ID;
-		if(type==AntType.NORMAL) {
+		if(type==0) {
 			ant = new Ant(this);
-		} else if(type==AntType.HEX) {
+			this.type = 0;
+		} else if(type==1) {
 			ant = new HexAnt(this);
-		}
+			this.type = 1;
+		} else throw new RuntimeException();
 		level = new Level(this);
-		start();
 	}
 	
 	public void start() {
@@ -58,7 +62,7 @@ public class Worker {
 	public void run() {
 		long[] p;
 		long time = System.currentTimeMillis();
-		while((p = Client.getRule())[0] != -1) {
+		while((p = Client.getRule(type))[0] != -1 && !kill) {
 			long rule = p[0];
 			long iterations = p[1];
 
@@ -68,7 +72,7 @@ public class Worker {
 			
 			time = System.currentTimeMillis();
 			long[] result = runRule(rule,iterations);
-			Client.storeRule(result);
+			Client.storeRule(type,result);
 			
 			float seconds = (-time + (time = System.currentTimeMillis()))/1000f;
 //			Client.LOG.info(rule + "\t" + Rule.string(rule) + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s" + (result[1] > 1 ? "\t"+result[1]:"") + "\t nc: " + level.chunks.size());
@@ -81,6 +85,7 @@ public class Worker {
 		}
 		Client.LOG.warning("Worker " + workerid + " has stopped");
 		running = false;
+		if(kill) WorkerManager.remove(this);
 	}
 	
 	public long[] runRule(long rule, long maxiterations) {
@@ -161,5 +166,13 @@ public class Worker {
 
 	public boolean isRunning() {
 		return running;
+	}
+	
+	public int getType() {
+		return type;
+	}
+
+	public void kill() {
+		kill = true;
 	}
 }

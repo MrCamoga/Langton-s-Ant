@@ -77,11 +77,11 @@ public class Level {
 		
 		if(!Settings.renderVoid) for(int i = 0; i < pixels.length; i++) {
 			pixels[i] = colors[0];
-		} 
+		}
 		else for(int i = 0; i < pixels.length; i++) {
 			pixels[i] = 0xff000000;
 		}
-		
+
 		for(int yc = 0; yc < chunks; yc++) {
 			int ycf = yc<<Settings.cPOW;
 			for(int xc = 0; xc < chunks; xc++) {

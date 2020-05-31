@@ -24,17 +24,15 @@ public class Rule implements IRule {
 	public void createRule(long rule) {
 		this.rule = rule;
 		size = (byte) (Math.log(rule)/Math.log(2)+1);
+		if(size > 64) throw new RuntimeException("More than 64 states not supported");
 		colors = new int[size];
 		turn = new int[size];
-		long seed = -8485983343335656213L;
 		Random r = new Random();
-		for(int i = 0; i < colors.length; i++) {
-			boolean right = rule%2 != 0;
-			rule = rule>>1;
+		for(int i = 0; i < size; i++) {
+			turn[i] = (rule&1) == 1 ? 1:3;
+			rule >>>= 1;
 			colors[i] = r.nextInt(0x1000000);
-			turn[i] = right ? 1:-1;
 		}
-		if(colors.length > 64) throw new RuntimeException("More than 64 states not supported");
 	}
 	
 	/**

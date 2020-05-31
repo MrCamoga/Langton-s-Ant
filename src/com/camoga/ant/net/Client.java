@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 import com.camoga.ant.Rule;
 import com.camoga.ant.Worker;
 import com.camoga.ant.Worker.AntType;
+import com.camoga.ant.WorkerManager;
 import com.camoga.ant.gui.Window;
 
 public class Client {	
@@ -32,12 +33,9 @@ public class Client {
 	static DataInputStream is;
 	static String host;
 	
-	static ArrayList<Worker> workers = new ArrayList<Worker>();
-	static int numworkers;
-	
 	static int ASSIGN_SIZE = 50;
 	static long lastResultsTime;
-	static long lastAssign;
+	static long[] lastAssign = new long[2];
 	static long DELAY_BETWEEN_RESULTS = 120000;
 	static int RECONNECT_TIME = 60000;
 	static boolean STOP_ON_DISCONNECT;
@@ -48,17 +46,17 @@ public class Client {
 	public static boolean logged = false;
 	public static String username, password;
 	
-	public static ArrayList<Long> assignments = new ArrayList<Long>();
-	public static ByteArrayOutputStream storedrules = new ByteArrayOutputStream();
+	public static ArrayList<Long>[] assignments = new ArrayList[2];
+	public static ByteArrayOutputStream[] storedrules = new ByteArrayOutputStream[2];
 	
 	public static Client client;
 	
-	public Client(int numworkers, boolean nolog) throws IOException {
+	public Client(int normalworkers, int hexworkers, boolean nolog) throws IOException {
 		if(nolog) {
 			LOG.setLevel(java.util.logging.Level.OFF);
 		} else {
 			LOG.setLevel(java.util.logging.Level.INFO);
-			System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s: %5$s%n");			
+			System.setProperty("java.util.logging.SimpleFormatter.format", "%5$s%n");			
 		}
 		
 		properties = new Properties();
@@ -71,16 +69,21 @@ public class Client {
 			System.exit(0);
 		}
 
-		String prop_workers = properties.getProperty("workers");
-		if(numworkers == -1) {
-			if(prop_workers != null) {
-				int n;
-				if((n = Integer.parseInt(prop_workers)) > Runtime.getRuntime().availableProcessors()) 
-					throw new RuntimeException("Num of workers greater than the number of threads");
-				else numworkers = n;				
-			} else numworkers = 1;
-		}
-		Client.numworkers = numworkers;
+//		String prop_workers = properties.getProperty("workers");
+//		if(numworkers == -1) {
+//			if(prop_workers != null) {
+//				int n;
+//				if((n = Integer.parseInt(prop_workers)) > Runtime.getRuntime().availableProcessors()) 
+//					throw new RuntimeException("Num of workers greater than the number of threads");
+//				else numworkers = n;				
+//			} else numworkers = 1;
+//		}
+
+		assignments[0] = new ArrayList<Long>();
+		assignments[1] = new ArrayList<Long>();
+		storedrules[0] = new ByteArrayOutputStream();
+		storedrules[1] = new ByteArrayOutputStream();
+		WorkerManager.setWorkers(normalworkers, hexworkers);
 		
 		connectionthread = new Thread(() -> run(), "Client Thread");
 		connectionthread.start();
@@ -91,7 +94,6 @@ public class Client {
 		
 		Client.username = username;
 		Client.password = hash;
-		
 		
 		try {
 			os.writeByte(PacketType.REGISTER.getId());
@@ -120,13 +122,15 @@ public class Client {
 		}
 	}
 	
-	private synchronized static void getAssigment() {
+	private synchronized static void getAssigment(int type) {
 		if(!logged) return;
-		if(System.currentTimeMillis()-lastAssign < 15000) return;
-		lastAssign = System.currentTimeMillis();
+		if(WorkerManager.size(type) == 0) return;
+		if(System.currentTimeMillis()-lastAssign[type] < 15000) return;
+		lastAssign[type] = System.currentTimeMillis();
 		try {
-			os.write(PacketType.GETASSIGNMENT.getId());
-			os.writeInt(numworkers*ASSIGN_SIZE);
+			if(type == 0) os.write(PacketType.GETASSIGNMENT.getId());
+			else os.write(PacketType.GETHEXASSIGN.getId());
+			os.writeInt(WorkerManager.size(type)*ASSIGN_SIZE);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -134,13 +138,23 @@ public class Client {
 	
 	public static void sendAssignmentResult() {
 		if(System.currentTimeMillis()-lastResultsTime < DELAY_BETWEEN_RESULTS) return;
-		
+		boolean datasent = false;
 		try {
-			os.write(PacketType.SENDRESULTS.getId());
-			os.writeInt(storedrules.size()/24);
-			os.write(storedrules.toByteArray());
-			storedrules.reset();
-			LOG.info("Data sent to server");
+			if(storedrules[0].size() > 1) {
+				os.write(PacketType.SENDRESULTS.getId());
+				os.writeInt(storedrules[0].size()/24);
+				os.write(storedrules[0].toByteArray());
+				storedrules[0].reset();
+				datasent = true;
+			}
+			if(storedrules[1].size() > 1) {				
+				os.write(PacketType.SENDHEXRESULTS.getId());
+				os.writeInt(storedrules[1].size()/24);
+				os.write(storedrules[1].toByteArray());
+				storedrules[1].reset();
+				datasent = true;
+			}
+			if(datasent) LOG.info("Data sent to server");
 		} catch(IOException e) {
 			LOG.warning("Could not send rules to server");
 		}
@@ -148,8 +162,7 @@ public class Client {
 		lastResultsTime = System.currentTimeMillis();
 	}
 	
-	
-	FileChannel fc;
+//	FileChannel fc;
 	private void run() {
 
 //		System.out.println(Runtime.getRuntime().availableProcessors());
@@ -193,8 +206,9 @@ public class Client {
 							username = new String(is.readNBytes(is.readByte()));
 							LOG.info("Logged in as " + username);
 							logged = true;
-							
-							getAssigment();
+
+							getAssigment(0);
+							getAssigment(1);
 						} else if(result == 1) {
 							Client.username = null;
 							Client.password = null;
@@ -205,10 +219,19 @@ public class Client {
 						int size = is.readInt();
 						ByteBuffer bb = ByteBuffer.wrap(is.readNBytes(size*8));
 						for(int i = 0; i < size; i++) {
-							assignments.add(bb.getLong());
+							assignments[0].add(bb.getLong());
 						}
 						LOG.info("New assignment of " + size/2 + " rules!");
-						startWorkers(numworkers);
+						WorkerManager.start();
+						break;
+					case GETHEXASSIGN:
+						size = is.readInt();
+						bb = ByteBuffer.wrap(is.readNBytes(size*8));
+						for(int i = 0; i < size; i++) {
+							assignments[1].add(bb.getLong());
+						}
+						LOG.info("New assignment of " + size/2 + " rules!");
+						WorkerManager.start();
 						break;
 					case REGISTER:
 						int ok = is.readByte();
@@ -237,15 +260,6 @@ public class Client {
 			} 
 		}
 			
-	}
-	
-	private void startWorkers(int num) {
-		for(int i = workers.size(); i < num; i++) {
-			workers.add(new Worker(i,AntType.NORMAL));
-		}
-		for(Worker w : workers) {
-			w.start();
-		}
 	}
 
 	public static String toHexString(byte[] data) {
@@ -293,31 +307,26 @@ public class Client {
 				}
 		}
 		
-		client = new Client(numworkers, nolog);
-//		if(gui)
+		client = new Client(numworkers,0, nolog);
+		if(gui)
 			new Window();
 	}
 	
-	public synchronized static long[] getRule() {
-		if(assignments.size() < 2*numworkers*ASSIGN_SIZE) {
-			getAssigment();
-			if(assignments.size() == 0) return new long[] {-1};
+	public synchronized static long[] getRule(int type) {
+		if(assignments[type].size() < 2*WorkerManager.size()*ASSIGN_SIZE) {
+			getAssigment(type);
+			if(assignments[type].size() == 0) return new long[] {-1};
 		}
-		long[] p = new long[] {assignments.remove(0), assignments.remove(0)};
+		long[] p = new long[] {assignments[type].remove(0), assignments[type].remove(0)};
 		return p;
 	}
 	
-	public synchronized static void storeRule(long[] rule) {
+	public synchronized static void storeRule(int type, long[] rule) {
 		try {
-			storedrules.write(ByteBuffer.allocate(24).putLong(rule[0]).putLong(rule[1]).putLong(rule[2]).array());
+			storedrules[type].write(ByteBuffer.allocate(24).putLong(rule[0]).putLong(rule[1]).putLong(rule[2]).array());
 			sendAssignmentResult();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	public static Worker getWorker(int id) {
-		if(workers == null || id < 0 || id >= workers.size()) return null;
-		return workers.get(id);
 	}
 }

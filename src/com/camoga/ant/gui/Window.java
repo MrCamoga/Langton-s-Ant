@@ -25,6 +25,7 @@ import javax.swing.text.DefaultCaret;
 import com.camoga.ant.Rule;
 import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
+import com.camoga.ant.WorkerManager;
 import com.camoga.ant.net.Client;
 import com.camoga.ant.test.hex.IAnt;
 
@@ -82,7 +83,7 @@ public class Window {
 			setOutputStream(os);
 			setFormatter(new SimpleFormatter() {
 				public String format(LogRecord record) {
-					return String.format("%4$s: %5$s%n", null, null, null, record.getLevel(), record.getMessage(),null);
+					return String.format("%5$s%n", null, null, null, record.getLevel(), record.getMessage(),null);
 				}
 			});
 		}
@@ -122,7 +123,7 @@ public class Window {
 		
 		public void render() {
 			Graphics g = getBufferStrategy().getDrawGraphics();
-			Worker w = Client.getWorker(0);
+			Worker w = WorkerManager.getWorker(0);
 			if(w==null) return;
 			if(w.isRunning()) {
 				w.getLevel().render(pixels, Settings.canvasSize, canvasImage.getWidth(), canvasImage.getHeight(), false);				
