@@ -7,19 +7,13 @@ import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
-import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
-import javax.management.RuntimeErrorException;
 
-import org.apache.commons.collections4.keyvalue.MultiKey;
-
-import com.camoga.ant.Level.Chunk;
 import com.camoga.ant.net.Client;
+import com.camoga.ant.test.hex.AbstractAnt;
 import com.camoga.ant.test.hex.HexAnt;
-import com.camoga.ant.test.hex.IAnt;
 
 public class Worker {
 
@@ -31,13 +25,9 @@ public class Worker {
 	int workerid;
 	
 	long autosavetimer;
-	IAnt ant;
+	AbstractAnt ant;
 	Level level;
 	int type;
-	
-	public enum AntType {
-		NORMAL, HEX;
-	}
 	
 	public Worker(int ID, int type) {
 		this.workerid = ID;
@@ -97,7 +87,7 @@ public class Worker {
 			}
 			
 			if(Settings.autosave && System.currentTimeMillis()-autosavetimer > 900000) { // Autosave every 15 mins
-				ant.saveState();
+				ant.saveState(ant.getRule()+".state");
 				System.out.println("Autosave");
 				autosavetimer = System.currentTimeMillis();
 			}
@@ -156,7 +146,7 @@ public class Worker {
 		return iterations;
 	}
 	
-	public IAnt getAnt() {
+	public AbstractAnt getAnt() {
 		return ant;
 	}
 	

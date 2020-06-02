@@ -27,7 +27,7 @@ import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
 import com.camoga.ant.WorkerManager;
 import com.camoga.ant.net.Client;
-import com.camoga.ant.test.hex.IAnt;
+import com.camoga.ant.test.hex.AbstractAnt;
 
 public class Window {
 	
@@ -133,7 +133,7 @@ public class Window {
 				g.drawString("Rule: " + Rule.string(w.getAnt().getRule().getRule()) + " ("+w.getAnt().getRule().getRule()+")", 10, 46);
 			}
 			
-			IAnt ant = w.getAnt();
+			AbstractAnt ant = w.getAnt();
 			
 			if(ant.findingPeriod()) {
 				g.setColor(Color.red);

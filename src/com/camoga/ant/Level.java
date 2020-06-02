@@ -6,8 +6,6 @@ import java.io.Serializable;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 
-import com.camoga.ant.Rule.CellColor;
-
 /**
  * y++: down
  * x++: right
@@ -82,20 +80,39 @@ public class Level {
 			pixels[i] = 0xff000000;
 		}
 
-		for(int yc = 0; yc < chunks; yc++) {
-			int ycf = yc<<Settings.cPOW;
-			for(int xc = 0; xc < chunks; xc++) {
-				Chunk c = getChunk2(xc-chunks/2+xa, yc-chunks/2+ya);
-				if(c == null) continue;
-				int xcf = xc<<Settings.cPOW;
-				int i = 0;
-				for(int yo = 0; yo < cSIZE; yo++) {
-					int y = (yo|ycf) * width;
-					for(int xo = 0; xo < cSIZE; xo++) {
-						int index = (xo|xcf) + y;
-						if(index >= pixels.length) continue;
-						pixels[index] = colors[c.cells[i]%colors.length];
-						i++;
+		if(worker.getType() == 0) {
+			for(int yc = 0; yc < chunks; yc++) {
+				int ycf = yc<<Settings.cPOW;
+				for(int xc = 0; xc < chunks; xc++) {
+					Chunk c = getChunk2(xc-chunks/2+xa, yc-chunks/2+ya);
+					if(c == null) continue;
+					int xcf = xc<<Settings.cPOW;
+					int i = 0;
+					for(int yo = 0; yo < cSIZE; yo++) {
+						int y = (yo|ycf) * width;
+						for(int xo = 0; xo < cSIZE; xo++) {
+							int index = (xo|xcf) + y;
+							if(index >= pixels.length) continue;
+							pixels[index] = colors[c.cells[i]%colors.length];
+							i++;
+						}
+					}
+				}
+			}			
+		} else if(worker.getType()==1) {
+			Chunk c = getChunk2(0, 0);
+			if(c == null) return;
+			for(int x = 0; x < cSIZE; x++) {
+				int xp = (int) (000 + 5.77*x);
+				for(int y = 0; y < cSIZE; y++) {
+					int yp = 400 - 10*y - x*5;
+					for(int yh = 0; yh < 7; yh++) {
+						int yf = yp+yh+y;
+						for(int xh = 0; xh < 7; xh++) {
+							int xf = xp+xh+x;
+							if(xf < 0 || yf < 0 || xf >= width || yf >= height) continue;
+							pixels[xf+yf*width] = colors[c.cells[x|(y<<Settings.cPOW)]%colors.length];
+						}
 					}
 				}
 			}

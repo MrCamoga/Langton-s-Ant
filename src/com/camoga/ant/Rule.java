@@ -68,4 +68,12 @@ public class Rule implements IRule {
 	public int[] getColors() {
 		return colors;
 	}
+	
+	public int getSize() {
+		return size;
+	}
+	
+	public int get(int index) {
+		return turn[index];
+	}
 }

@@ -13,15 +13,11 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-import com.camoga.ant.Rule;
-import com.camoga.ant.Worker;
-import com.camoga.ant.Worker.AntType;
 import com.camoga.ant.WorkerManager;
 import com.camoga.ant.gui.Window;
 
