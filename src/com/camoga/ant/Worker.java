@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 
 import javax.imageio.ImageIO;
 
+import com.camoga.ant.level.Level;
 import com.camoga.ant.net.Client;
 import com.camoga.ant.test.hex.AbstractAnt;
 import com.camoga.ant.test.hex.HexAnt;
@@ -66,7 +67,7 @@ public class Worker {
 			
 			float seconds = (-time + (time = System.currentTimeMillis()))/1000f;
 //			Client.LOG.info(rule + "\t" + Rule.string(rule) + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s" + (result[1] > 1 ? "\t"+result[1]:"") + "\t nc: " + level.chunks.size());
-			Client.LOG.info(rule + "\t" + ant.getRule().string() + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s" + (result[1] > 1 ? "\t"+result[1]:""));
+			Client.LOG.info(rule + "\t" + ant.getRule().string() + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s\t" + (result[1] > 1 ? result[1]:result[1]==1 ? "?":""));
 //			try {
 //				Thread.sleep(1000);
 //			} catch (InterruptedException e) {

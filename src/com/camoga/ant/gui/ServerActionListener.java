@@ -22,7 +22,7 @@ public class ServerActionListener implements ActionListener {
 		switch(e.getActionCommand()) {
 		case "Connect to Server":
 			JPanel panel = new JPanel();
-			if(Client.client.logged) {
+			if(Client.logged) {
 				JOptionPane.showConfirmDialog(Window.f, "You are already logged as " + Client.username, "Connect to Server", JOptionPane.OK_CANCEL_OPTION);
 			} else if(Client.properties.getProperty("username") == null || Client.properties.getProperty("hash") == null){
 				Object[] options = new Object[] {"Cancel", "Register", "Login"};
@@ -38,21 +38,10 @@ public class ServerActionListener implements ActionListener {
 				panel.add(new JLabel("Keep me logged in: "));
 				panel.add(staylogged);
 				int option = JOptionPane.showOptionDialog(Window.f, panel, "Connect to Server", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, null);
-				switch(option) {
-				case JOptionPane.YES_OPTION:
-					System.out.println("yes");
-					break;
-				case JOptionPane.CANCEL_OPTION:
-					System.out.println("cancel");
-					break;
-				case JOptionPane.NO_OPTION:
-					System.out.println("no");
-					break;
-				}
 				
-				if(option == JOptionPane.CANCEL_OPTION) {
+				if(option == JOptionPane.CANCEL_OPTION) { //Login
 					Client.client.login(username.getText(), storeCredentials(pw, username.getText(), staylogged));
-				} else if(option == JOptionPane.NO_OPTION) {
+				} else if(option == JOptionPane.NO_OPTION) { //Register
 					panel.removeAll();
 					JPasswordField pw2 = new JPasswordField();
 					panel.setLayout(new GridLayout(4,2));

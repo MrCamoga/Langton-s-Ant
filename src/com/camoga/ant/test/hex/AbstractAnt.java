@@ -1,16 +1,14 @@
 package com.camoga.ant.test.hex;
 
-import com.camoga.ant.Level.Chunk;
-
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.Map.Entry;
 
-import org.apache.commons.collections4.keyvalue.MultiKey;
-
 import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
+import com.camoga.ant.level.MultiKey;
+import com.camoga.ant.level.Level.Chunk;
 
 public abstract class AbstractAnt {
 
@@ -57,6 +55,8 @@ public abstract class AbstractAnt {
 	}
 	
 	public long getPeriod() {return minHighwayPeriod;}
+	public int getX() {return x|(xc<<Settings.cPOW);}
+	public int getY() {return y|(yc<<Settings.cPOW);}
 	public int getXC() {return xc;}
 	public int getYC() {return yc;}
 	public IRule getRule() {return rule;}
@@ -87,10 +87,10 @@ public abstract class AbstractAnt {
 			}
 			oos.writeByte(Settings.cPOW);
 			oos.writeInt(worker.getLevel().chunks.size());
-			for(Entry<MultiKey<? extends Integer>, Chunk> c : worker.getLevel().chunks.entrySet()) {
-				MultiKey<? extends Integer> key = c.getKey();
-				oos.writeInt(key.getKey(0));
-				oos.writeInt(key.getKey(1));
+			for(Entry<MultiKey, Chunk> c : worker.getLevel().chunks.entrySet()) {
+				MultiKey key = c.getKey();
+				oos.writeInt(key.getX());
+				oos.writeInt(key.getY());
 				oos.write(c.getValue().cells);
 			}
 			oos.close();
