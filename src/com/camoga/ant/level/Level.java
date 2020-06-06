@@ -4,6 +4,8 @@ import static com.camoga.ant.Settings.cSIZE;
 
 import java.io.Serializable;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
+
 import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
 
@@ -14,7 +16,7 @@ import com.camoga.ant.Worker;
  */
 public class Level {
 	
-	public ChunkMap chunks = new ChunkMap();
+	public MultiKeyMap<Integer, Chunk> chunks = new MultiKeyMap<Integer, Chunk>();
 	
 	public class Chunk implements Serializable {		
 		long lastVisit;
@@ -34,7 +36,6 @@ public class Level {
 	
 	public void init() {
 		chunks.clear();
-		chunks = new ChunkMap();
 		chunks.put(0,0,new Chunk());
 	}
 	
@@ -81,7 +82,7 @@ public class Level {
 			pixels[i] = 0xff000000;
 		}
 
-		if(worker.getType() == 0) {
+//		if(worker.getType() == 0) {
 			for(int yc = 0; yc < chunks; yc++) {
 				int ycf = yc<<Settings.cPOW;
 				for(int xc = 0; xc < chunks; xc++) {
@@ -100,24 +101,25 @@ public class Level {
 					}
 				}
 			}			
-		} else if(worker.getType()==1) {
-			Chunk c = getChunk2(0, 0);
-			if(c == null) return;
-			for(int x = 0; x < cSIZE; x++) {
-				int xp = (int) (000 + 5.77*x);
-				for(int y = 0; y < cSIZE; y++) {
-					int yp = 400 - 10*y - x*5;
-					for(int yh = 0; yh < 7; yh++) {
-						int yf = yp+yh+y;
-						for(int xh = 0; xh < 7; xh++) {
-							int xf = xp+xh+x;
-							if(xf < 0 || yf < 0 || xf >= width || yf >= height) continue;
-							pixels[xf+yf*width] = colors[c.cells[x|(y<<Settings.cPOW)]%colors.length];
-						}
-					}
-				}
-			}
-		}
+//		} 
+//		else if(worker.getType()==1) {
+//			Chunk c = getChunk2(0, 0);
+//			if(c == null) return;
+//			for(int x = 0; x < cSIZE; x++) {
+//				int xp = (int) (000 + 5.77*x);
+//				for(int y = 0; y < cSIZE; y++) {
+//					int yp = 400 - 10*y - x*5;
+//					for(int yh = 0; yh < 7; yh++) {
+//						int yf = yp+yh+y;
+//						for(int xh = 0; xh < 7; xh++) {
+//							int xf = xp+xh+x;
+//							if(xf < 0 || yf < 0 || xf >= width || yf >= height) continue;
+//							pixels[xf+yf*width] = colors[c.cells[x|(y<<Settings.cPOW)]%colors.length];
+//						}
+//					}
+//				}
+//			}
+//		}
 		
 //		for(int xc = -(Settings.highwaySizew/128>>Settings.cPOW); xc < 10; xc++) {
 //			int xcf = (xc+(Settings.highwaySizew/128>>Settings.cPOW))<<Settings.cPOW;

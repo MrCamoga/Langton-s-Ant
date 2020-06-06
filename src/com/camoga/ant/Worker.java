@@ -11,10 +11,11 @@ import java.nio.ByteBuffer;
 
 import javax.imageio.ImageIO;
 
+import com.camoga.ant.ants.AbstractAnt;
+import com.camoga.ant.ants.Ant;
+import com.camoga.ant.ants.HexAnt;
 import com.camoga.ant.level.Level;
 import com.camoga.ant.net.Client;
-import com.camoga.ant.test.hex.AbstractAnt;
-import com.camoga.ant.test.hex.HexAnt;
 
 public class Worker {
 
@@ -53,7 +54,7 @@ public class Worker {
 	public void run() {
 		long[] p;
 		long time = System.currentTimeMillis();
-		while((p = Client.getRule(type))[0] != -1 && !kill) {
+		while((p = Client.getRule(type)) != null && !kill) {
 			long rule = p[0];
 			long iterations = p[1];
 
@@ -63,16 +64,11 @@ public class Worker {
 			
 			time = System.currentTimeMillis();
 			long[] result = runRule(rule,iterations);
-			Client.storeRule(type,result);
+			Client.storeRules(type,result);
 			
 			float seconds = (-time + (time = System.currentTimeMillis()))/1000f;
-//			Client.LOG.info(rule + "\t" + Rule.string(rule) + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s" + (result[1] > 1 ? "\t"+result[1]:"") + "\t nc: " + level.chunks.size());
-			Client.LOG.info(rule + "\t" + ant.getRule().string() + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s\t" + (result[1] > 1 ? result[1]:result[1]==1 ? "?":""));
-//			try {
-//				Thread.sleep(1000);
-//			} catch (InterruptedException e) {
-//				e.printStackTrace();
-//			}
+			if(type == 0) Client.LOG.info(rule + "\t" + ant.getRule().string() + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s\t" + (result[1] > 1 ? result[1]:result[1]==1 ? "?":""));
+			else if(type == 1) Client.LOG.info(rule + "\t" + ant.getRule().string() + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s\t" + (result[1] > 0 ? result[1]:result[1]==-1 ? "?":""));
 		}
 		Client.LOG.warning("Worker " + workerid + " has stopped");
 		running = false;
@@ -80,20 +76,28 @@ public class Worker {
 	}
 	
 	public long[] runRule(long rule, long maxiterations) {
-		while(!ant.periodFound() && (maxiterations == -1 || iterations < maxiterations)) {
+		long max = maxiterations;
+		boolean extended = false;
+		while(!ant.periodFound() && (maxiterations == -1 || iterations < max)) {
 			iterations += ant.move();
-			if(Settings.deleteOldChunks) { //Delete old chunks
+//			if(Settings.deleteOldChunks) {
 				// TODO write to highway file before deleting
 //				Level.chunks.removeIf((Chunk c) -> iterations - c.lastVisit >= 100000000);
-			}
+//			}
 			
-			if(Settings.autosave && System.currentTimeMillis()-autosavetimer > 900000) { // Autosave every 15 mins
-				ant.saveState(ant.getRule()+".state");
-				System.out.println("Autosave");
-				autosavetimer = System.currentTimeMillis();
+//			if(Settings.autosave && System.currentTimeMillis()-autosavetimer > 900000) { // Autosave every 15 mins
+//				ant.saveState(ant.getRule()+".state");
+//				System.out.println("Autosave");
+//				autosavetimer = System.currentTimeMillis();
+//			}
+			if(type == 1 && !extended && getLevel().chunks.size() < 8 && iterations > maxiterations) {
+				extended = true;
+				max += 100000000;
+				getAnt().setFindingPeriod(true);
 			}
 		}
-		long period = ant.periodFound() ? ant.getPeriod():(ant.findingPeriod() ? 1:0);
+		
+		long period = ant.periodFound() ? ant.getPeriod():(ant.findingPeriod() ? (type == 0 ? 1:-1):0);
 		
 		return new long[] {rule,period,iterations};
 	}

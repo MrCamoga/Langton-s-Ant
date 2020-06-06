@@ -1,4 +1,4 @@
-package com.camoga.ant.test.hex;
+package com.camoga.ant.ants;
 
 import java.util.Random;
 
@@ -33,20 +33,6 @@ public class HexRule implements IRule {
 			turn[i] = (int) (rule%6);
 			rule /= 6;
 		}
-	}
-	
-	/**
-	 * Returns rule as string of Rs and Ls
-	 * @param rule
-	 * @return
-	 */
-	public static String string(long rule) {
-		String result = "";
-		while(rule != 0) {
-			result += letters[(int) (rule%6)];
-			rule /= 6;
-		}
-		return result;
 	}
 	
 	/**

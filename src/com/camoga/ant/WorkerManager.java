@@ -41,20 +41,14 @@ public class WorkerManager {
 		workers.remove(worker);
 	}
 	
-	public static void setHexWorkers(int num) {
-		if(num < 0 || num + numworkers[0] > Runtime.getRuntime().availableProcessors()) throw new RuntimeException();
-		numworkers[1] = num;
-		updateWorkers();
-	}
-	
-	public static void setNormalWorkers(int num) {
-		if(num < 0 || num + numworkers[1] > Runtime.getRuntime().availableProcessors()) throw new RuntimeException();
-		numworkers[0] = num;
+	public static void setWorkerType(int type, int num) {
+		if(num < 0 || numworkers[0] + numworkers[1] + numworkers[type] - num > Runtime.getRuntime().availableProcessors()) throw new RuntimeException();
+		numworkers[type] = num;
 		updateWorkers();
 	}
 	
 	public static void setWorkers(int normal, int hex) {
-		if(normal < 0 || hex < 0 || normal + hex > Runtime.getRuntime().availableProcessors()) throw new RuntimeException();
+		if(normal < 0 || hex < 0 || normal + hex > Runtime.getRuntime().availableProcessors()) throw new RuntimeException("More workers than available processors ("+Runtime.getRuntime().availableProcessors()+")");
 		numworkers[0] = normal;
 		numworkers[1] = hex;
 		updateWorkers();

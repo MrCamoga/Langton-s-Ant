@@ -1,8 +1,6 @@
-package com.camoga.ant;
+package com.camoga.ant.ants;
 
 import java.util.Random;
-
-import com.camoga.ant.test.hex.IRule;
 
 public class Rule implements IRule {
 	
@@ -33,20 +31,6 @@ public class Rule implements IRule {
 			rule >>>= 1;
 			colors[i] = r.nextInt(0x1000000);
 		}
-	}
-	
-	/**
-	 * Returns rule as string of Rs and Ls
-	 * @param rule
-	 * @return
-	 */
-	public static String string(long rule) {
-		String result = "";
-		while(rule != 0) {
-			result += rule%2==0 ? "L":"R";
-			rule >>= 1;
-		}
-		return result;
 	}
 	
 	/**

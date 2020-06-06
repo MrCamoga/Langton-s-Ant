@@ -1,4 +1,4 @@
-package com.camoga.ant.test.hex;
+package com.camoga.ant.ants;
 
 import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
@@ -17,12 +17,13 @@ public class HexAnt extends AbstractAnt {
 	 * @return true if ant forms a highway
 	 */
 	public int move() {
-		int i = 0;
-		for(; i < Settings.itpf; i++) {			
-			if(saveState) {
+		int iterations = 0;
+		for(; iterations < Settings.itpf; iterations++) {
+			if(findingPeriod()) {
 				byte s1 = (byte)(dir<<5 | state); //Only works for rules with <= 32 colors
 				if(index < states.length) states[(int) index] = s1;
 				index++;
+//				System.out.println(index + ", " + minHighwayPeriod + ", " + repeatLength + ", " + state +  "," + Arrays.toString(Arrays.copyOf(states, (int) index)));
 				if(states[repeatLength]!=s1) {
 					repeatLength = 0;
 					minHighwayPeriod = index;
@@ -36,23 +37,12 @@ public class HexAnt extends AbstractAnt {
 				}
 			}
 			
-			if(x > Settings.cSIZEm) {
-				x = 0;
-				xc++;
+			if(x > Settings.cSIZEm || y > Settings.cSIZEm || x < 0 || y < 0) {
+				xc += x >> Settings.cPOW;
+				yc += y >> Settings.cPOW;
 				chunk = worker.getLevel().getChunk(xc, yc);
-			} else if(x < 0) {
-				x = Settings.cSIZEm;
-				xc--;
-				chunk = worker.getLevel().getChunk(xc, yc);
-			} 
-			if(y > Settings.cSIZEm) {
-				y = 0;
-				yc++;
-				chunk = worker.getLevel().getChunk(xc, yc);
-			} else if(y < 0) {
-				y = Settings.cSIZEm;
-				yc--;
-				chunk = worker.getLevel().getChunk(xc, yc);
+				x &= Settings.cSIZEm;
+				y &= Settings.cSIZEm;
 			}
 			
 			int index = x|(y<<Settings.cPOW);
@@ -70,7 +60,7 @@ public class HexAnt extends AbstractAnt {
 //			x = x&Settings.cSIZEm;
 //			y = y&Settings.cSIZEm;
 		}
-		return i;
+		return iterations;
 	}
 
 	public void initPeriodFinding() {

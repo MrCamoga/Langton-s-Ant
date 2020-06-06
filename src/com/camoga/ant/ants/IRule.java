@@ -1,4 +1,4 @@
-package com.camoga.ant.test.hex;
+package com.camoga.ant.ants;
 
 public interface IRule {
 	

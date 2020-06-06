@@ -18,9 +18,10 @@ It supports square and hexagonal grids
   - [ ] Approximate period of big highways
   - [ ] Find exact period of big highways
 - [x] Algorithm to differentiate between highways/triangles/squares
+- [x] Hexagonal ant
 - [ ] Parallel computing
 
-#### TOP highways with longest period
+#### Top highways with longest period
 
 |Rule Number|Period|Rule String|
 |:-:|-:|:-|  
@@ -73,10 +74,6 @@ It supports square and hexagonal grids
 |					|	RRLRLLRRLRRRRRRRRRLLLLRLRR	|	54787787		|	777109320		|	6524244609340		|	6518789812888	|	0.083%		|
 
 
-
-
-
-
 #### How we found the huge highways
 The rules that start with the same letters often behave very similar. When we find rules with a long period, we test the ones that start in the same way to find even longer highways.
 
@@ -90,13 +87,3 @@ The rules that start with the same letters often behave very similar. When we fi
 |8192n+8106		|	**LRLRLRLRRRRRR**RLRRRRRLRLRR | 907904  | 94.9% | periods vary from 3k to 27k |
 |16384n+12892	| **LLRRRLRLLRLLRR**RLLRLLLRLRRLRLRLL RLLRLRLLLRRLLRRRRRLRRRRRLRLRLRR| 8797680 | 44.6%	|	got the rule from [vmainen](https://www.reddit.com/r/cellular_automata/comments/9mfthz/langtons_ant_exhibiting_a_distinct_highwaypattern/). Periods around 5k |
 |32768n+28757		|	**RLRLRLRLLLLLRRR**RLLLR | 300078 |24.1% | 20k - 300k |
-
-#### Some rules that form highways
-
-|Rules|Period|
-|:-:|:-:|
-|2 | 104|
-|4 | 18 |
-|2<sup>n</sup>  for n≥3 | 16n+4 |
-|R**L...L**R**L...L**...R (n L's in each block): __2<sup>n</sup>*(2<sup>n+1</sup>*(2k-1)+1)__ for n>1,  k>0 | same period as 2<sup>n</sup>|
-|L**R...R**L**R...R**...R (n R's in each block): __2<sup>n</sup>*(2<sup>n+1</sup>*(2k+1)-1)-1__ for n>1,  k>0 | same period as 2<sup>n</sup>|

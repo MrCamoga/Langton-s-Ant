@@ -1,13 +1,14 @@
-package com.camoga.ant.test.hex;
+package com.camoga.ant.ants;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.Map.Entry;
 
+import org.apache.commons.collections4.keyvalue.MultiKey;
+
 import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
-import com.camoga.ant.level.MultiKey;
 import com.camoga.ant.level.Level.Chunk;
 
 public abstract class AbstractAnt {
@@ -87,10 +88,10 @@ public abstract class AbstractAnt {
 			}
 			oos.writeByte(Settings.cPOW);
 			oos.writeInt(worker.getLevel().chunks.size());
-			for(Entry<MultiKey, Chunk> c : worker.getLevel().chunks.entrySet()) {
-				MultiKey key = c.getKey();
-				oos.writeInt(key.getX());
-				oos.writeInt(key.getY());
+			for(Entry<MultiKey<? extends Integer>, Chunk> c : worker.getLevel().chunks.entrySet()) {
+				MultiKey<? extends Integer> key = c.getKey();
+				oos.writeInt(key.getKey(0));
+				oos.writeInt(key.getKey(1));
 				oos.write(c.getValue().cells);
 			}
 			oos.close();
