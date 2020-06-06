@@ -22,11 +22,10 @@ import javax.swing.JTextArea;
 import javax.swing.UIManager;
 import javax.swing.text.DefaultCaret;
 
-import com.camoga.ant.Ant;
-import com.camoga.ant.Level;
-import com.camoga.ant.Rule;
 import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
+import com.camoga.ant.WorkerManager;
+import com.camoga.ant.ants.AbstractAnt;
 import com.camoga.ant.net.Client;
 
 public class Window {
@@ -83,7 +82,7 @@ public class Window {
 			setOutputStream(os);
 			setFormatter(new SimpleFormatter() {
 				public String format(LogRecord record) {
-					return String.format("%4$s: %5$s%n", null, null, null, record.getLevel(), record.getMessage(),null);
+					return String.format("%5$s%n", null, null, null, record.getLevel(), record.getMessage(),null);
 				}
 			});
 		}
@@ -123,24 +122,24 @@ public class Window {
 		
 		public void render() {
 			Graphics g = getBufferStrategy().getDrawGraphics();
-			Worker w = Client.getWorker(0);
+			Worker w = WorkerManager.getWorker(0);
 			if(w==null) return;
 			if(w.isRunning()) {
 				w.getLevel().render(pixels, Settings.canvasSize, canvasImage.getWidth(), canvasImage.getHeight(), false);				
 				g.drawImage(canvasImage, 0, 0, 800, 800, null);
 				g.setColor(Color.WHITE);
 				g.drawString("Iterations: " + w.getIterations(), 10, 30); 
-				g.drawString("Rule: " + Rule.string(w.getRule().rule) + " ("+w.getRule().rule+")", 10, 46);
+				g.drawString("Rule: " + w.getAnt().getRule().string() + " ("+w.getAnt().getRule().getRule()+")", 10, 46);
 			}
 			
-			Ant ant = w.getAnt();
+			AbstractAnt ant = w.getAnt();
 			
-			if(ant.saveState) {
+			if(ant.findingPeriod()) {
 				g.setColor(Color.red);
-				g.drawString("Finding period... " + ant.minHighwayPeriod, 10, 62);
-			} else if(ant.PERIODFOUND) {
+				g.drawString("Finding period... " + ant.getPeriod(), 10, 62);
+			} else if(ant.periodFound()) {
 				g.setColor(Color.WHITE);
-				g.drawString("Period: " + ant.minHighwayPeriod, 10, 62);
+				g.drawString("Period: " + ant.getPeriod(), 10, 62);
 			}
 			
 			g.dispose();

@@ -4,7 +4,9 @@ public enum PacketType {
 	INVALID(-1),
 	AUTH(0),REGISTER(3),
 	GETASSIGNMENT(1),SENDRESULTS(2),
-	MESSAGE(4);
+	MESSAGE(4),	
+	GETHEXASSIGN(5),SENDHEXRESULTS(6),
+	ERRORMESSAGE(7);
 	
 	private int id;
 	

@@ -7,15 +7,14 @@ import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
-import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.collections4.keyvalue.MultiKey;
-
-import com.camoga.ant.Level.Chunk;
+import com.camoga.ant.ants.AbstractAnt;
+import com.camoga.ant.ants.Ant;
+import com.camoga.ant.ants.HexAnt;
+import com.camoga.ant.level.Level;
 import com.camoga.ant.net.Client;
 
 public class Worker {
@@ -23,20 +22,25 @@ public class Worker {
 	long iterations = 0;
 	
 	Thread thread;	
+	boolean kill;
 	boolean running;
 	int workerid;
 	
 	long autosavetimer;
-	Ant ant;
+	AbstractAnt ant;
 	Level level;
-	Rule rule;
+	int type;
 	
-	public Worker(int ID) {
+	public Worker(int ID, int type) {
 		this.workerid = ID;
-		ant = new Ant(this);
+		if(type==0) {
+			ant = new Ant(this);
+			this.type = 0;
+		} else if(type==1) {
+			ant = new HexAnt(this);
+			this.type = 1;
+		} else throw new RuntimeException();
 		level = new Level(this);
-		rule = new Rule();
-		start();
 	}
 	
 	public void start() {
@@ -50,76 +54,52 @@ public class Worker {
 	public void run() {
 		long[] p;
 		long time = System.currentTimeMillis();
-		while((p = Client.getRule())[0] != -1) {
+		while((p = Client.getRule(type)) != null && !kill) {
 			long rule = p[0];
 			long iterations = p[1];
 
 			level.init();
-			ant.init(iterations);
-			this.rule.createRule(rule);
+			ant.init(rule, iterations);
 			this.iterations = 0;
 			
 			time = System.currentTimeMillis();
 			long[] result = runRule(rule,iterations);
-			Client.storeRule(result);
+			Client.storeRules(type,result);
 			
 			float seconds = (-time + (time = System.currentTimeMillis()))/1000f;
-//			Client.LOG.info(rule + "\t" + Rule.string(rule) + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s" + (result[1] > 1 ? "\t"+result[1]:"") + "\t nc: " + level.chunks.size());
-			Client.LOG.info(rule + "\t" + Rule.string(rule) + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s" + (result[1] > 1 ? "\t"+result[1]:""));
+			if(type == 0) Client.LOG.info(rule + "\t" + ant.getRule().string() + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s\t" + (result[1] > 1 ? result[1]:result[1]==1 ? "?":""));
+			else if(type == 1) Client.LOG.info(rule + "\t" + ant.getRule().string() + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s\t" + (result[1] > 0 ? result[1]:result[1]==-1 ? "?":""));
 		}
 		Client.LOG.warning("Worker " + workerid + " has stopped");
 		running = false;
+		if(kill) WorkerManager.remove(this);
 	}
 	
 	public long[] runRule(long rule, long maxiterations) {
-		while(!ant.PERIODFOUND && (maxiterations == -1 || iterations < maxiterations)) {
+		long max = maxiterations;
+		boolean extended = false;
+		while(!ant.periodFound() && (maxiterations == -1 || iterations < max)) {
 			iterations += ant.move();
-			if(Settings.deleteOldChunks) { //Delete old chunks
+//			if(Settings.deleteOldChunks) {
 				// TODO write to highway file before deleting
 //				Level.chunks.removeIf((Chunk c) -> iterations - c.lastVisit >= 100000000);
-			}
+//			}
 			
-			if(Settings.autosave && System.currentTimeMillis()-autosavetimer > 900000) { // Autosave every 15 mins
-				saveState();
-				System.out.println("Autosave");
-				autosavetimer = System.currentTimeMillis();
+//			if(Settings.autosave && System.currentTimeMillis()-autosavetimer > 900000) { // Autosave every 15 mins
+//				ant.saveState(ant.getRule()+".state");
+//				System.out.println("Autosave");
+//				autosavetimer = System.currentTimeMillis();
+//			}
+			if(type == 1 && !extended && getLevel().chunks.size() < 8 && iterations > maxiterations) {
+				extended = true;
+				max += 100000000;
+				getAnt().setFindingPeriod(true);
 			}
 		}
-		long period = ant.PERIODFOUND ? ant.minHighwayPeriod:(ant.saveState ? 1:0);
+		
+		long period = ant.periodFound() ? ant.getPeriod():(ant.findingPeriod() ? (type == 0 ? 1:-1):0);
 		
 		return new long[] {rule,period,iterations};
-//		saveRule();
-	}
-	
-	private void saveState() {
-		try {
-			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(rule.rule+".state"));
-			oos.writeLong(rule.rule);
-			oos.writeLong(iterations);
-			oos.writeInt(ant.dir);
-			oos.writeInt(ant.state);
-			oos.writeInt(ant.x);
-			oos.writeInt(ant.y);
-			oos.writeInt(ant.xc);
-			oos.writeInt(ant.yc);
-			oos.writeBoolean(ant.saveState);
-			if(ant.saveState) {
-				oos.writeLong(ant.index);
-				oos.writeInt(ant.repeatLength);
-				oos.writeLong(ant.minHighwayPeriod);
-				oos.write(ant.states);
-			}
-			oos.writeByte(Settings.cPOW);
-			oos.writeInt(level.chunks.size());
-			for(Entry<MultiKey<? extends Integer>, Chunk> c : level.chunks.entrySet()) {
-				MultiKey<? extends Integer> key = c.getKey();
-				oos.writeInt(key.getKey(0));
-				oos.writeInt(key.getKey(1));
-				oos.write(c.getValue().cells);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	protected void saveBinHighway(File file) {
@@ -150,13 +130,13 @@ public class Worker {
 			//TODO merge with render method
 			g.setColor(Color.WHITE);
 			g.drawString("Iterations: " + iterations, 10, 30); 
-			g.drawString("Rule: " + rule.string() + " ("+rule.rule+")", 10, 46);
-			if(ant.saveState) {
+			g.drawString("Rule: " + ant.getRule().string() + " ("+ant.getRule().getRule()+")", 10, 46);
+			if(ant.findingPeriod()) {
 				g.setColor(Color.red);
-				g.drawString("Finding period... " + ant.minHighwayPeriod, 10, 62);
-			} else if(ant.PERIODFOUND) {
+				g.drawString("Finding period... " + ant.getPeriod(), 10, 62);
+			} else if(ant.periodFound()) {
 				g.setColor(Color.WHITE);
-				g.drawString("Period: " + ant.minHighwayPeriod, 10, 62);
+				g.drawString("Period: " + ant.getPeriod(), 10, 62);
 			}			
 		}
 		
@@ -167,15 +147,11 @@ public class Worker {
 		}
 	}
 	
-	public Rule getRule() {
-		return rule;
-	}
-	
 	public long getIterations() {
 		return iterations;
 	}
 	
-	public Ant getAnt() {
+	public AbstractAnt getAnt() {
 		return ant;
 	}
 	
@@ -185,5 +161,13 @@ public class Worker {
 
 	public boolean isRunning() {
 		return running;
+	}
+	
+	public int getType() {
+		return type;
+	}
+
+	public void kill() {
+		kill = true;
 	}
 }
