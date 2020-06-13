@@ -3,7 +3,7 @@ Multicolor extension of Langton's Ant cellular automaton program that finds high
 
 It supports square and hexagonal grids (WIP)
 
-##How to use
+## How to use
 
 The sign up must be done using the gui. After that, you can run the program on console
 
@@ -19,7 +19,7 @@ Example:
 	java -jar langton.jar -w 4 --nogui
 ```
 
-##How it works
+## How it works
 
 The server sends rules to each client to see if they formed a highway and if so, find their period
 
