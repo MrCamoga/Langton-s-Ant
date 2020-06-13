@@ -1,7 +1,28 @@
 # Langton's Ant 
 Multicolor extension of Langton's Ant cellular automaton program that finds highways and its period
 
-It supports square and hexagonal grids
+It supports square and hexagonal grids (WIP)
+
+##How to use
+The sign up must be done using the gui. After that, you can run the program on console
+
+### Commands
+- **-w** *n*:    Runs *n* ants simultaneously on different threads (limited to the number of CPU threads)
+- **--nogui**:   No interface mode
+- **--nolog**:   No log mode
+
+Example:
+
+```console
+	java -jar langton.jar -w 4 --nogui
+```
+
+##How it works
+The server sends rules to each client to see if they formed a highway and if so, find their period
+
+Every few minutes, the client sends the data back to the server and stores the rules in the database
+
+This way we make sure that no rule is tested multiple times
 
 ## TODO
 - [ ] Server
@@ -19,7 +40,8 @@ It supports square and hexagonal grids
   - [ ] Find exact period of big highways
 - [x] Algorithm to differentiate between highways/triangles/squares
 - [x] Hexagonal ant
-- [ ] Parallel computing
+- [ ] Parallel computing (doesn't seam possible)
+- [ ] Login from console
 
 #### Top highways with longest period
 
@@ -50,15 +72,15 @@ It supports square and hexagonal grids
 #### Biggest highways with unknown period
 | Tested to # iters	|	Rule String					|	Rule number		|	Highway size	|	Estimated period	|	Real period		|	Rel. Error	|
 |:-:|:-|:-:|:-:|:-:|:-:|:-:|
-|	1.1e13			|	RRLRLLRRLRRRRRRRRRLLLRLLRLR	|	86245067		|	>= 4707316320	|	>=4.18492189e13 	|					| 				|
+|	4.7e11			|	LLRLRRRLRRLLLRRLLLLLLRLLRLRR|	220226420   	|	> 2^500		??	|	3e154				|					|				|
 | 	1e11		  	| 	LLRLRRLLRLLLLLLRRLLLR 		|	1147188			|   >= 133671045600	|	>=1.104122836656e15	|					|				|
+|	1.1e13			|	RRLRLLRRLRRRRRRRRRLLLRLLRLR	|	86245067		|	>= 4707316320	|	>=4.18492189e13 	|					| 				|
 |	1e13			|	RRRLRRLLRLRRRRLLRRRLLRLR	|	10960183		|	2^42*3 ??		|	3.77616273e16 ??	|					|				|
 |	1.74e12			|	RRRLRRLLRLRRRRRRRRRLR		|	1572151			|	2^40*3 ??		|	5.64742157e15 ??	|					|				|
-|	4.7e11			|	LLRLRRRLRRLLLRRLLLLLLRLLRLRR|	220226420   	|	> 2^500		??	|						|					|				|
+|	4e11			|	LLRLRRLLRLLLLLLLLRRRRRRLRLR	|	92143924		|	>= 886624056	|	>=5.730524292850e12	|					|				|
 |	7.6e11   		|	LLRLRRLLRLLLLLLLLLLRLRLR 	| 	11010356		| 	>= 146880		|						|					|				|
 |	1.4e12			|	LLRLRRLLRLLLLLLLLRRRLLRLR	|	21889332		|	>= 1573560		|						|					|				|
 |	1.5e10			|	RRLRLLRRLRRRRRRRRRLRRLRLRR	|	56360651		|	>= 2364582528	|						|					|				|
-|	4e11			|	LLRLRRLLRLLLLLLLLRRRRRRLRLR	|	92143924		|	>= 886624056	|	>=5.730524292850e12	|					|				|
 |					|								|	96534219		|					|						|					|				|
 |					|								|	5470519604		|					|						|					|				|
 |					|								|	10369105611		|					|						|					|				|

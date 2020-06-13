@@ -4,8 +4,8 @@ public class Settings {
 	
 	//GUI
 	
-	public static int canvasSize = 8; // size of canvas (and output image) in chunks (e.g. scale = 16, cSIZE = 64 => size = 1024x1024)
-	static boolean followAnt = true;
+	public static int canvasSize = 16; // size of canvas (and output image) in chunks (e.g. scale = 16, cSIZE = 64 => size = 1024x1024)
+	public static boolean followAnt = false;
 	static boolean smoothFollow = false; //TODO
 	public static boolean renderVoid = false; // draws black where no chunk has been generated
 	public static int itpf = 33333334; // iterations between frames

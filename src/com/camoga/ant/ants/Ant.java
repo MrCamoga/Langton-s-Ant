@@ -25,12 +25,15 @@ public class Ant extends AbstractAnt {
 //		rxx = 0;
 //		ryy = 0;
 //		rtt = 0;
+//		rvx = 100;
+//		rvy = 100;
 	}
 
 	// Regression
 //	double rxt, ryt;
 //	double rx, ry, rt;
 //	double rxx, ryy, rtt;
+//	double rvx, rvy;
 //	int n;
 //	double r2x, r2y;
 	
@@ -45,8 +48,8 @@ public class Ant extends AbstractAnt {
 				// Regression to discard triangles/squares
 //				if((index&16383) == 0) {
 //					regression(iteration + worker.getIterations());
-//					System.out.println(r2x + ", " + r2y);
-//					if(n > 1000 && r2x < 0.2) {
+//					if(n > 1000 && ((r2x < 0.95 && rvx > 100) || (r2y < 0.95 && rvy > 100))) {
+//						System.out.println(r2x + ", " + r2y + ", " + rvx + ", " + rvy);
 //						PERIODFOUND = true;
 //						minHighwayPeriod = 3;
 //						break;
@@ -62,8 +65,9 @@ public class Ant extends AbstractAnt {
 					minHighwayPeriod = index;
 				} else {
 					repeatLength++;
-//					if(repeatLength == states.length || (repeatLength > Settings.repeatcheck*minHighwayPeriod && r2x > 0.9)) {
 					if(repeatLength == states.length || repeatLength > Settings.repeatcheck*minHighwayPeriod) {
+//					if(repeatLength == states.length || (repeatLength > Settings.repeatcheck*minHighwayPeriod && (r2x > 0.99 || rvx < 100) && (r2y > 0.99 || rvy < 100))) {
+//						System.out.println(r2x + ", " + r2y + ", " + rvx + ", " + rvy);
 						PERIODFOUND = true;
 						saveState = false;
 						break;
@@ -119,6 +123,8 @@ public class Ant extends AbstractAnt {
 //		ryy += y*y;
 //		rtt += t*t;
 //		n++;
+//		rvx = (rxx-rx*rx/n)/n;
+//		rvy = (ryy-ry*ry/n)/n;
 //
 //		r2x = (n*rxt-rx*rt)*(n*rxt-rx*rt)/(double)((n*rxx-rx*rx)*(n*rtt-rt*rt));
 //		r2y = (n*ryt-ry*rt)*(n*ryt-ry*rt)/(double)((n*ryy-ry*ry)*(n*rtt-rt*rt));

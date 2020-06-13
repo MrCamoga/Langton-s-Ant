@@ -81,8 +81,9 @@ public class Worker {
 		while(!ant.periodFound() && (maxiterations == -1 || iterations < max)) {
 			iterations += ant.move();
 //			if(Settings.deleteOldChunks) {
-				// TODO write to highway file before deleting
-//				Level.chunks.removeIf((Chunk c) -> iterations - c.lastVisit >= 100000000);
+//				 TODO write to highway file before deleting
+//				getLevel().chunks.entrySet().removeIf(e -> iterations - e.getValue().lastVisit >= 1000000000);
+
 //			}
 			
 //			if(Settings.autosave && System.currentTimeMillis()-autosavetimer > 900000) { // Autosave every 15 mins
@@ -90,6 +91,7 @@ public class Worker {
 //				System.out.println("Autosave");
 //				autosavetimer = System.currentTimeMillis();
 //			}
+			
 			if(type == 1 && !extended && getLevel().chunks.size() < 8 && iterations > maxiterations) {
 				extended = true;
 				max += 100000000;

@@ -256,6 +256,7 @@ public class Client {
 	
 	public static void main(String[] args) throws IOException {
 		host = "langtonsant.sytes.net";
+//		host = "localhost";
 		boolean gui = !GraphicsEnvironment.isHeadless();
 		boolean nolog = false;
 		int normalworkers = 1;
@@ -285,6 +286,7 @@ public class Client {
 					break;
 //				case "-u":
 //					username = args[i++];
+//					System.out.print("Enter password: ");
 //					char[] pass = System.console().readPassword();
 //					break;
 				default:

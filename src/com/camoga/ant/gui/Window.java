@@ -3,6 +3,7 @@ package com.camoga.ant.gui;
 import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
@@ -99,14 +100,15 @@ public class Window {
 		public void close() throws SecurityException {
 			
 		}
-		
 	}
 	
 	class AntCanvas extends Canvas {
 		BufferedImage canvasImage = new BufferedImage(Settings.cSIZE*Settings.canvasSize, Settings.cSIZE*Settings.canvasSize, BufferedImage.TYPE_INT_RGB);
 		int[] pixels = ((DataBufferInt) canvasImage.getRaster().getDataBuffer()).getData();
 		
-		public AntCanvas() {}
+		public AntCanvas() {
+			setPreferredSize(new Dimension(800, 800));
+		}
 		
 		public void run() {
 			createBufferStrategy(3);
@@ -119,21 +121,21 @@ public class Window {
 				}
 			}
 		}
-		
+
 		public void render() {
 			Graphics g = getBufferStrategy().getDrawGraphics();
 			Worker w = WorkerManager.getWorker(0);
 			if(w==null) return;
 			if(w.isRunning()) {
-				w.getLevel().render(pixels, Settings.canvasSize, canvasImage.getWidth(), canvasImage.getHeight(), false);				
+				w.getLevel().render(pixels, Settings.canvasSize, canvasImage.getWidth(), canvasImage.getHeight(), Settings.followAnt);				
 				g.drawImage(canvasImage, 0, 0, 800, 800, null);
 				g.setColor(Color.WHITE);
 				g.drawString("Iterations: " + w.getIterations(), 10, 30); 
 				g.drawString("Rule: " + w.getAnt().getRule().string() + " ("+w.getAnt().getRule().getRule()+")", 10, 46);
 			}
-			
+
 			AbstractAnt ant = w.getAnt();
-			
+
 			if(ant.findingPeriod()) {
 				g.setColor(Color.red);
 				g.drawString("Finding period... " + ant.getPeriod(), 10, 62);
@@ -141,12 +143,12 @@ public class Window {
 				g.setColor(Color.WHITE);
 				g.drawString("Period: " + ant.getPeriod(), 10, 62);
 			}
-			
+
 			g.dispose();
 			getBufferStrategy().show();
 		}
 	}
-	
+
 	public void gui(JFrame f) {		
 		JMenuBar menu = new JMenuBar();		
 			JMenu server = new JMenu("Server");
@@ -161,7 +163,7 @@ public class Window {
 				server.add(serversettings);
 				
 		menu.add(server);
-				
+
 		canvas = new AntCanvas();
 //		c = new Canvas();
 //		f.add(c, BorderLayout.CENTER);
@@ -171,6 +173,7 @@ public class Window {
 		scroll.setAutoscrolls(true);
 		((DefaultCaret)log.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 		log.setEditable(false);
+		log.setPreferredSize(new Dimension(500,800));
 
 		Client.LOG.setUseParentHandlers(false);		
 		Client.LOG.addHandler(new TextAreaHandler(new TextAreaOutputStream(log)));
