@@ -4,9 +4,11 @@ Multicolor extension of Langton's Ant cellular automaton program that finds high
 It supports square and hexagonal grids (WIP)
 
 ##How to use
+
 The sign up must be done using the gui. After that, you can run the program on console
 
 ### Commands
+
 - **-w** *n*:    Runs *n* ants simultaneously on different threads (limited to the number of CPU threads)
 - **--nogui**:   No interface mode
 - **--nolog**:   No log mode
@@ -18,6 +20,7 @@ Example:
 ```
 
 ##How it works
+
 The server sends rules to each client to see if they formed a highway and if so, find their period
 
 Every few minutes, the client sends the data back to the server and stores the rules in the database
