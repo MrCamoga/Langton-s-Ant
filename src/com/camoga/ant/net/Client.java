@@ -271,7 +271,6 @@ public class Client {
 					String username = args[++i];
 					System.out.print("Enter password: ");
 					String password = hash(System.console().readPassword());
-					System.out.println(password);
 					if(username != null && password != null) {
 						Client.username = username;
 						Client.password = password;
