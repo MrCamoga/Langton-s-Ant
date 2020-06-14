@@ -10,6 +10,7 @@ The sign up must be done using the gui. After that, you can run the program on c
 ### Commands
 
 - **-w** *n*:    Runs *n* ants simultaneously on different threads (limited to the number of CPU threads)
+- **-u** *username* Login in as *username*, you have to enter the password on the next line
 - **--nogui**:   No interface mode
 - **--nolog**:   No log mode
 

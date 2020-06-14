@@ -3,7 +3,9 @@ package com.camoga.ant.gui;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.Arrays;
 
@@ -29,30 +31,27 @@ public class ServerActionListener implements ActionListener {
 				
 				JTextField username = new JTextField(20);
 				JPasswordField pw = new JPasswordField();
-				JCheckBox staylogged = new JCheckBox();
-				panel.setLayout(new GridLayout(3, 2));
+				panel.setLayout(new GridLayout(2, 2));
 				panel.add(new JLabel("Username: "));
 				panel.add(username);
 				panel.add(new JLabel("Password: "));
 				panel.add(pw);
-				panel.add(new JLabel("Keep me logged in: "));
-				panel.add(staylogged);
 				int option = JOptionPane.showOptionDialog(Window.f, panel, "Connect to Server", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, null);
 				
 				if(option == JOptionPane.CANCEL_OPTION) { //Login
-					Client.client.login(username.getText(), storeCredentials(pw, username.getText(), staylogged));
+					String user = username.getText();
+					String hash = Client.hash(pw.getPassword());
+					Client.client.login(user, hash);
 				} else if(option == JOptionPane.NO_OPTION) { //Register
 					panel.removeAll();
 					JPasswordField pw2 = new JPasswordField();
-					panel.setLayout(new GridLayout(4,2));
+					panel.setLayout(new GridLayout(3,2));
 					panel.add(new JLabel("Username: "));
 					panel.add(username);
 					panel.add(new JLabel("Password: "));
 					panel.add(pw);
 					panel.add(new JLabel("Repeat password: "));
 					panel.add(pw2);
-					panel.add(new JLabel("Keep me logged in: "));
-					panel.add(staylogged);
 					
 					options = new Object[] {"Cancel", "Register"};
 					option = JOptionPane.showOptionDialog(Window.f, panel, "Connect to Server", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, null);
@@ -62,7 +61,9 @@ public class ServerActionListener implements ActionListener {
 							JOptionPane.showInputDialog(Window.f, "Passwords do not match", "Error", JOptionPane.ERROR_MESSAGE);
 							return;
 						} else {
-							Client.client.register(username.getText(), storeCredentials(pw, username.getText(), staylogged));
+							String user = username.getText();
+							String hash = Client.hash(pw.getPassword());
+							Client.client.register(user, hash);
 						}
 					}
 				}
@@ -72,34 +73,4 @@ public class ServerActionListener implements ActionListener {
 			break;
 		}
 	}
-
-	private String storeCredentials(JPasswordField pw, String username, JCheckBox staylogged) {
-		char[] chars = null;
-		byte[] password = null;
-		try {
-			chars = pw.getPassword();
-			password = new byte[chars.length];
-			for(int i = 0; i < chars.length; i++) {
-				password[i] = (byte) chars[i];
-			}
-			MessageDigest md = MessageDigest.getInstance("SHA-256");
-			byte[] hash = md.digest(password);
-			
-			String strhash = Client.toHexString(hash);
-			
-			if(staylogged.isSelected()) {
-				Client.properties.setProperty("username", username);
-				Client.properties.setProperty("hash", strhash);
-				Client.properties.store(new FileOutputStream("langton.properties"), null);
-			}
-			return strhash;
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		} finally {
-			Arrays.fill(chars, (char) 0);
-			Arrays.fill(password, (byte)0);			
-		}
-		return null;
-	}
-
 }

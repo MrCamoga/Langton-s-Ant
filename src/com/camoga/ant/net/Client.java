@@ -8,6 +8,7 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
@@ -16,7 +17,9 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.security.MessageDigest;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -66,16 +69,6 @@ public class Client {
 			e.printStackTrace();
 			System.exit(0);
 		}
-
-//		String prop_workers = properties.getProperty("workers");
-//		if(numworkers == -1) {
-//			if(prop_workers != null) {
-//				int n;
-//				if((n = Integer.parseInt(prop_workers)) > Runtime.getRuntime().availableProcessors()) 
-//					throw new RuntimeException("Num of workers greater than the number of threads");
-//				else numworkers = n;				
-//			} else numworkers = 1;
-//		}
 
 		assignments[0] = new ArrayDeque<Long>();
 		assignments[1] = new ArrayDeque<Long>();
@@ -187,7 +180,7 @@ public class Client {
 							username = new String(is.readNBytes(is.readByte()));
 							LOG.info("Logged in as " + username);
 							logged = true;
-
+							storeCredentials();
 							getAssigment(0);
 							getAssigment(1);
 						} else if(result == 1) {
@@ -245,14 +238,6 @@ public class Client {
 		}
 			
 	}
-
-	public static String toHexString(byte[] data) {
-		String result = "";
-		for(int i = 0; i < data.length; i++) {
-			result += Integer.toHexString(data[i]&0xff);
-		}
-		return result;
-	}
 	
 	public static void main(String[] args) throws IOException {
 		host = "langtonsant.sytes.net";
@@ -261,8 +246,6 @@ public class Client {
 		boolean nolog = false;
 		int normalworkers = 1;
 		int hexworkers = 0;
-		String username = "";
-		String password = "";
 		for(int i = 0; i < args.length; i++) {
 			String cmd = args[i];
 				switch(cmd) {
@@ -284,11 +267,16 @@ public class Client {
 				case "-sd":
 					STOP_ON_DISCONNECT = true;
 					break;
-//				case "-u":
-//					username = args[i++];
-//					System.out.print("Enter password: ");
-//					char[] pass = System.console().readPassword();
-//					break;
+				case "-u":
+					String username = args[++i];
+					System.out.print("Enter password: ");
+					String password = hash(System.console().readPassword());
+					System.out.println(password);
+					if(username != null && password != null) {
+						Client.username = username;
+						Client.password = password;
+					}
+					break;
 				default:
 					throw new RuntimeException("Invalid parameters");
 				}
@@ -332,5 +320,41 @@ public class Client {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static String hash(char[] chars) {
+		byte[] password = null;
+		try {
+			password = new byte[chars.length];
+			for(int i = 0; i < chars.length; i++) {
+				password[i] = (byte) chars[i];
+			}
+			MessageDigest md = MessageDigest.getInstance("SHA-256");
+			byte[] hash = md.digest(password);
+			
+			String strhash = "";
+			for(int i = 0; i < hash.length; i++) {
+				strhash += Integer.toHexString(hash[i]&0xff);
+			}			
+			return strhash;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+			Arrays.fill(chars, (char) 0);
+			Arrays.fill(password, (byte)0);			
+		}
+		return null;
+	}
+	
+	public static void storeCredentials() {
+		if(username != null && password != null && (!properties.getProperty("username").equals(username) || !properties.getProperty("hash").equals(password))) {
+			Client.properties.setProperty("username", username);
+			Client.properties.setProperty("hash", password);			
+		}
+		try {
+			Client.properties.store(new FileOutputStream("langton.properties"), null);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}		
 	}
 }
