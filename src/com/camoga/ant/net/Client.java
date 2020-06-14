@@ -347,7 +347,7 @@ public class Client {
 	}
 	
 	public static void storeCredentials() {
-		if(username != null && password != null && (!properties.getProperty("username").equals(username) || !properties.getProperty("hash").equals(password))) {
+		if(username != null && password != null) {
 			Client.properties.setProperty("username", username);
 			Client.properties.setProperty("hash", password);			
 		}
