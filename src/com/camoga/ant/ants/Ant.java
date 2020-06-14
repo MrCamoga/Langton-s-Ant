@@ -4,8 +4,9 @@ import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
 
 public class Ant extends AbstractAnt {
-	
-	static final int[][] directions = new int[][] {{0,-1},{1,0},{0,1},{-1,0}};
+
+	static final int[] directionx = new int[] {0,1,0,-1};
+	static final int[] directiony = new int[] {-1,0,1,0};
 	
 	public Ant(Worker worker) {
 		super(worker);
@@ -98,8 +99,8 @@ public class Ant extends AbstractAnt {
 			dir = (dir + rule.get(state))&0b11;
 			if(++chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
 			
-			x += directions[dir][0];
-			y += directions[dir][1];
+			x += directionx[dir];
+			y += directiony[dir];
 			
 			//OPTIMIZE (chunk coordinates can only change if x/y = 0/cSIZE)
 //			xc += x>>Settings.cPOW;
