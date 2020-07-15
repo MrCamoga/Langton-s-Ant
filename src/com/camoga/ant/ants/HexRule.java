@@ -2,37 +2,22 @@ package com.camoga.ant.ants;
 
 import java.util.Random;
 
-public class HexRule implements IRule {
+public class HexRule extends AbstractRule {
 	
-	public int[] colors;
-	public int[] turn;
-	public long rule;
-	public byte size;
-	
-	private static final String[] letters = new String[] {"F","R","S","B","P","L"};
-	
-	public class CellColor {
-		int color;
-		boolean right;
-		
-		CellColor(int color, boolean right) {
-			this.color = color;
-			this.right = right;
-		}
-	}
+	private static final String[] letters = {"R1","R2","U","L2","L1","N"};
 	
 	public void createRule(long rule) {
 		this.rule = rule;
-		size = (byte) (Math.log(rule)/Math.log(6)+1);
-		if(size > 32) throw new RuntimeException("More than 32 states not supported");
-		colors = new int[size];
-		turn = new int[size];
+		// size = (byte) (Math.log(rule)/Math.log(6)+1);
+		colors = new int[25];
+		turn = new int[25];
 		Random r = new Random();
-		for(int i = 0; i < size; i++) {
-			colors[i] = r.nextInt(0x1000000);
-			turn[i] = (int) (rule%6);
+		for(size = 0; rule != 0; size++) {
+			colors[size] = r.nextInt(0x1000000);
+			turn[size] = (int) (rule%6);
 			rule /= 6;
 		}
+		if(size > 25) throw new RuntimeException("More than 32 states not supported");
 	}
 	
 	/**
@@ -41,25 +26,9 @@ public class HexRule implements IRule {
 	 */
 	public String string() {
 		String rule = "";
-		for(int i = 0; i < turn.length; i++) {
+		for(int i = 0; i < size; i++) {
 			rule += letters[turn[i]];
 		}
 		return rule;
-	}
-	
-	public long getRule() {
-		return rule;
-	}
-	
-	public int[] getColors() {
-		return colors;
-	}
-
-	public int getSize() {
-		return size;
-	}
-
-	public int get(int index) {
-		return turn[index];
 	}
 }
