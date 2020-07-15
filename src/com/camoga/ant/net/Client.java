@@ -235,12 +235,11 @@ public class Client {
 			} catch (IOException e) {
 				e.printStackTrace();
 			} 
-		}
-			
+		}	
 	}
 	
 	public static void main(String[] args) throws IOException {
-		host = "langtonsant.sytes.net";
+		host = "";
 //		host = "localhost";
 		boolean gui = !GraphicsEnvironment.isHeadless();
 		boolean nolog = false;

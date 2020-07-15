@@ -20,23 +20,6 @@ public class HexAnt extends AbstractAnt {
 	public int move() {
 		int iterations = 0;
 		for(; iterations < Settings.itpf; iterations++) {
-			if(findingPeriod()) {
-				byte s1 = (byte)(dir<<5 | state); //Only works for rules with <= 32 colors
-				if(index < states.length) states[(int) index] = s1;
-				index++;
-//				System.out.println(index + ", " + minHighwayPeriod + ", " + repeatLength + ", " + state +  "," + Arrays.toString(Arrays.copyOf(states, (int) index)));
-				if(states[repeatLength]!=s1) {
-					repeatLength = 0;
-					minHighwayPeriod = index;
-				} else {
-					repeatLength++;
-					if(repeatLength == states.length || repeatLength > Settings.repeatcheck*minHighwayPeriod) {
-						PERIODFOUND = true;
-						saveState = false;
-						break;
-					}
-				}
-			}
 			
 			if(x > Settings.cSIZEm || y > Settings.cSIZEm || x < 0 || y < 0) {
 				xc += x >> Settings.cPOW;
@@ -48,12 +31,29 @@ public class HexAnt extends AbstractAnt {
 			
 			int index = x|(y<<Settings.cPOW);
 			state = chunk.cells[index];
-			dir += rule.get(state);
+			dir += rule.turn[state];
 			if(dir > 5) dir -= 6;
 			if(++chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
 			
 			x += directionx[dir];
 			y += directiony[dir];
+			if(findingPeriod()) {
+				byte s1 = (byte)(dir<<5 | state); //Only works for rules with <= 32 colors
+				if(stateindex < states.length) states[(int) stateindex] = s1;
+				stateindex++;
+//				System.out.println(index + ", " + minHighwayPeriod + ", " + repeatLength + ", " + state +  "," + Arrays.toString(Arrays.copyOf(states, (int) index)));
+				if(states[repeatLength]!=s1) {
+					repeatLength = 0;
+					minHighwayPeriod = stateindex;
+				} else {
+					repeatLength++;
+					if(repeatLength == states.length || repeatLength > Settings.repeatcheck*minHighwayPeriod) {
+						PERIODFOUND = true;
+						saveState = false;
+						break;
+					}
+				}
+			}
 			
 			//OPTIMIZE (chunk coordinates can only change if x/y = 0/cSIZE)
 //			xc += x>>Settings.cPOW;
@@ -62,9 +62,5 @@ public class HexAnt extends AbstractAnt {
 //			y = y&Settings.cSIZEm;
 		}
 		return iterations;
-	}
-
-	public void initPeriodFinding() {
-		states[0] = (byte)(dir<<5 | state);
 	}
 }

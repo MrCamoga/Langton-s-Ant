@@ -56,7 +56,6 @@ public class Level {
 		chunks.put(xc,yc,c);
 		if(!worker.getAnt().findingPeriod() && !worker.getAnt().periodFound() && Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck) {
 			worker.getAnt().setFindingPeriod(true);
-			worker.getAnt().initPeriodFinding();
 		}
 		return c;
 	}

@@ -168,12 +168,11 @@ public class Window {
 //		c = new Canvas();
 //		f.add(c, BorderLayout.CENTER);
 		
-		JTextArea log = new JTextArea();
+		JTextArea log = new JTextArea(10,60);
 		JScrollPane scroll = new JScrollPane(log);
 		scroll.setAutoscrolls(true);
 		((DefaultCaret)log.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 		log.setEditable(false);
-		log.setPreferredSize(new Dimension(500,800));
 
 		Client.LOG.setUseParentHandlers(false);		
 		Client.LOG.addHandler(new TextAreaHandler(new TextAreaOutputStream(log)));

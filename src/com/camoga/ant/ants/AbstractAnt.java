@@ -14,7 +14,7 @@ import com.camoga.ant.level.Level.Chunk;
 public abstract class AbstractAnt {
 
 	protected Worker worker;
-	protected IRule rule;
+	protected AbstractRule rule;
 	
 	protected Chunk chunk;
 	protected int state = 0;
@@ -26,7 +26,7 @@ public abstract class AbstractAnt {
 	protected byte[] states;
 	protected boolean saveState = false;
 	protected int repeatLength = 0;
-	protected long index = 1;
+	protected long stateindex = 1;
 	
 	protected long minHighwayPeriod = 0;  // This is the final period length
 	protected boolean PERIODFOUND = false;
@@ -48,8 +48,9 @@ public abstract class AbstractAnt {
 		dir = 0;
 		state = 0;
 		saveState = false;
-		repeatLength = 0;
-		index = 1;
+		repeatLength = 1;
+		states[1] = -1;
+		stateindex = 0;
 		minHighwayPeriod = 0;
 		PERIODFOUND = false;
 		chunk = worker.getLevel().chunks.get(0,0);
@@ -60,7 +61,7 @@ public abstract class AbstractAnt {
 	public int getY() {return y|(yc<<Settings.cPOW);}
 	public int getXC() {return xc;}
 	public int getYC() {return yc;}
-	public IRule getRule() {return rule;}
+	public AbstractRule getRule() {return rule;}
 	
 	public boolean findingPeriod() {return saveState;}
 	
@@ -81,7 +82,7 @@ public abstract class AbstractAnt {
 			oos.writeInt(yc);
 			oos.writeBoolean(saveState);
 			if(saveState) {
-				oos.writeLong(index);
+				oos.writeLong(stateindex);
 				oos.writeInt(repeatLength);
 				oos.writeLong(minHighwayPeriod);
 				oos.write(states);
@@ -99,7 +100,5 @@ public abstract class AbstractAnt {
 			e.printStackTrace();
 		}
 	}
-	
-	public abstract void initPeriodFinding();
 	
 }
