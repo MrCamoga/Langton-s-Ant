@@ -67,8 +67,8 @@ public class Worker {
 			Client.storeRules(type,result);
 			
 			float seconds = (-time + (time = System.currentTimeMillis()))/1000f;
-			if(type == 0) Client.LOG.info(rule + "\t" + ant.getRule().string() + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s\t" + (result[1] > 1 ? result[1]:result[1]==1 ? "?":""));
-			else if(type == 1) Client.LOG.info(rule + "\t" + ant.getRule().string() + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s\t" + (result[1] > 0 ? result[1]:result[1]==-1 ? "?":""));
+			if(type == 0) Client.LOG.info(Long.toUnsignedString(rule) + "\t" + ant.getRule().string() + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s\t" + (result[1] > 1 ? result[1]:result[1]==1 ? "?":""));
+			else if(type == 1) Client.LOG.info(Long.toUnsignedString(rule) + "\t" + ant.getRule().string() + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s\t" + (result[1] > 0 ? result[1]:result[1]==-1 ? "?":""));
 		}
 		Client.LOG.warning("Worker " + workerid + " has stopped");
 		running = false;

@@ -127,11 +127,11 @@ public class Window {
 			Worker w = WorkerManager.getWorker(0);
 			if(w==null) return;
 			if(w.isRunning()) {
-				w.getLevel().render(pixels, Settings.canvasSize, canvasImage.getWidth(), canvasImage.getHeight(), Settings.followAnt);				
+				w.getLevel().render(pixels, Settings.canvasSize, canvasImage.getWidth(), canvasImage.getHeight(), w.getAnt().findingPeriod());				
 				g.drawImage(canvasImage, 0, 0, 800, 800, null);
 				g.setColor(Color.WHITE);
 				g.drawString("Iterations: " + w.getIterations(), 10, 30); 
-				g.drawString("Rule: " + w.getAnt().getRule().string() + " ("+w.getAnt().getRule().getRule()+")", 10, 46);
+				g.drawString("Rule: " + w.getAnt().getRule().string() + " ("+Long.toUnsignedString(w.getAnt().getRule().getRule())+")", 10, 46);
 			}
 
 			AbstractAnt ant = w.getAnt();
