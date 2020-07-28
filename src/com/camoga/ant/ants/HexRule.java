@@ -1,11 +1,10 @@
 package com.camoga.ant.ants;
 
-import java.util.Arrays;
 import java.util.Random;
 
 public class HexRule extends AbstractRule {
 	
-	private static final String[] letters = {"N","R1","R2","U","L2","L1"};
+	private static final String[] letters = {"F","R","r","B","l","L"};
 	
 	public void createRule(long rule) {
 		this.rule = rule;

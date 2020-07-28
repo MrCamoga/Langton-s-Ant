@@ -50,7 +50,7 @@ public class Worker {
 		Client.LOG.info("Worker " + workerid + " started");
 		running = true;
 	}
-	
+
 	public void run() {
 		long[] p;
 		long time = System.currentTimeMillis();
@@ -67,8 +67,7 @@ public class Worker {
 			Client.storeRules(type,result);
 			
 			float seconds = (-time + (time = System.currentTimeMillis()))/1000f;
-			if(type == 0) Client.LOG.info(Long.toUnsignedString(rule) + "\t" + ant.getRule().string() + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s\t" + (result[1] > 1 ? result[1]:result[1]==1 ? "?":""));
-			else if(type == 1) Client.LOG.info(Long.toUnsignedString(rule) + "\t" + ant.getRule().string() + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s\t" + (result[1] > 0 ? result[1]:result[1]==-1 ? "?":""));
+			Client.LOG.info(Long.toUnsignedString(rule) + "\t" + ant.getRule().string() + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s\t" + (result[1] > 1 ? result[1]:result[1]==1 ? "?":""));
 		}
 		Client.LOG.warning("Worker " + workerid + " has stopped");
 		running = false;
@@ -92,14 +91,14 @@ public class Worker {
 //				autosavetimer = System.currentTimeMillis();
 //			}
 			
-			if(type == 1 && !extended && getLevel().chunks.size() < 8 && iterations > maxiterations) {
+			if(type == 1 && !extended && getLevel().chunks.size() < 8 &&  maxiterations != -1 && iterations > maxiterations) {
 				extended = true;
 				max += 100000000;
 				getAnt().setFindingPeriod(true);
 			}
 		}
 		
-		long period = ant.periodFound() ? ant.getPeriod():(ant.findingPeriod() ? (type == 0 ? 1:-1):0);
+		long period = ant.periodFound() ? ant.getPeriod():(ant.findingPeriod() ? 1:0);
 		
 		return new long[] {rule,period,iterations};
 	}

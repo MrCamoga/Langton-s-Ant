@@ -1,5 +1,5 @@
 # Langton's Ant 
-Multicolor extension of Langton's Ant cellular automaton program that finds highways and its period
+Multicolor extension of Langton's Ant cellular automaton that finds highways and their periods
 
 It supports square and hexagonal grids (WIP)
 
@@ -17,7 +17,7 @@ The sign up must be done using the gui. After that, you can run the program on c
 Example:
 
 ```console
-	java -jar langton.jar -w 4 --nogui
+	java -jar langton.jar -w 4 --nogui 
 ```
 
 ## How it works
@@ -30,22 +30,15 @@ This way we make sure that no rule is tested multiple times
 
 ## TODO
 - [ ] Server
-  - [x] Create server to submit ants tested by users
-  - [x] Send rules to clients to test so that no rule is tested multiple times
   - [ ] Verify rules by different clients
-  - [x] Store rules tested and verified by each user for credit
   - [ ] Prevent people from sending false data (trust system based on rule verification by other users)
 - [ ] Webpage to visualize all the data
 - [ ] Improve GUI
 - [ ] Different work types:
-  - [x] Check new rules
   - [ ] Verify rules 
   - [ ] Approximate period of big highways
   - [ ] Find exact period of big highways
-- [x] Algorithm to differentiate between highways/triangles/squares
-- [x] Hexagonal ant
-- [ ] Parallel computing (doesn't seam possible)
-- [ ] Login from console
+- [ ] Parallel computing on GPU (doesn't seem possible)
 
 #### Top highways with longest period
 
@@ -98,11 +91,6 @@ This way we make sure that no rule is tested multiple times
 |					|								|	120192715		|	34543080		|	318476375254		|	317869216552	|	0.191%		|
 |					|	RRLRLLRRLRRRRRRRRRLRLLLLLR	|	34340555   		|	478474920		|	3406262955480 		|	3409034558708	|	0.081%		|
 |					|	RRLRLLRRLRRRRRRRRRLLLLRLRR	|	54787787		|	777109320		|	6524244609340		|	6518789812888	|	0.083%		|
-
-
-#### How we found the huge highways
-The rules that start with the same letters often behave very similar. When we find rules with a long period, we test the ones that start in the same way to find even longer highways.
-
 
 #### Some functions that generate lots of highways
 

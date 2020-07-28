@@ -243,7 +243,7 @@ public class Client {
 //		host = "localhost";
 		boolean gui = !GraphicsEnvironment.isHeadless();
 		boolean nolog = false;
-		int normalworkers = 1;
+		int normalworkers = 0;
 		int hexworkers = 0;
 		for(int i = 0; i < args.length; i++) {
 			String cmd = args[i];
@@ -261,7 +261,7 @@ public class Client {
 					normalworkers = Integer.parseInt(args[++i]);
 					break;
 				case "-wh":
-//					hexworkers = Integer.parseInt(args[++i]);
+					hexworkers = Integer.parseInt(args[++i]);
 					break;
 				case "-sd":
 					STOP_ON_DISCONNECT = true;
@@ -279,7 +279,7 @@ public class Client {
 					throw new RuntimeException("Invalid parameters");
 				}
 		}
-		
+		if(normalworkers == 0 && hexworkers == 0) normalworkers = 1;
 		client = new Client(normalworkers,hexworkers,nolog);
 		if(gui)
 			new Window();
