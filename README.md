@@ -1,7 +1,9 @@
 # Langton's Ant 
 Multicolor extension of Langton's Ant cellular automaton that finds highways and their periods
 
-It supports square and hexagonal grids (WIP)
+It supports square and hexagonal grid, the square one supports right and left moves while the hexagonal one supports all six directions.
+
+More information on [Wikipedia](https://en.wikipedia.org/wiki/Langton%27s_ant#Extension_to_multiple_colors)
 
 ## How to use
 
@@ -10,14 +12,15 @@ The sign up must be done using the gui. After that, you can run the program on c
 ### Commands
 
 - **-w** *n*:    Runs *n* ants simultaneously on different threads (limited to the number of CPU threads)
-- **-u** *username* Login in as *username*, you have to enter the password on the next line
+- **-wh** *n*:    Runs *n* hexagonal ants simultaneously on different threads (limited to the number of CPU threads)
+- **-u** *username* Login as *username*, you have to enter the password on the next line
 - **--nogui**:   No interface mode
 - **--nolog**:   No log mode
 
 Example:
 
 ```console
-	java -jar langton.jar -w 4 --nogui 
+	java -jar langton.jar -w 4 -wh 2 --nogui 
 ```
 
 ## How it works
@@ -38,7 +41,11 @@ This way we make sure that no rule is tested multiple times
   - [ ] Verify rules 
   - [ ] Approximate period of big highways
   - [ ] Find exact period of big highways
+- [ ] Render hexagonal grid
 - [ ] Parallel computing on GPU (doesn't seem possible)
+- [ ] Compute approximate period of highways on the fly
+- [ ] Algorithm to differentiate triangles/squares from highways
+- [ ] Store size of highways (displacement of the ant each period, e.g. the displacement of the original ant is 2×2). This could be useful to distinguish highways with the same period but different structure
 
 #### Top highways with longest period
 

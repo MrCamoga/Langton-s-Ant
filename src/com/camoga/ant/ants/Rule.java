@@ -15,7 +15,7 @@ public class Rule extends AbstractRule {
 			rule >>>= 1;
 			colors[i] = r.nextInt(0x1000000);
 		}
-		// if(size > 64) throw new RuntimeException("More than 64 states not supported");
+		colors[0] = 0xff101010;
 	}
 	
 	/**

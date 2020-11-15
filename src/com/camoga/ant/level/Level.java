@@ -18,6 +18,8 @@ public class Level {
 	
 	public MultiKeyMap<Integer, Chunk> chunks = new MultiKeyMap<Integer, Chunk>();
 	
+	public boolean deleteOldChunks = false;
+	
 	public class Chunk implements Serializable {		
 		public long lastVisit;
 		
@@ -37,8 +39,13 @@ public class Level {
 	public void init() {
 		chunks.clear();
 		chunks.put(0,0,new Chunk());
+		deleteOldChunks = false;
+		mc = 1;
+		prop = 1;
 	}
 	
+	int mc;
+	public double prop;
 	/**
 	 * 
 	 * @param xc x coord of chunk
@@ -54,8 +61,16 @@ public class Level {
 
 		Chunk c = new Chunk();
 		chunks.put(xc,yc,c);
-		if(!worker.getAnt().findingPeriod() && !worker.getAnt().periodFound() && Math.max(Math.abs(xc),Math.abs(yc)) > Settings.chunkCheck) {
+
+		//Farthest chunk ant has traveled
+		if(Math.abs(xc) > mc) mc = Math.abs(Math.max(xc,yc));
+
+//		prop = chunks.size()/(double)(mc*mc); // Proportion of chunks generated over size of square that bounds all chunks. If prop -> 0 ant forms a highway (prop might go near 0 if ant forms a thin triangle)
+
+//		if(!worker.getAnt().findingPeriod() && !worker.getAnt().periodFound() && mc > Settings.chunkCheck && prop < 0.05) {
+		if(!worker.getAnt().findingPeriod() && !worker.getAnt().periodFound() && mc > Settings.chunkCheck) {
 			worker.getAnt().setFindingPeriod(true);
+			deleteOldChunks = true;
 		}
 		return c;
 	}
@@ -90,7 +105,7 @@ public class Level {
 					int xcf = xc<<Settings.cPOW;
 					int i = 0;
 					for(int yo = 0; yo < cSIZE; yo++) {
-						int y = (yo|ycf) * width;
+						int y = (yo|ycf)*width;
 						for(int xo = 0; xo < cSIZE; xo++) {
 							int index = (xo|xcf) + y;
 							if(index >= pixels.length) continue;
@@ -100,7 +115,7 @@ public class Level {
 					}
 				}
 			}			
-//		} 
+//		} //HEXAGONAL GRID
 //		else if(worker.getType()==1) {
 //			Chunk c = getChunk2(0, 0);
 //			if(c == null) return;
@@ -120,6 +135,7 @@ public class Level {
 //			}
 //		}
 		
+		// SKEW TRANSFORMATION TO STRAIGHTEN HIGHWAYS
 //		for(int xc = -(Settings.highwaySizew/128>>Settings.cPOW); xc < 10; xc++) {
 //			int xcf = (xc+(Settings.highwaySizew/128>>Settings.cPOW))<<Settings.cPOW;
 //			for(int yc = -1; yc < 25; yc++) {
@@ -143,49 +159,10 @@ public class Level {
 //						int xp = (xo|xcf);
 //						int yp = y+xo;
 //						if(xp < 0 || yp < 0 || yp >= height || xp >= width) continue;
-//						pixels[xp+yp*width] = colors[c.cells[xo+yo*cSIZE]].color;
+//						pixels[xp+yp*width] = colors[c.cells[xo+yo*cSIZE]];
 //					}
 //				}
 //			}
 //		}
-//		System.out.println(Ant.x|(Ant.xc<<Settings.cPOW));
-//		Settings.highwaySizew = 1000000;
-//		Settings.highwaySizeh = 768;
-//		Settings.deleteOldChunks = true;
-//		Settings.toot = true; 
-//		System.out.println(Settings.highwaySizeh+","+Settings.highwaySizew);
-//		Settings.itpf = 100;
-//		System.out.println("{"+(Ant.x|(Ant.xc<<Settings.cPOW)) + ", " + Simulation.iterations+"}");
-	}
-	
-	public void renderHighway(byte[] pixels, int chunks, int width, int height, boolean followAnt) {
-		int xa = followAnt ? worker.getAnt().getXC():0;
-		int ya = followAnt ? worker.getAnt().getYC():0;
-//		int ya = -xa+1;
-		int offset = 7;
-		
-		//Shear transformation		
-		for(int xc = -(Settings.highwaySizew>>Settings.cPOW); xc < 10; xc++) {
-//			System.out.println(xc);
-			int xcf = (xc+(Settings.highwaySizew>>Settings.cPOW))<<Settings.cPOW;
-			for(int yc = -1; yc < 25; yc++) {
-				int ycf = (yc-offset)<<Settings.cPOW;
-				Chunk c = getChunk2(xc+xa-9, yc+ya-xc);
-				if(c==null) continue;
-				for(int yo = 0; yo < cSIZE; yo++) {
-					int y = yo|ycf;
-					for(int xo = 0; xo < cSIZE; xo++) {
-						int xp = (xo|xcf);
-						int yp = y+xo;
-						if(xp < 0 || yp < 0 || yp >= height || xp >= width) continue;
-						pixels[xp+yp*width] = (byte) c.cells[xo+yo*cSIZE];
-					}
-				}
-			}
-		}
-//		System.out.println(Ant.x|(Ant.xc<<Settings.cPOW));
-//		
-//		System.out.println("{"+(Ant.x|(Ant.xc<<Settings.cPOW)) + ", " + Simulation.iterations+"}");
-		
 	}
 }

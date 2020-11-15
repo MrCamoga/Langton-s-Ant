@@ -32,18 +32,8 @@ public class Settings {
 	public static float repeatcheck = 40; // Number of times the period has to repeat to confirm that it's correct (e.g. You're more certain that 10101010101010101010 has a period of 2 than 1010)
 	static boolean autosave = false;
 	
-	public static int highwaySizew = 400000;
-	public static int highwaySizeh = 800;
-	
 	
 	//OUTPUT IMAGES
-	static boolean toot = false;
-	static boolean savepic = false; // saves pic if ant forms a highway
 	static int saveImageW = canvasSize*cSIZE;
 	static int saveImageH = canvasSize*cSIZE;
-//	static int saveImageW = 100000;
-//	static int saveImageH = 1200;
-	
-	//OTHER
-	static boolean deleteOldChunks = false; // only enable when you know old chunks are not going to be visited again
 }

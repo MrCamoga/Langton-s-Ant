@@ -41,7 +41,6 @@ public class HexAnt extends AbstractAnt {
 				byte s1 = (byte)(dir<<5 | state); //Only works for rules with <= 32 colors
 				if(stateindex < states.length) states[(int) stateindex] = s1;
 				stateindex++;
-//				System.out.println(index + ", " + minHighwayPeriod + ", " + repeatLength + ", " + state +  "," + Arrays.toString(Arrays.copyOf(states, (int) index)));
 				if(states[repeatLength]!=s1) {
 					repeatLength = 0;
 					minHighwayPeriod = stateindex;
@@ -54,12 +53,6 @@ public class HexAnt extends AbstractAnt {
 					}
 				}
 			}
-			
-			//OPTIMIZE (chunk coordinates can only change if x/y = 0/cSIZE)
-//			xc += x>>Settings.cPOW;
-//			yc += y>>Settings.cPOW;
-//			x = x&Settings.cSIZEm;
-//			y = y&Settings.cSIZEm;
 		}
 		return iterations;
 	}

@@ -62,7 +62,7 @@ public class Client {
 		
 		properties = new Properties();
 		try {
-			properties.load(new InputStreamReader(new FileInputStream("langton.properties"),Charset.forName("UTF-8")));			
+			properties.load(new InputStreamReader(new FileInputStream("langton.properties"),Charset.forName("UTF-8")));	//FIXME sometimes data is erased from langton.properties
 		} catch(FileNotFoundException e) {
 			new File("langton.properties").createNewFile();
 		} catch(IOException e) {
@@ -76,6 +76,10 @@ public class Client {
 		storedrules[1] = new ByteArrayOutputStream();
 		WorkerManager.setWorkers(normalworkers, hexworkers);
 		
+		//TODO
+//		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+//			//save rules that take too much time to compute (>1e10 iterations)
+//		}));
 		connectionthread = new Thread(() -> run(), "Client Thread");
 		connectionthread.start();
 	}
@@ -145,10 +149,7 @@ public class Client {
 				storedrules[1].reset();
 				datasent = true;
 			}
-			if(datasent) {
-				if(username.equalsIgnoreCase("pazvi")) LOG.info("Sent data to server");
-				else LOG.info("Data sent to server");
-			}
+			if(datasent) LOG.info("Data sent to server");
 		} catch(IOException e) {
 			LOG.warning("Could not send rules to server");
 		}
@@ -204,7 +205,7 @@ public class Client {
 						for(int i = 0; i < size; i++) {
 							assignments[1].add(bb.getLong());
 						}
-						LOG.info("New assignment of " + size/2 + " rules!");
+						LOG.info("New assignment of " + size/2 + " rules");
 						WorkerManager.start();
 						break;
 					case REGISTER:
@@ -239,8 +240,7 @@ public class Client {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		host = "";
-//		host = "localhost";
+		host = "langtonsant.sytes.net";
 		boolean gui = !GraphicsEnvironment.isHeadless();
 		boolean nolog = false;
 		int normalworkers = 0;
@@ -281,8 +281,8 @@ public class Client {
 		}
 		if(normalworkers == 0 && hexworkers == 0) normalworkers = 1;
 		client = new Client(normalworkers,hexworkers,nolog);
-		if(gui)
-			new Window();
+		if(gui)	new Window();
+
 	}
 	
 	//TODO synchronized removeFirst

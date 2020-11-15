@@ -126,19 +126,25 @@ public class Window {
 			Graphics g = getBufferStrategy().getDrawGraphics();
 			Worker w = WorkerManager.getWorker(0);
 			if(w==null) return;
+			int h = 15;
 			if(w.isRunning()) {
-				w.getLevel().render(pixels, Settings.canvasSize, canvasImage.getWidth(), canvasImage.getHeight(), w.getAnt().findingPeriod());				
+				AbstractAnt a = w.getAnt();
+				w.getLevel().render(pixels, Settings.canvasSize, canvasImage.getWidth(), canvasImage.getHeight(), a.findingPeriod());				
 				g.drawImage(canvasImage, 0, 0, 800, 800, null);
 				g.setColor(Color.WHITE);
-				g.drawString("Iterations: " + w.getIterations(), 10, 30); 
-				g.drawString("Rule: " + w.getAnt().getRule().string() + " ("+Long.toUnsignedString(w.getAnt().getRule().getRule())+")", 10, 46);
+				g.drawString("Iterations: " + w.getIterations(), 10, h+=15); 
+				g.drawString("Rule: " + a.getRule().string() + " ("+Long.toUnsignedString(a.getRule().getRule())+")", 10, h+=15);
+//				if(a instanceof Ant) {
+//					g.drawString("Regression: " + ((Ant)a).r2x + ", " + ((Ant)a).r2y + ", " + ((Ant)a).rvx + ", " + ((Ant)a).rvy, 10, h+=15);
+//					g.drawString("Proportion: " + w.getLevel().prop, 10, h+=15);
+//				}
 			}
 
 			AbstractAnt ant = w.getAnt();
 
 			if(ant.findingPeriod()) {
 				g.setColor(Color.red);
-				g.drawString("Finding period... " + ant.getPeriod(), 10, 62);
+				g.drawString("Finding period... " + ant.getPeriod(), 10, h+=15);
 			} else if(ant.periodFound()) {
 				g.setColor(Color.WHITE);
 				g.drawString("Period: " + ant.getPeriod(), 10, 62);
@@ -165,57 +171,21 @@ public class Window {
 		menu.add(server);
 
 		canvas = new AntCanvas();
-//		c = new Canvas();
-//		f.add(c, BorderLayout.CENTER);
 		
 		JTextArea log = new JTextArea(10,60);
-		JScrollPane scroll = new JScrollPane(log);
-		scroll.setAutoscrolls(true);
+		JScrollPane scrollpane = new JScrollPane(log);
+		scrollpane.setAutoscrolls(true);
 		((DefaultCaret)log.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 		log.setEditable(false);
 
 		Client.LOG.setUseParentHandlers(false);		
 		Client.LOG.addHandler(new TextAreaHandler(new TextAreaOutputStream(log)));
 		
-		f.add(scroll,BorderLayout.WEST);
+		f.add(scrollpane,BorderLayout.WEST);
 		f.add(canvas, BorderLayout.CENTER);
 		f.add(menu, BorderLayout.NORTH);
 		f.setVisible(true);
 		f.pack();
 		
 	}
-
-//	public void run() {
-//		c.createBufferStrategy(3);
-//
-//		while(running) {
-//			render();
-//			try {
-//				Thread.sleep(100);
-//			} catch (InterruptedException e) {
-//				e.printStackTrace();
-//			}
-//		}
-//	}
-
-//	public void render() {
-//		Graphics g = c.getBufferStrategy().getDrawGraphics();
-//		Level.render(pixels, Settings.canvasSize, canvasImage.getWidth(), canvasImage.getHeight(), Settings.followAnt);
-//		
-//		g.drawImage(canvasImage, 0, 0, 800, 800, null);
-//		g.setColor(Color.WHITE);
-//		g.drawString("Iterations: " + Simulation.iterations, 10, 30); 
-//		g.drawString("Rule: " + Rule.string(Simulation.rule) + " ("+Simulation.rule+")", 10, 46);
-//		
-//		if(Ant.saveState) {
-//			g.setColor(Color.red);
-//			g.drawString("Finding period... " + Ant.minHighwayPeriod, 10, 62);
-//		} else if(Ant.PERIODFOUND) {
-//			g.setColor(Color.WHITE);
-//			g.drawString("Period: " + Ant.minHighwayPeriod, 10, 62);
-//		}
-//		
-//		g.dispose();
-//		getBufferStrategy().show();
-//	}
 }

@@ -1,13 +1,12 @@
 package com.camoga.ant;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 import javax.imageio.ImageIO;
 
@@ -53,7 +52,7 @@ public class Worker {
 
 	public void run() {
 		long[] p;
-		long time = System.currentTimeMillis();
+		long time;
 		while((p = Client.getRule(type)) != null && !kill) {
 			long rule = p[0];
 			long iterations = p[1];
@@ -62,11 +61,11 @@ public class Worker {
 			ant.init(rule, iterations);
 			this.iterations = 0;
 			
-			time = System.currentTimeMillis();
+			time = System.nanoTime();
 			long[] result = runRule(rule,iterations);
 			Client.storeRules(type,result);
 			
-			float seconds = (-time + (time = System.currentTimeMillis()))/1000f;
+			float seconds = (float) ((-time + (time = System.nanoTime()))/1e9);
 			Client.LOG.info(Long.toUnsignedString(rule) + "\t" + ant.getRule().string() + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s\t" + (result[1] > 1 ? result[1]:result[1]==1 ? "?":""));
 		}
 		Client.LOG.warning("Worker " + workerid + " has stopped");
@@ -79,11 +78,9 @@ public class Worker {
 		boolean extended = false;
 		while(!ant.periodFound() && (maxiterations == -1 || iterations < max)) {
 			iterations += ant.move();
-//			if(Settings.deleteOldChunks) {
-//				 TODO write to highway file before deleting
-//				getLevel().chunks.entrySet().removeIf(e -> iterations - e.getValue().lastVisit >= 1000000000);
-
-//			}
+			if(level.deleteOldChunks) {
+				getLevel().chunks.entrySet().removeIf(e -> iterations - e.getValue().lastVisit > 400000000);
+			}
 			
 //			if(Settings.autosave && System.currentTimeMillis()-autosavetimer > 900000) { // Autosave every 15 mins
 //				ant.saveState(ant.getRule()+".state");
@@ -101,24 +98,6 @@ public class Worker {
 		long period = ant.periodFound() ? ant.getPeriod():(ant.findingPeriod() ? 1:0);
 		
 		return new long[] {rule,period,iterations};
-	}
-	
-	protected void saveBinHighway(File file) {
-		byte[] pixels = new byte[Settings.highwaySizew*Settings.highwaySizeh]; //TODO Use mappedbytebuffer for >= 2GB files  or  calculate the highway size on the fly
-		
-		try {
-//			MyMappedByteBuffer mbb = new MyMappedByteBuffer(file);
-//			mbb.put(0, ByteBuffer.allocate(8).putInt(Settings.highwaySizew).putInt(Settings.highwaySizeh).array());
-//			System.out.println();
-//			Level.renderHighway(mbb, Settings.canvasSize, Settings.highwaySizew, Settings.highwaySizeh, Settings.followAnt);
-			level.renderHighway(pixels, Settings.canvasSize, Settings.highwaySizew, Settings.highwaySizeh, Settings.followAnt);
-			FileOutputStream baos = new FileOutputStream(file);
-			baos.write(ByteBuffer.allocate(8).putInt(Settings.highwaySizew).putInt(Settings.highwaySizeh).array());
-			baos.write(pixels);
-			baos.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	protected void saveImage(File file, boolean info) {
