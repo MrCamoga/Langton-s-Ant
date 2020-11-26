@@ -1,7 +1,6 @@
 package com.camoga.ant;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
@@ -66,7 +65,7 @@ public class Worker {
 			Client.storeRules(type,result);
 			
 			float seconds = (float) ((-time + (time = System.nanoTime()))/1e9);
-			Client.LOG.info(Long.toUnsignedString(rule) + "\t" + ant.getRule().string() + "\t " + this.iterations/seconds + " it/s\t" + seconds+ "s\t" + (result[1] > 1 ? result[1]:result[1]==1 ? "?":""));
+			Client.LOG.info(String.format("%s\t%s\t%s it/s\t%s s\t%s", Long.toUnsignedString(rule), ant.getRule().string(), this.iterations/seconds, seconds, (result[1] > 1 ? (result[1] + " " + result[3]+"×"+result[4]):result[1]==1 ? "?":"")));
 		}
 		Client.LOG.warning("Worker " + workerid + " has stopped");
 		running = false;
@@ -96,8 +95,13 @@ public class Worker {
 		}
 		
 		long period = ant.periodFound() ? ant.getPeriod():(ant.findingPeriod() ? 1:0);
-		
-		return new long[] {rule,period,iterations};
+		if(period <= 1) return new long[] {rule,period,iterations,0,0};
+		long dx = Math.abs(ant.xend-ant.xstart), dy = Math.abs(ant.yend-ant.ystart);
+		if(dx < dy) {
+			dy = dx;
+			dx = Math.abs(ant.yend-ant.ystart);
+		}
+		return new long[] {rule,period,iterations,dx,dy};
 	}
 	
 	protected void saveImage(File file, boolean info) {

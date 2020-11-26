@@ -108,6 +108,7 @@ public class Client {
 
 		try {
 			os.writeByte(PacketType.AUTH.getId());
+			os.writeLong(0x1ddf45c8f51ddb88L);
 			os.writeByte(hash.length());
 			os.write(hash.getBytes());
 			os.writeByte(username.length());
@@ -117,7 +118,7 @@ public class Client {
 		}
 	}
 	
-	private synchronized static void getAssigment(int type) {
+	private synchronized static void getAssignment(int type) {
 		if(!logged) return;
 		if(WorkerManager.size(type) == 0) return;
 		if(System.currentTimeMillis()-lastAssignTime[type] < 15000) return;
@@ -137,24 +138,25 @@ public class Client {
 		try {
 			if(storedrules[0].size() > 1) {
 				os.write(PacketType.SENDRESULTS.getId());
-				os.writeInt(storedrules[0].size()/24);
+				os.writeInt(storedrules[0].size()/40);
 				os.write(storedrules[0].toByteArray());
 				storedrules[0].reset();
 				datasent = true;
 			}
-			if(storedrules[1].size() > 1) {				
+			if(storedrules[1].size() > 1) {
 				os.write(PacketType.SENDHEXRESULTS.getId());
-				os.writeInt(storedrules[1].size()/24);
+				os.writeInt(storedrules[1].size()/40);
 				os.write(storedrules[1].toByteArray());
 				storedrules[1].reset();
 				datasent = true;
 			}
-			if(datasent) LOG.info("Data sent to server");
+			if(datasent) {
+				LOG.info("Data sent to server");
+				lastResultsTime = System.currentTimeMillis();
+			}
 		} catch(IOException e) {
 			LOG.warning("Could not send rules to server");
 		}
-		
-		lastResultsTime = System.currentTimeMillis();
 	}
 	
 	private void run() {	
@@ -182,8 +184,8 @@ public class Client {
 							LOG.info("Logged in as " + username);
 							logged = true;
 							storeCredentials();
-							getAssigment(0);
-							getAssigment(1);
+							getAssignment(0);
+							getAssignment(1);
 						} else if(result == 1) {
 							Client.username = null;
 							Client.password = null;
@@ -240,7 +242,7 @@ public class Client {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		host = "langtonsant.sytes.net";
+		host = "langtonsantproject.sytes.net";
 		boolean gui = !GraphicsEnvironment.isHeadless();
 		boolean nolog = false;
 		int normalworkers = 0;
@@ -282,13 +284,12 @@ public class Client {
 		if(normalworkers == 0 && hexworkers == 0) normalworkers = 1;
 		client = new Client(normalworkers,hexworkers,nolog);
 		if(gui)	new Window();
-
 	}
 	
 	//TODO synchronized removeFirst
 	public static long[] getRules(int type, int size) {
 		if(assignments[type].size() < 2*size) {
-			getAssigment(type);
+			getAssignment(type);
 			return null;
 		}
 		long[] rules = new long[size*2];
@@ -300,7 +301,7 @@ public class Client {
 	
 	public synchronized static long[] getRule(int type) {
 		if(assignments[type].size() < 2*WorkerManager.size()*ASSIGN_SIZE) {
-			getAssigment(type);
+			getAssignment(type);
 			if(assignments[type].size() == 0) return null;
 		}
 		long[] p = new long[] {assignments[type].removeFirst(), assignments[type].removeFirst()};
@@ -353,6 +354,6 @@ public class Client {
 			Client.properties.store(new FileOutputStream("langton.properties"), null);
 		} catch (IOException e) {
 			e.printStackTrace();
-		}		
+		}
 	}
 }

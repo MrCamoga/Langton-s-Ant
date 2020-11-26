@@ -89,6 +89,8 @@ public class Ant extends AbstractAnt {
 				if(states[repeatLength]!=s) {
 					repeatLength = 0;
 					minHighwayPeriod = stateindex;
+					xend = getX();
+					yend = getY();
 				} else {
 					repeatLength++;
 					if(repeatLength == states.length || repeatLength > Settings.repeatcheck*minHighwayPeriod) {

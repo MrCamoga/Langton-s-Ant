@@ -44,10 +44,10 @@ This way we make sure that no rule is tested multiple times
 - [ ] Render hexagonal grid
 - [ ] Parallel computing on GPU (doesn't seem possible)
 - [ ] Compute approximate period of highways on the fly
-- [ ] Algorithm to differentiate triangles/squares from highways
-- [ ] Store size of highways (displacement of the ant each period, e.g. the displacement of the original ant is 2×2). This could be useful to distinguish highways with the same period but different structure
+- [ ] Algorithm to differentiate triangles/squares from highways:
+- [x] Store size of highways (displacement of the ant each period, e.g. the displacement of the original ant is 2×2). This could be useful to distinguish highways with the same period but different structure
 
-#### Top highways with longest period
+## Top highways with longest period
 
 |Rule Number|Period|Rule String|
 |:-:|-:|:-|  
@@ -73,7 +73,7 @@ This way we make sure that no rule is tested multiple times
 |3477339851           	 |3289325504      	 |RRLRLLRRLRRRRRRRRRLLLLRLRRRRLLRR                                |
                                  
 
-#### Biggest highways with unknown period
+### Biggest highways with unknown period
 | Tested to # iters	|	Rule String					|	Rule number		|	Highway size	|	Estimated period	|	Real period		|	Rel. Error	|
 |:-:|:-|:-:|:-:|:-:|:-:|:-:|
 |	4.7e11			|	LLRLRRRLRRLLLRRLLLLLLRLLRLRR|	220226420   	|	> 2^500		??	|	3e154				|					|				|
@@ -85,6 +85,7 @@ This way we make sure that no rule is tested multiple times
 |	7.6e11   		|	LLRLRRLLRLLLLLLLLLLRLRLR 	| 	11010356		| 	>= 146880		|						|					|				|
 |	1.4e12			|	LLRLRRLLRLLLLLLLLRRRLLRLR	|	21889332		|	>= 1573560		|						|					|				|
 |	1.5e10			|	RRLRLLRRLRRRRRRRRRLRRLRLRR	|	56360651		|	>= 2364582528	|						|					|				|
+|					|								|	15004911		|					|						|					|				|
 |					|								|	96534219		|					|						|					|				|
 |					|								|	5470519604		|					|						|					|				|
 |					|								|	10369105611		|					|						|					|				|
@@ -99,7 +100,7 @@ This way we make sure that no rule is tested multiple times
 |					|	RRLRLLRRLRRRRRRRRRLRLLLLLR	|	34340555   		|	478474920		|	3406262955480 		|	3409034558708	|	0.081%		|
 |					|	RRLRLLRRLRRRRRRRRRLLLLRLRR	|	54787787		|	777109320		|	6524244609340		|	6518789812888	|	0.083%		|
 
-#### Some functions that generate lots of highways
+### Some functions that generate lots of highways
 
 |functions| longest highway | longest highway period | % form highways | info |
 |:-:|:-:|:-:|:-:|:-:|

@@ -27,6 +27,7 @@ public abstract class AbstractAnt {
 	protected boolean saveState = false;
 	protected int repeatLength = 0;
 	protected long stateindex = 1;
+	public long xstart, ystart, xend, yend;
 	
 	protected long minHighwayPeriod = 0;  // This is the final period length
 	protected boolean PERIODFOUND = false;
@@ -57,8 +58,16 @@ public abstract class AbstractAnt {
 	}
 	
 	public long getPeriod() {return minHighwayPeriod;}
-	public int getX() {return x|(xc<<Settings.cPOW);}
-	public int getY() {return y|(yc<<Settings.cPOW);}
+	public int getX() {
+		if(x < 0) return Settings.cSIZEm|((xc-1)<<Settings.cPOW);
+		if(x >= Settings.cSIZE) return (xc+1)<<Settings.cPOW;
+		return x|(xc<<Settings.cPOW);
+	}
+	public int getY() {
+		if(y < 0) return Settings.cSIZEm|((yc-1)<<Settings.cPOW);
+		if(y >= Settings.cSIZE) return (yc+1)<<Settings.cPOW;
+		return y|(yc<<Settings.cPOW);
+	}
 	public int getXC() {return xc;}
 	public int getYC() {return yc;}
 	public AbstractRule getRule() {return rule;}
@@ -66,8 +75,12 @@ public abstract class AbstractAnt {
 	public boolean findingPeriod() {return saveState;}
 	
 	public boolean periodFound() {return PERIODFOUND;}
-
-	public void setFindingPeriod(boolean b) {saveState = b;}
+	
+	public void setFindingPeriod(boolean b) {
+		saveState = b;
+		xstart = getX();
+		ystart = getY();
+	}
 	
 	public void saveState(String file) {
 		try {
@@ -100,5 +113,4 @@ public abstract class AbstractAnt {
 			e.printStackTrace();
 		}
 	}
-	
 }
