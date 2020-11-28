@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 
@@ -31,12 +32,11 @@ public class Worker {
 	
 	public Worker(int ID, int type) {
 		this.workerid = ID;
+		this.type = type;
 		if(type==0) {
 			ant = new Ant(this);
-			this.type = 0;
 		} else if(type==1) {
 			ant = new HexAnt(this);
-			this.type = 1;
 		} else throw new RuntimeException();
 		level = new Level(this);
 	}
@@ -93,15 +93,25 @@ public class Worker {
 				getAnt().setFindingPeriod(true);
 			}
 		}
-		
-		long period = ant.periodFound() ? ant.getPeriod():(ant.findingPeriod() ? 1:0);
-		if(period <= 1) return new long[] {rule,period,iterations,0,0};
-		long dx = Math.abs(ant.xend-ant.xstart), dy = Math.abs(ant.yend-ant.ystart);
-		if(dx < dy) {
-			dy = dx;
-			dx = Math.abs(ant.yend-ant.ystart);
+		if(type == 0) {
+			long period = ant.periodFound() ? ant.getPeriod():(ant.findingPeriod() ? 1:0);
+			if(period <= 1) return new long[] {rule,period,iterations,0,0};
+			long dx = Math.abs(ant.xend-ant.xstart), dy = Math.abs(ant.yend-ant.ystart);
+			if(dx < dy) {
+				dy = dx;
+				dx = Math.abs(ant.yend-ant.ystart);
+			}
+			return new long[] {rule,period,iterations,ant.xend-ant.xstart,ant.yend-ant.ystart};			
+		} else if(type == 1) {
+			if(ant.findingPeriod()) return new long[] {rule,0,iterations,1,0};
+			if(!ant.periodFound()) return new long[] {rule,0,iterations,0,0};
+			// Find the shortest path to dx,dy. We covert to cube coordinates and pick the ones with the same sign
+			long[] coordinates = {ant.xend-ant.xstart,ant.yend-ant.ystart,0}; coordinates[2] = -coordinates[1] - coordinates[0];
+			Arrays.sort(coordinates);
+			if(coordinates[1] >= 0) return new long[] {rule,ant.getPeriod(),iterations,coordinates[2],coordinates[1]};
+			return new long[] {rule,ant.getPeriod(),iterations,-coordinates[0],-coordinates[1]};
 		}
-		return new long[] {rule,period,iterations,dx,dy};
+		return null;
 	}
 	
 	protected void saveImage(File file, boolean info) {

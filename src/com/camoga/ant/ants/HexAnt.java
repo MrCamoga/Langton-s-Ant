@@ -5,7 +5,7 @@ import com.camoga.ant.Worker;
 
 public class HexAnt extends AbstractAnt {
 
-	static final int[] directionx = new int[] {-1,0,1,1,0,-1};
+	static final int[] directionx = new int[] {0,1,1,0,-1,-1};
 	static final int[] directiony = new int[] {-1,-1,0,1,1,0};
 	
 	public HexAnt(Worker worker) {
@@ -23,10 +23,10 @@ public class HexAnt extends AbstractAnt {
 			
 			if(x > Settings.cSIZEm || y > Settings.cSIZEm || x < 0 || y < 0) {
 				xc += x >> Settings.cPOW;
-				yc += y >> Settings.cPOW;
-				chunk = worker.getLevel().getChunk(xc, yc);
 				x &= Settings.cSIZEm;
+				yc += y >> Settings.cPOW;
 				y &= Settings.cSIZEm;
+				chunk = worker.getLevel().getChunk(xc, yc);
 			}
 			
 			int index = x|(y<<Settings.cPOW);
@@ -44,6 +44,8 @@ public class HexAnt extends AbstractAnt {
 				if(states[repeatLength]!=s1) {
 					repeatLength = 0;
 					minHighwayPeriod = stateindex;
+					xend = getX();
+					yend = getY();
 				} else {
 					repeatLength++;
 					if(repeatLength == states.length || repeatLength > Settings.repeatcheck*minHighwayPeriod) {

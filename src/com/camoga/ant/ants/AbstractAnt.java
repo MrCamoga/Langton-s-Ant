@@ -46,7 +46,7 @@ public abstract class AbstractAnt {
 		y = 0;
 		xc = 0;
 		yc = 0;		
-		dir = 0;
+		dir = 5;
 		state = 0;
 		saveState = false;
 		repeatLength = 1;
@@ -59,14 +59,10 @@ public abstract class AbstractAnt {
 	
 	public long getPeriod() {return minHighwayPeriod;}
 	public int getX() {
-		if(x < 0) return Settings.cSIZEm|((xc-1)<<Settings.cPOW);
-		if(x >= Settings.cSIZE) return (xc+1)<<Settings.cPOW;
-		return x|(xc<<Settings.cPOW);
+		return x + xc*Settings.cSIZE;
 	}
 	public int getY() {
-		if(y < 0) return Settings.cSIZEm|((yc-1)<<Settings.cPOW);
-		if(y >= Settings.cSIZE) return (yc+1)<<Settings.cPOW;
-		return y|(yc<<Settings.cPOW);
+		return y + yc*Settings.cSIZE;
 	}
 	public int getXC() {return xc;}
 	public int getYC() {return yc;}
