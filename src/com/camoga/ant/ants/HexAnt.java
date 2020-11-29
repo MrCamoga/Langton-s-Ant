@@ -13,6 +13,11 @@ public class HexAnt extends AbstractAnt {
 		rule = new HexRule();
 	}
 	
+	public void init(long rule, long iterations) {
+		worker.getLevel().init(2);
+		super.init(rule, iterations);
+	}
+	
 	/**
 	 * 
 	 * @return true if ant forms a highway

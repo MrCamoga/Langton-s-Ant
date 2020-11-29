@@ -19,11 +19,12 @@ public class Level {
 	public MultiKeyMap<Integer, Chunk> chunks = new MultiKeyMap<Integer, Chunk>();
 	
 	public boolean deleteOldChunks = false;
+	protected int chunkSize;
 	
 	public class Chunk implements Serializable {		
 		public long lastVisit;
 		
-		public byte[] cells = new byte[cSIZE*cSIZE];
+		public byte[] cells = new byte[chunkSize];
 		
 		public Chunk() {
 			lastVisit = worker.getIterations();
@@ -36,11 +37,11 @@ public class Level {
 		this.worker = worker;
 	}
 	
-	public void init() {
+	public void init(int dimension) {
 		chunks.clear();
-		chunks.put(0,0,new Chunk());
 		deleteOldChunks = false;
 		maxChunk = 1;
+		chunkSize = 1<<(Settings.cPOW*dimension);
 	}
 	
 	int maxChunk;
@@ -73,8 +74,42 @@ public class Level {
 		return result;
 	}
 	
+	/**
+	 * 
+	 * @param xc x coord of chunk
+	 * @param yc y coord of chunk
+	 * @param zc z coord of chunk
+	 * @return
+	 */
+	public Chunk getChunk(int xc, int yc, int zc) {
+		Chunk result = chunks.get(xc,yc,zc);
+		if(result != null) {
+			result.lastVisit = worker.getIterations();
+			return result;
+		}
+
+		result = new Chunk();
+		chunks.put(xc,yc,zc,result);
+
+		//Farthest chunk ant has traveled
+		int max = Math.max(Math.max(Math.abs(xc), Math.abs(yc)), Math.abs(zc));
+		if(max > maxChunk) maxChunk = max;
+
+		if(!worker.getAnt().findingPeriod() && !worker.getAnt().periodFound() && maxChunk > Settings.chunkCheck) {
+			if(chunks.size()/(double)(maxChunk*maxChunk*maxChunk) < 0.20) { // Proportion of chunks generated over size of square that bounds all chunks. If prop -> 0 ant forms a highway (prop might go near 0 if ant forms a thin triangle)
+				worker.getAnt().setFindingPeriod(true);
+				deleteOldChunks = true;				
+			}
+		}
+		return result;
+	}
+	
 	public Chunk getChunk2(int xc, int yc) {
 		return chunks.get(xc,yc);
+	}
+	
+	public Chunk getChunk2(int xc, int yc, int zc) {
+		return chunks.get(xc,yc,zc);
 	}
 
 	//TODO improve render

@@ -4,6 +4,7 @@ public abstract class AbstractRule {
 	
 	protected long rule;
 	public int[] turn;
+	public int[] letter;
 	protected int size;
 	protected int[] colors;
 	

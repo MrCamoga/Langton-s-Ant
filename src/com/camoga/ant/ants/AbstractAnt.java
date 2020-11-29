@@ -20,14 +20,14 @@ public abstract class AbstractAnt {
 	protected int state = 0;
 	
 	protected int dir;
-	protected int xc,yc;
-	protected int x, y;
+	protected int xc,yc,zc;
+	protected int x,y,z;
 	
 	protected byte[] states;
 	protected boolean saveState = false;
 	protected int repeatLength = 0;
 	protected long stateindex = 1;
-	public long xstart, ystart, xend, yend;
+	public long xstart, ystart, zstart, xend, yend, zend;
 	
 	protected long minHighwayPeriod = 0;  // This is the final period length
 	protected boolean PERIODFOUND = false;
@@ -44,8 +44,10 @@ public abstract class AbstractAnt {
 		this.rule.createRule(rule);
 		x = 0;
 		y = 0;
+		z = 0;
 		xc = 0;
-		yc = 0;		
+		yc = 0;	
+		zc = 0;
 		dir = 5;
 		state = 0;
 		saveState = false;
@@ -54,18 +56,16 @@ public abstract class AbstractAnt {
 		stateindex = 0;
 		minHighwayPeriod = 0;
 		PERIODFOUND = false;
-		chunk = worker.getLevel().chunks.get(0,0);
+		chunk = worker.getLevel().getChunk(0, 0);
 	}
 	
 	public long getPeriod() {return minHighwayPeriod;}
-	public int getX() {
-		return x + xc*Settings.cSIZE;
-	}
-	public int getY() {
-		return y + yc*Settings.cSIZE;
-	}
+	public long getX() { return x + xc*Settings.cSIZE; }
+	public long getY() { return y + yc*Settings.cSIZE; }
+	public long getZ() { return z + zc*Settings.cSIZE;  }
 	public int getXC() {return xc;}
 	public int getYC() {return yc;}
+	public int getZC() {return zc;}
 	public AbstractRule getRule() {return rule;}
 	
 	public boolean findingPeriod() {return saveState;}
@@ -76,6 +76,7 @@ public abstract class AbstractAnt {
 		saveState = b;
 		xstart = getX();
 		ystart = getY();
+		zstart = getZ();
 	}
 	
 	public void saveState(String file) {

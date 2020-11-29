@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+import com.camoga.ant.Worker;
 import com.camoga.ant.WorkerManager;
 import com.camoga.ant.gui.Window;
 
@@ -47,12 +48,12 @@ public class Client {
 	public static boolean logged = false;
 	public static String username, password;
 	
-	public static ArrayDeque<Long>[] assignments = new ArrayDeque[2];
-	public static ByteArrayOutputStream[] storedrules = new ByteArrayOutputStream[2];
+	public static ArrayDeque<Long>[] assignments = new ArrayDeque[3];
+	public static ByteArrayOutputStream[] storedrules = new ByteArrayOutputStream[3];
 	
 	public static Client client;
 	
-	public Client(int normalworkers, int hexworkers, boolean nolog) throws IOException {
+	public Client(int normalworkers, int hexworkers, int r3workers, boolean nolog) throws IOException {
 		if(nolog) {
 			LOG.setLevel(java.util.logging.Level.OFF);
 		} else {
@@ -72,10 +73,12 @@ public class Client {
 
 		assignments[0] = new ArrayDeque<Long>();
 		assignments[1] = new ArrayDeque<Long>();
+		assignments[2] = new ArrayDeque<Long>();
 		storedrules[0] = new ByteArrayOutputStream();
 		storedrules[1] = new ByteArrayOutputStream();
-		WorkerManager.setWorkers(normalworkers, hexworkers);
-		
+		storedrules[2] = new ByteArrayOutputStream();
+		WorkerManager.setWorkers(normalworkers, hexworkers, r3workers);
+		WorkerManager.start();
 		//TODO
 //		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 //			//save rules that take too much time to compute (>1e10 iterations)
@@ -125,7 +128,9 @@ public class Client {
 		lastAssignTime[type] = System.currentTimeMillis();
 		try {
 			if(type == 0) os.write(PacketType.GETASSIGNMENT.getId());
-			else os.write(PacketType.GETHEXASSIGN.getId());
+			else if(type == 1) os.write(PacketType.GETHEXASSIGN.getId());
+			else if(type == 2) os.write(PacketType.GET3DRESULTS.getId());
+			else throw new RuntimeException();
 			os.writeInt(WorkerManager.size(type)*ASSIGN_SIZE);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -148,6 +153,13 @@ public class Client {
 				os.writeInt(storedrules[1].size()/40);
 				os.write(storedrules[1].toByteArray());
 				storedrules[1].reset();
+				datasent = true;
+			}
+			if(storedrules[2].size() > 1) {
+				os.write(PacketType.SEND3DRESULTS.getId());
+				os.writeInt(storedrules[2].size()/48);
+				os.write(storedrules[2].toByteArray());
+				storedrules[2].reset();
 				datasent = true;
 			}
 			if(datasent) {
@@ -247,6 +259,7 @@ public class Client {
 		boolean nolog = false;
 		int normalworkers = 0;
 		int hexworkers = 0;
+		int r3workers = 0;
 		for(int i = 0; i < args.length; i++) {
 			String cmd = args[i];
 				switch(cmd) {
@@ -265,6 +278,9 @@ public class Client {
 				case "-wh":
 					hexworkers = Integer.parseInt(args[++i]);
 					break;
+				case "-w3":
+					r3workers = Integer.parseInt(args[++i]);
+					break;
 				case "-sd":
 					STOP_ON_DISCONNECT = true;
 					break;
@@ -281,8 +297,8 @@ public class Client {
 					throw new RuntimeException("Invalid parameters");
 				}
 		}
-		if(normalworkers == 0 && hexworkers == 0) normalworkers = 1;
-		client = new Client(normalworkers,hexworkers,nolog);
+		if(normalworkers == 0 && hexworkers == 0 && r3workers == 0) normalworkers = 1;
+		client = new Client(1,0,0,nolog);
 		if(gui)	new Window();
 	}
 	

@@ -14,6 +14,7 @@ public class Ant extends AbstractAnt {
 	}
 	
 	public void init(long rule, long iterations) {
+		worker.getLevel().init(2);
 		super.init(rule, iterations);
 //		rxt = 0;
 //		ryt = 0;
