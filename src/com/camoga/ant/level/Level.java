@@ -15,9 +15,10 @@ import com.camoga.ant.Worker;
 public class Level {
 	
 	public MultiKeyMap<Integer, Chunk> chunks = new MultiKeyMap<Integer, Chunk>();
-	
 	public boolean deleteOldChunks = false;
+	
 	private int chunkSize;
+	public int dimension;
 	public int cPOW;
 	public int cSIZE;
 	public int cSIZEm;
@@ -34,18 +35,19 @@ public class Level {
 	
 	private Worker worker;
 	
-	public Level(Worker worker) {
+	public Level(Worker worker, int dimension) {
 		this.worker = worker;
-	}
-	
-	public void init(int dimension) {
-		chunks.clear();
-		deleteOldChunks = false;
-		maxChunk = 1;
+		this.dimension = dimension;
 		cPOW = dimension == 2 ? 7:6;
 		cSIZE = 1<<cPOW;
 		cSIZEm = cSIZE-1;
 		chunkSize = 1<<(cPOW*dimension);
+	}
+	
+	public void init() {
+		chunks.clear();
+		deleteOldChunks = false;
+		maxChunk = 1;
 	}
 	
 	int maxChunk;

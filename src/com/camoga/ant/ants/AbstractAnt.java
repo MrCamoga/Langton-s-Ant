@@ -42,6 +42,7 @@ public abstract class AbstractAnt {
 		int stateslen = iterations == -1 ? 200000000:(int) Math.min(Math.max(5000000,iterations/(int)Settings.repeatcheck*2), 200000000);
 		if(states == null || states.length != stateslen) states = new byte[stateslen];
 		this.rule.createRule(rule);
+		worker.getLevel().init();
 		x = 0;
 		y = 0;
 		z = 0;
@@ -56,7 +57,7 @@ public abstract class AbstractAnt {
 		stateindex = 0;
 		minHighwayPeriod = 0;
 		PERIODFOUND = false;
-		chunk = worker.getLevel().getChunk(0, 0);
+		chunk = worker.getLevel().dimension == 2 ? worker.getLevel().getChunk(0, 0):worker.getLevel().getChunk(0, 0, 0);
 	}
 	
 	public long getPeriod() {return minHighwayPeriod;}
