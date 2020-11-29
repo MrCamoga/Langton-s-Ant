@@ -26,15 +26,15 @@ public class HexAnt extends AbstractAnt {
 		int iterations = 0;
 		for(; iterations < Settings.itpf; iterations++) {
 			
-			if(x > Settings.cSIZEm || y > Settings.cSIZEm || x < 0 || y < 0) {
-				xc += x >> Settings.cPOW;
-				x &= Settings.cSIZEm;
-				yc += y >> Settings.cPOW;
-				y &= Settings.cSIZEm;
+			if(x > worker.getLevel().cSIZEm || y > worker.getLevel().cSIZEm || x < 0 || y < 0) {
+				xc += x >> worker.getLevel().cPOW;
+				x &= worker.getLevel().cSIZEm;
+				yc += y >> worker.getLevel().cPOW;
+				y &= worker.getLevel().cSIZEm;
 				chunk = worker.getLevel().getChunk(xc, yc);
 			}
 			
-			int index = x|(y<<Settings.cPOW);
+			int index = x|(y<<worker.getLevel().cPOW);
 			state = chunk.cells[index];
 			dir += rule.turn[state];
 			if(dir > 5) dir -= 6;

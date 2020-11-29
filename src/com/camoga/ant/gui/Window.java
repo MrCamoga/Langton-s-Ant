@@ -27,6 +27,7 @@ import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
 import com.camoga.ant.WorkerManager;
 import com.camoga.ant.ants.AbstractAnt;
+import com.camoga.ant.ants.Ant;
 import com.camoga.ant.net.Client;
 
 public class Window {
@@ -103,7 +104,7 @@ public class Window {
 	}
 	
 	class AntCanvas extends Canvas {
-		BufferedImage canvasImage = new BufferedImage(Settings.cSIZE*Settings.canvasSize, Settings.cSIZE*Settings.canvasSize, BufferedImage.TYPE_INT_RGB);
+		BufferedImage canvasImage = new BufferedImage(1024, 1024, BufferedImage.TYPE_INT_RGB);
 		int[] pixels = ((DataBufferInt) canvasImage.getRaster().getDataBuffer()).getData();
 		
 		public AntCanvas() {
@@ -132,22 +133,22 @@ public class Window {
 				w.getLevel().render(pixels, Settings.canvasSize, canvasImage.getWidth(), canvasImage.getHeight(), a.findingPeriod());				
 				g.drawImage(canvasImage, 0, 0, 800, 800, null);
 				g.setColor(Color.WHITE);
-				g.drawString("Iterations: " + w.getIterations(), 10, h+=15); 
-				g.drawString("Rule: " + a.getRule().string() + " ("+Long.toUnsignedString(a.getRule().getRule())+")", 10, h+=15);
-//				if(a instanceof Ant) {
+				g.drawString(String.format("Iterations: %,d", w.getIterations()), 10, h+=15); 
+				g.drawString(String.format("Rule: %s (%s)", a.getRule().string(), Long.toUnsignedString(a.getRule().getRule())), 10, h+=15);
+				if(a instanceof Ant) {
 //					g.drawString("Regression: " + ((Ant)a).r2x + ", " + ((Ant)a).r2y + ", " + ((Ant)a).rvx + ", " + ((Ant)a).rvy, 10, h+=15);
 //					g.drawString("Proportion: " + w.getLevel().prop, 10, h+=15);
-//				}
+				}
 			}
 
 			AbstractAnt ant = w.getAnt();
 
 			if(ant.findingPeriod()) {
 				g.setColor(Color.red);
-				g.drawString("Finding period... " + ant.getPeriod(), 10, h+=15);
+				g.drawString(String.format("Finding period... %,d", ant.getPeriod()), 10, h+=15);
 			} else if(ant.periodFound()) {
 				g.setColor(Color.WHITE);
-				g.drawString("Period: " + ant.getPeriod(), 10, 62);
+				g.drawString(String.format("Period: %,d", ant.getPeriod()), 10, 62);
 			}
 
 			g.dispose();
@@ -161,12 +162,17 @@ public class Window {
 				ServerActionListener sa = new ServerActionListener();
 				JMenuItem connect = new JMenuItem("Connect to Server");
 				JMenuItem serversettings = new JMenuItem("Settings");
-
+				JMenuItem senddata = new JMenuItem("Send Data");
+				
 				connect.addActionListener(sa);
 				serversettings.addActionListener(sa);
+				senddata.addActionListener(sa);
 
 				server.add(connect);
 				server.add(serversettings);
+				server.add(senddata);
+				
+				
 				
 		menu.add(server);
 

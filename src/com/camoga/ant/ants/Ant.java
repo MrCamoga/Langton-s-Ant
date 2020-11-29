@@ -45,23 +45,23 @@ public class Ant extends AbstractAnt {
 		int iteration = 0;
 		for(; iteration < Settings.itpf; iteration++) {
 			changechunk: {
-				if(x > Settings.cSIZEm) {
+				if(x > worker.getLevel().cSIZEm) {
 					x = 0;
 					xc++;
 				} else if(x < 0) {
-					x = Settings.cSIZEm;
+					x = worker.getLevel().cSIZEm;
 					xc--;
-				} else if(y > Settings.cSIZEm) {
+				} else if(y > worker.getLevel().cSIZEm) {
 					y = 0;
 					yc++;
 				} else if(y < 0) {
-					y = Settings.cSIZEm;
+					y = worker.getLevel().cSIZEm;
 					yc--;
 				} else break changechunk;
 				chunk = worker.getLevel().getChunk(xc, yc);
 			}
 			
-			int index = x|(y<<Settings.cPOW);
+			int index = x|(y<<worker.getLevel().cPOW);
 			state = chunk.cells[index];
 			dir = (dir + rule.turn[state])&0b11;
 			if(++chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;

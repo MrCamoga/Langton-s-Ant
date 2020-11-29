@@ -1,7 +1,13 @@
 # Langton's Ant 
 Multicolor extension of Langton's Ant cellular automaton that finds highways and their periods
 
-It supports square and hexagonal grid, the square one supports right and left moves while the hexagonal one supports all six directions.
+It supports square and hexagonal grid and 3D
+
+Moves supported by each mode:
+
+- Square: R, L
+- Hexagonal: F, R, r, B, l, L
+- 3D: R, L, U, D
 
 More information on [Wikipedia](https://en.wikipedia.org/wiki/Langton%27s_ant#Extension_to_multiple_colors)
 
@@ -13,6 +19,7 @@ The sign up must be done using the gui. After that, you can run the program on c
 
 - **-w** *n*:    Runs *n* ants simultaneously on different threads (limited to the number of CPU threads)
 - **-wh** *n*:    Runs *n* hexagonal ants simultaneously on different threads (limited to the number of CPU threads)
+- **-w3** *n*:    Runs *n* 3D ants simultaneously on different threads (limited to the number of CPU threads)
 - **-u** *username* Login as *username*, you have to enter the password on the next line
 - **--nogui**:   No interface mode
 - **--nolog**:   No log mode

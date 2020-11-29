@@ -78,7 +78,7 @@ public class Client {
 		storedrules[1] = new ByteArrayOutputStream();
 		storedrules[2] = new ByteArrayOutputStream();
 		WorkerManager.setWorkers(normalworkers, hexworkers, r3workers);
-		WorkerManager.start();
+
 		//TODO
 //		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 //			//save rules that take too much time to compute (>1e10 iterations)
@@ -129,7 +129,7 @@ public class Client {
 		try {
 			if(type == 0) os.write(PacketType.GETASSIGNMENT.getId());
 			else if(type == 1) os.write(PacketType.GETHEXASSIGN.getId());
-			else if(type == 2) os.write(PacketType.GET3DRESULTS.getId());
+			else if(type == 2) os.write(PacketType.GET3DASSIGN.getId());
 			else throw new RuntimeException();
 			os.writeInt(WorkerManager.size(type)*ASSIGN_SIZE);
 		} catch (IOException e) {
@@ -222,6 +222,15 @@ public class Client {
 						LOG.info("New assignment of " + size/2 + " rules");
 						WorkerManager.start();
 						break;
+					case GET3DASSIGN:
+						size = is.readInt();
+						bb = ByteBuffer.wrap(is.readNBytes(size*8));
+						for(int i = 0; i < size; i++) {
+							assignments[1].add(bb.getLong());
+						}
+						LOG.info("New assignment of " + size/2 + " 3d rules");
+						WorkerManager.start();
+						break;
 					case REGISTER:
 						int ok = is.readByte();
 						if(ok==0) LOG.info("Account registered");
@@ -298,7 +307,7 @@ public class Client {
 				}
 		}
 		if(normalworkers == 0 && hexworkers == 0 && r3workers == 0) normalworkers = 1;
-		client = new Client(1,0,0,nolog);
+		client = new Client(normalworkers,hexworkers,r3workers,nolog);
 		if(gui)	new Window();
 	}
 	

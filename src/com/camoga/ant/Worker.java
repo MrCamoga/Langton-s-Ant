@@ -12,6 +12,7 @@ import javax.imageio.ImageIO;
 
 import com.camoga.ant.ants.AbstractAnt;
 import com.camoga.ant.ants.Ant;
+import com.camoga.ant.ants.Ant3D;
 import com.camoga.ant.ants.HexAnt;
 import com.camoga.ant.level.Level;
 import com.camoga.ant.net.Client;
@@ -37,6 +38,8 @@ public class Worker {
 			ant = new Ant(this);
 		} else if(type==1) {
 			ant = new HexAnt(this);
+		} else if(type==2) {
+			ant = new Ant3D(this);
 		} else throw new RuntimeException();
 		level = new Level(this);
 	}
@@ -56,16 +59,14 @@ public class Worker {
 			long rule = p[0];
 			long iterations = p[1];
 
-			level.init();
 			ant.init(rule, iterations);
 			this.iterations = 0;
 			
 			time = System.nanoTime();
 			long[] result = runRule(rule,iterations);
 			Client.storeRules(type,result);
-			
 			float seconds = (float) ((-time + (time = System.nanoTime()))/1e9);
-			Client.LOG.info(String.format("%s\t%s\t%s it/s\t%s s\t%s", Long.toUnsignedString(rule), ant.getRule().string(), this.iterations/seconds, seconds, (result[1] > 1 ? (result[1] + " " + result[3]+"×"+result[4]):result[1]==1 ? "?":"")));
+			Client.LOG.info(String.format("%s\t%s\t%s it/s\t%s s\t%s", Long.toUnsignedString(rule), ant.getRule().string(), this.iterations/seconds, seconds, (result[1] > 1 ? (result[1] + " " + Arrays.toString(Arrays.copyOfRange(result, 3, result.length))):result[1]==1 ? "?":"")));
 		}
 		Client.LOG.warning("Worker " + workerid + " has stopped");
 		running = false;
@@ -96,12 +97,9 @@ public class Worker {
 		if(type == 0) {
 			long period = ant.periodFound() ? ant.getPeriod():(ant.findingPeriod() ? 1:0);
 			if(period <= 1) return new long[] {rule,period,iterations,0,0};
-			long dx = Math.abs(ant.xend-ant.xstart), dy = Math.abs(ant.yend-ant.ystart);
-			if(dx < dy) {
-				dy = dx;
-				dx = Math.abs(ant.yend-ant.ystart);
-			}
-			return new long[] {rule,period,iterations,ant.xend-ant.xstart,ant.yend-ant.ystart};			
+			long[] d = {Math.abs(ant.xend-ant.xstart), Math.abs(ant.yend-ant.ystart)};
+			Arrays.sort(d);
+			return new long[] {rule,period,iterations,d[1],d[0]};			
 		} else if(type == 1) {
 			if(ant.findingPeriod()) return new long[] {rule,0,iterations,1,0};
 			if(!ant.periodFound()) return new long[] {rule,0,iterations,0,0};
@@ -110,6 +108,12 @@ public class Worker {
 			Arrays.sort(coordinates);
 			if(coordinates[1] >= 0) return new long[] {rule,ant.getPeriod(),iterations,coordinates[2],coordinates[1]};
 			return new long[] {rule,ant.getPeriod(),iterations,-coordinates[0],-coordinates[1]};
+		} else if(type == 2) {
+			long period = ant.periodFound() ? ant.getPeriod():(ant.findingPeriod() ? 1:0);
+			if(period <= 1) return new long[] {rule,period,iterations,0,0,0};
+			long[] d = {Math.abs(ant.xend-ant.xstart), Math.abs(ant.yend-ant.ystart), Math.abs(ant.zend-ant.zstart)};
+			Arrays.sort(d);
+			return new long[] {rule,period,iterations,d[2],d[1],d[0]};	
 		}
 		return null;
 	}
@@ -117,7 +121,7 @@ public class Worker {
 	protected void saveImage(File file, boolean info) {
 //		Simulation.saveBinHighway(new File(Simulation.rule+".bin"));
 //		if(0==0) return;
-		BufferedImage image = new BufferedImage(Settings.saveImageW, Settings.saveImageH, BufferedImage.TYPE_INT_RGB);
+		BufferedImage image = new BufferedImage(1024, 1024, BufferedImage.TYPE_INT_RGB);
 		level.render(((DataBufferInt)(image.getRaster().getDataBuffer())).getData(), Settings.canvasSize, image.getWidth(), image.getHeight(), true);
 		if(info) {
 			Graphics g = image.createGraphics();

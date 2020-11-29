@@ -48,7 +48,7 @@ public abstract class AbstractAnt {
 		xc = 0;
 		yc = 0;	
 		zc = 0;
-		dir = 5;
+		dir = 0;
 		state = 0;
 		saveState = false;
 		repeatLength = 1;
@@ -60,9 +60,9 @@ public abstract class AbstractAnt {
 	}
 	
 	public long getPeriod() {return minHighwayPeriod;}
-	public long getX() { return x + xc*Settings.cSIZE; }
-	public long getY() { return y + yc*Settings.cSIZE; }
-	public long getZ() { return z + zc*Settings.cSIZE;  }
+	public long getX() { return x + xc*worker.getLevel().cSIZE; }
+	public long getY() { return y + yc*worker.getLevel().cSIZE; }
+	public long getZ() { return z + zc*worker.getLevel().cSIZE;  }
 	public int getXC() {return xc;}
 	public int getYC() {return yc;}
 	public int getZC() {return zc;}
@@ -97,7 +97,7 @@ public abstract class AbstractAnt {
 				oos.writeLong(minHighwayPeriod);
 				oos.write(states);
 			}
-			oos.writeByte(Settings.cPOW);
+			oos.writeByte(worker.getLevel().cPOW);
 			oos.writeInt(worker.getLevel().chunks.size());
 			for(Entry<MultiKey<? extends Integer>, Chunk> c : worker.getLevel().chunks.entrySet()) {
 				MultiKey<? extends Integer> key = c.getKey();

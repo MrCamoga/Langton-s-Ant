@@ -1,7 +1,5 @@
 package com.camoga.ant.level;
 
-import static com.camoga.ant.Settings.cSIZE;
-
 import java.io.Serializable;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
@@ -19,7 +17,10 @@ public class Level {
 	public MultiKeyMap<Integer, Chunk> chunks = new MultiKeyMap<Integer, Chunk>();
 	
 	public boolean deleteOldChunks = false;
-	protected int chunkSize;
+	private int chunkSize;
+	public int cPOW;
+	public int cSIZE;
+	public int cSIZEm;
 	
 	public class Chunk implements Serializable {		
 		public long lastVisit;
@@ -41,7 +42,10 @@ public class Level {
 		chunks.clear();
 		deleteOldChunks = false;
 		maxChunk = 1;
-		chunkSize = 1<<(Settings.cPOW*dimension);
+		cPOW = dimension == 2 ? 7:6;
+		cSIZE = 1<<cPOW;
+		cSIZEm = cSIZE-1;
+		chunkSize = 1<<(cPOW*dimension);
 	}
 	
 	int maxChunk;
@@ -131,11 +135,11 @@ public class Level {
 
 //		if(worker.getType() == 0) {
 			for(int yc = 0; yc < chunks; yc++) {
-				int ycf = yc<<Settings.cPOW;
+				int ycf = yc<<cPOW;
 				for(int xc = 0; xc < chunks; xc++) {
 					Chunk c = getChunk2(xc-chunks/2+xa, yc-chunks/2+ya);
 					if(c == null) continue;
-					int xcf = xc<<Settings.cPOW;
+					int xcf = xc<<cPOW;
 					int i = 0;
 					for(int yo = 0; yo < cSIZE; yo++) {
 						int y = (yo|ycf)*width;
