@@ -87,6 +87,8 @@ public class Ant3D extends AbstractAnt {
 				if(stateindex < states.length) {
 					states[(int) stateindex++] = (byte) dir;
 					states[(int) stateindex++] = (byte) state;
+				} else {
+					stateindex+=2;
 				}
 				
 				if(states[repeatLength]!=(byte)dir || states[repeatLength+1]!=(byte)state) {

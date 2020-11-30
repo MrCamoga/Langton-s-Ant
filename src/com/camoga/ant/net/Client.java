@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-import com.camoga.ant.Worker;
 import com.camoga.ant.WorkerManager;
 import com.camoga.ant.gui.Window;
 
@@ -37,7 +36,7 @@ public class Client {
 	
 	static int ASSIGN_SIZE = 50;
 	static long lastResultsTime;
-	volatile static long[] lastAssignTime = new long[2];
+	volatile static long[] lastAssignTime = new long[3];
 	static long DELAY_BETWEEN_RESULTS = 120000;
 	static int RECONNECT_TIME = 60000;
 	static boolean STOP_ON_DISCONNECT;
@@ -198,6 +197,7 @@ public class Client {
 							storeCredentials();
 							getAssignment(0);
 							getAssignment(1);
+							getAssignment(2);
 						} else if(result == 1) {
 							Client.username = null;
 							Client.password = null;
@@ -226,7 +226,7 @@ public class Client {
 						size = is.readInt();
 						bb = ByteBuffer.wrap(is.readNBytes(size*8));
 						for(int i = 0; i < size; i++) {
-							assignments[1].add(bb.getLong());
+							assignments[2].add(bb.getLong());
 						}
 						LOG.info("New assignment of " + size/2 + " 3d rules");
 						WorkerManager.start();

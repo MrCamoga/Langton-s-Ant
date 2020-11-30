@@ -29,8 +29,4 @@ public class Rule extends AbstractRule {
 		}
 		return rule;
 	}
-	
-	public int getSize() {
-		return size;
-	}
 }

@@ -19,38 +19,18 @@ public class Rule3D extends AbstractRule {
 		
 		this.rule = rule;
 		this.size = 32-Long.numberOfLeadingZeros(rule)/2;
-		rule += 1<<(size*2);
+//		rule += 1<<(size*2);
 		colors = new int[size];
 		turn = new int[size];
 		letter = new int[size];
 		Random r = new Random();
-		for(int i = 0; rule != 1; i++) {
+		for(int i = 0; rule != 0; i++) {
 			letter[i] = (int) (rule&3);
 			turn[i] = rotations[letter[i]];
 			rule >>>= 2;
 			colors[i] = r.nextInt(0x1000000);
 		}
 		colors[0] = 0xff101010;
-		
-		
-//		this.rule = rule;
-////		rule += 1<<(size*2);
-//		colors = new int[32];
-//		turn = new int[32];
-//		letter = new int[size];
-//		
-//		letter[0] = (int) ((rule&1) * 2);
-//		rule >>>= 1;
-//		turn[0] = rotations[letter[0]];
-//		colors[0] = 0xff101010;
-//		
-//		Random r = new Random();
-//		for(size = 1; rule != 0; size++) {
-//			letter[size] = (int) (rule&3);
-//			turn[size] = rotations[letter[size]];
-//			rule >>>= 2;
-//			colors[size] = r.nextInt(0x1000000);
-//		}
 	}
 	
 	/**
@@ -63,9 +43,5 @@ public class Rule3D extends AbstractRule {
 			rule += letters[letter[i]];
 		}
 		return rule;
-	}
-	
-	public int getSize() {
-		return size;
 	}
 }
