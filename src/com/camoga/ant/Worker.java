@@ -64,6 +64,19 @@ public class Worker {
 			ant.init(rule, iterations);
 			this.iterations = 0;
 			
+			if(type==2) {
+				int[] letters = Arrays.copyOf(ant.getRule().letter, ant.getRule().letter.length);
+				if((letters[ant.getRule().getSize()-1]&1) == 0) continue;
+				Arrays.sort(letters);
+				int count = 1;
+				int current = letters[0];
+				for(int i = 0; i < letters.length; i++) {
+					if(letters[i] != current) count++;
+					current = letters[i];
+				}
+				if(count < 3) continue;				
+			}
+			
 			time = System.nanoTime();
 			long[] result = runRule(rule,iterations);
 			Client.storeRules(type,result);
@@ -81,9 +94,9 @@ public class Worker {
 		while(!ant.periodFound() && (maxiterations == -1 || iterations < max)) {
 			iterations += ant.move();
 			if(level.deleteOldChunks) {
-				getLevel().chunks.entrySet().removeIf(e -> iterations - e.getValue().lastVisit > 400000000);
+				getLevel().chunks.entrySet().removeIf(e -> iterations - e.getValue().lastVisit > 100000000);
 			}
-			
+//			System.out.println(getLevel().chunks.size()/Math.pow(getLevel().maxChunk, 2) + ", " + iterations);
 //			if(Settings.autosave && System.currentTimeMillis()-autosavetimer > 900000) { // Autosave every 15 mins
 //				ant.saveState(ant.getRule()+".state");
 //				System.out.println("Autosave");

@@ -38,7 +38,7 @@ public class Level {
 	public Level(Worker worker, int dimension) {
 		this.worker = worker;
 		this.dimension = dimension;
-		cPOW = dimension == 2 ? 7:6;
+		cPOW = dimension == 2 ? 7:5;
 		cSIZE = 1<<cPOW;
 		cSIZEm = cSIZE-1;
 		chunkSize = 1<<(cPOW*dimension);
@@ -50,7 +50,7 @@ public class Level {
 		maxChunk = 1;
 	}
 	
-	int maxChunk;
+	public int maxChunk;
 	/**
 	 * 
 	 * @param xc x coord of chunk
@@ -122,6 +122,7 @@ public class Level {
 	public void render(int[] pixels, int chunks, int width, int height, boolean followAnt) {
 		int xa = followAnt ? worker.getAnt().getXC():0;
 		int ya = followAnt ? worker.getAnt().getYC():0;
+		int za = followAnt ? worker.getAnt().getZC():0;
 		
 //		System.out.println(xa+","+ya);
 
@@ -135,7 +136,7 @@ public class Level {
 			pixels[i] = 0xff000000;
 		}
 
-//		if(worker.getType() == 0) {
+		if(worker.getType() <= 1) {
 			for(int yc = 0; yc < chunks; yc++) {
 				int ycf = yc<<cPOW;
 				for(int xc = 0; xc < chunks; xc++) {
@@ -154,7 +155,38 @@ public class Level {
 					}
 				}
 			}			
-//		} //HEXAGONAL GRID
+		} else if(worker.getType() == 2) {
+			for(int zc = 0; zc < chunks; zc++) {
+				int zcf = zc<<(cPOW*2);
+				for(int yc = 0; yc < chunks; yc++) {
+					int ycf = yc<<cPOW;
+					for(int xc = 0; xc < chunks; xc++) {
+						Chunk c = getChunk2(xc-chunks/2+xa, yc-chunks/2+ya, zc-chunks/2+za);
+						if(c == null) continue;
+						int xcf = xc<<cPOW;
+						int i = 0;
+						for(int yo = 0; yo < cSIZE; yo++) {
+							int y = (yo|ycf)*width;
+							for(int xo = 0; xo < cSIZE; xo++) {
+								int index = (xo|xcf) + y;
+								if(index >= pixels.length) {
+									i++;
+									continue;
+								}
+								for(int zo = 0; zo < c.cells.length; zo += 1 <<(cPOW*2)) {
+									int state = c.cells[zo|i];
+									if(state == 0) continue;
+									pixels[index] = colors[state%colors.length];
+								}
+								i++;
+							}
+						}							
+					}
+				}
+			}
+		}
+		
+		//HEXAGONAL GRID
 //		else if(worker.getType()==1) {
 //			Chunk c = getChunk2(0, 0);
 //			if(c == null) return;
