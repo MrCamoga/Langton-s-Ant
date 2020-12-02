@@ -111,11 +111,19 @@ public class Level {
 	}
 	
 	public Chunk getChunk2(int xc, int yc) {
-		return chunks.get(xc,yc);
+		try {
+			return chunks.get(xc,yc);			
+		} catch(NullPointerException e) {
+			return null;
+		}
 	}
 	
 	public Chunk getChunk2(int xc, int yc, int zc) {
-		return chunks.get(xc,yc,zc);
+		try {
+			return chunks.get(xc,yc,zc);			
+		} catch(NullPointerException e) {
+			return null;
+		}
 	}
 
 	//TODO improve render
