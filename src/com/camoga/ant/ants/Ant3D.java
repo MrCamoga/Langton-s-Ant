@@ -44,6 +44,8 @@ public class Ant3D extends AbstractAnt {
 	
 	public void init(long rule, long iterations) {
 		super.init(rule, iterations);
+		repeatLength = 2;
+		states[2] = -1;
 	}
 
 	public int move() {
