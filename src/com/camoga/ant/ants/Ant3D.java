@@ -104,12 +104,15 @@ public class Ant3D extends AbstractAnt {
 					if(repeatLength == states.length || repeatLength > Settings.repeatcheck*minHighwayPeriod) {
 						PERIODFOUND = true;
 						saveState = false;
-						minHighwayPeriod/=2;
 						break;
 					}
 				}
 			}
 		}
 		return iteration;
+	}
+	
+	public long getPeriod() {
+		return minHighwayPeriod/2;
 	}
 }
