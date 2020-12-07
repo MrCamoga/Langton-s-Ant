@@ -9,7 +9,7 @@ public class Ant extends AbstractAnt {
 	static final int[] directiony = new int[] {-1,0,1,0};
 	
 	public Ant(Worker worker) {
-		super(worker);
+		super(worker,2);
 		rule = new Rule();
 	}
 	
@@ -44,23 +44,23 @@ public class Ant extends AbstractAnt {
 		int iteration = 0;
 		for(; iteration < Settings.itpf; iteration++) {
 			changechunk: {
-				if(x > worker.getLevel().cSIZEm) {
+				if(x > cSIZEm) {
 					x = 0;
 					xc++;
 				} else if(x < 0) {
-					x = worker.getLevel().cSIZEm;
+					x = cSIZEm;
 					xc--;
-				} else if(y > worker.getLevel().cSIZEm) {
+				} else if(y > cSIZEm) {
 					y = 0;
 					yc++;
 				} else if(y < 0) {
-					y = worker.getLevel().cSIZEm;
+					y = cSIZEm;
 					yc--;
 				} else break changechunk;
 				chunk = worker.getLevel().getChunk(xc, yc);
 			}
 			
-			int index = x|(y<<worker.getLevel().cPOW);
+			int index = x|(y<<cPOW);
 			state = chunk.cells[index];
 			dir = (dir + rule.turn[state])&0b11;
 			if(++chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;

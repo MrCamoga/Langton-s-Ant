@@ -9,7 +9,7 @@ public class HexAnt extends AbstractAnt {
 	static final int[] directiony = new int[] {-1,-1,0,1,1,0};
 	
 	public HexAnt(Worker worker) {
-		super(worker);
+		super(worker,2);
 		rule = new HexRule();
 	}
 	
@@ -25,15 +25,15 @@ public class HexAnt extends AbstractAnt {
 		int iterations = 0;
 		for(; iterations < Settings.itpf; iterations++) {
 			
-			if(x > worker.getLevel().cSIZEm || y > worker.getLevel().cSIZEm || x < 0 || y < 0) {
-				xc += x >> worker.getLevel().cPOW;
-				x &= worker.getLevel().cSIZEm;
-				yc += y >> worker.getLevel().cPOW;
-				y &= worker.getLevel().cSIZEm;
+			if(x > cSIZEm || y > cSIZEm || x < 0 || y < 0) {
+				xc += x >> cPOW;
+				x &=cSIZEm;
+				yc += y >> cPOW;
+				y &= cSIZEm;
 				chunk = worker.getLevel().getChunk(xc, yc);
 			}
 			
-			int index = x|(y<<worker.getLevel().cPOW);
+			int index = x|(y<<cPOW);
 			state = chunk.cells[index];
 			dir += rule.turn[state];
 			if(dir > 5) dir -= 6;

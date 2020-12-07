@@ -17,11 +17,7 @@ public class Level {
 	public MultiKeyMap<Integer, Chunk> chunks = new MultiKeyMap<Integer, Chunk>();
 	public boolean deleteOldChunks = false;
 	
-	private int chunkSize;
-	public int dimension;
-	public int cPOW;
-	public int cSIZE;
-	public int cSIZEm;
+	public int chunkSize;
 	
 	public class Chunk implements Serializable {		
 		public long lastVisit;
@@ -35,13 +31,8 @@ public class Level {
 	
 	private Worker worker;
 	
-	public Level(Worker worker, int dimension) {
+	public Level(Worker worker) {
 		this.worker = worker;
-		this.dimension = dimension;
-		cPOW = dimension == 2 ? 7:5;
-		cSIZE = 1<<cPOW;
-		cSIZEm = cSIZE-1;
-		chunkSize = 1<<(cPOW*dimension);
 	}
 	
 	public void init() {
@@ -143,10 +134,13 @@ public class Level {
 		else for(int i = 0; i < pixels.length; i++) {
 			pixels[i] = 0xff000000;
 		}
+		
+		int cSIZE = worker.getAnt().cSIZE;
+		int cPOW = worker.getAnt().cPOW;
 
-		int xchunks = width/worker.getLevel().cSIZE;
-		int ychunks = height/worker.getLevel().cSIZE;
-		int zchunks = 1024/worker.getLevel().cSIZE;
+		int xchunks = width/cSIZE;
+		int ychunks = height/cSIZE;
+		int zchunks = 1024/cSIZE;
 
 		if(worker.getType() <= 1) {
 			for(int yc = 0; yc < ychunks; yc++) {
@@ -167,9 +161,9 @@ public class Level {
 					}
 				}
 			}			
-		} else if(worker.getType() == 2) {
+		} else if(worker.getType() == 2) { // z-axis projection
 			for(int zc = 0; zc < zchunks; zc++) {
-				int zcf = zc<<(cPOW*2);
+//				int zcf = zc<<(cPOW*2);
 				for(int yc = 0; yc < ychunks; yc++) {
 					int ycf = yc<<cPOW;
 					for(int xc = 0; xc < xchunks; xc++) {

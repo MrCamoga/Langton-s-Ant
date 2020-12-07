@@ -34,15 +34,13 @@ public class Worker {
 	public Worker(int ID, int type) {
 		this.workerid = ID;
 		this.type = type;
+		level = new Level(this);
 		if(type==0) {
 			ant = new Ant(this);
-			level = new Level(this,2);
 		} else if(type==1) {
 			ant = new HexAnt(this);
-			level = new Level(this,2);
 		} else if(type==2) {
 			ant = new Ant3D(this);
-			level = new Level(this,3);
 		} else throw new RuntimeException();
 	}
 	
@@ -103,7 +101,6 @@ public class Worker {
 //				autosavetimer = System.currentTimeMillis();
 //			}
 			
-			//Detect cyclic "highways"
 			if(type > 0 && !extended && getLevel().chunks.size() < 16 &&  maxiterations != -1 && iterations > maxiterations) {
 				extended = true;
 				max += 100000000;

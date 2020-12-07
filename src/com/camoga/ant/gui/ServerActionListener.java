@@ -3,13 +3,8 @@ package com.camoga.ant.gui;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.security.MessageDigest;
 import java.util.Arrays;
 
-import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -70,6 +65,9 @@ public class ServerActionListener implements ActionListener {
 			}
 			break;
 		case "Settings":
+			break;
+		case "Send Data":
+			Client.sendAssignmentResult();
 			break;
 		}
 	}

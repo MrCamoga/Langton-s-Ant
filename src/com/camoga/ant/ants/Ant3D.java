@@ -38,7 +38,7 @@ public class Ant3D extends AbstractAnt {
 	};
 	
 	public Ant3D(Worker worker) {
-		super(worker);
+		super(worker,2);
 		rule = new Rule3D();
 	}
 	
@@ -52,29 +52,29 @@ public class Ant3D extends AbstractAnt {
 		int iteration = 0;
 		for(; iteration < Settings.itpf; iteration++) {
 			changechunk: {
-				if(x > worker.getLevel().cSIZEm) {
+				if(x > cSIZEm) {
 					x = 0;
 					xc++;
 				} else if(x < 0) {
-					x = worker.getLevel().cSIZEm;
+					x = cSIZEm;
 					xc--;
-				} else if(y > worker.getLevel().cSIZEm) {
+				} else if(y > cSIZEm) {
 					y = 0;
 					yc++;
 				} else if(y < 0) {
-					y = worker.getLevel().cSIZEm;
+					y = cSIZEm;
 					yc--;
-				} else if(z > worker.getLevel().cSIZEm) {
+				} else if(z > cSIZEm) {
 					z = 0;
 					zc++;
 				} else if(z < 0) {
-					z = worker.getLevel().cSIZEm;
+					z = cSIZEm;
 					zc--;
 				} else break changechunk;
 				chunk = worker.getLevel().getChunk(xc, yc, zc);
 			}
 			
-			int index = (((z<<worker.getLevel().cPOW)|y)<<worker.getLevel().cPOW)|x;
+			int index = (((z<<cPOW)|y)<<cPOW)|x;
 			state = chunk.cells[index];
 
 			dir = transform[(rule.turn[state]<<5)|dir];

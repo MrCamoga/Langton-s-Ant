@@ -17,23 +17,35 @@ public abstract class AbstractAnt {
 	protected AbstractRule rule;
 	
 	protected Chunk chunk;
-	protected int state = 0;
+
+	// Space/chunk
+	public int dimension;
+	public int cPOW;
+	public int cSIZE;
+	public int cSIZEm;
 	
+	// Ant
 	protected int dir;
+	protected int state;
 	protected int xc,yc,zc;
 	protected int x,y,z;
 	
-	protected byte[] states;
+	// Highway
 	protected boolean saveState = false;
-	protected int repeatLength = 0;
-	protected long stateindex = 1;
+	protected byte[] states;
+	protected int repeatLength;
+	protected long stateindex;
 	public long xstart, ystart, zstart, xend, yend, zend;
-	
 	protected long minHighwayPeriod = 0;  // This is the final period length
 	protected boolean PERIODFOUND = false;
 	
-	public AbstractAnt(Worker worker) {
+	public AbstractAnt(Worker worker, int dimension) {
 		this.worker = worker;
+		this.dimension = dimension;
+		cPOW = dimension == 2 ? 7:5;
+		cSIZE = 1<<cPOW;
+		cSIZEm = cSIZE-1;
+		worker.getLevel().chunkSize = 1<<(cPOW*dimension);
 	}
 	
 	public abstract int move();
@@ -57,16 +69,20 @@ public abstract class AbstractAnt {
 		stateindex = 0;
 		minHighwayPeriod = 0;
 		PERIODFOUND = false;
-		chunk = worker.getLevel().dimension == 2 ? worker.getLevel().getChunk(0, 0):worker.getLevel().getChunk(0, 0, 0);
+		if(dimension == 2) {
+			chunk = worker.getLevel().getChunk(0, 0);
+		} else if(dimension == 3) {
+			worker.getLevel().getChunk(0, 0, 0);
+		} else throw new RuntimeException("Invalid dimension");
 	}
 	
-	public long getPeriod() {return minHighwayPeriod;}
-	public long getX() { return x + xc*worker.getLevel().cSIZE; }
-	public long getY() { return y + yc*worker.getLevel().cSIZE; }
-	public long getZ() { return z + zc*worker.getLevel().cSIZE;  }
-	public int getXC() {return xc;}
-	public int getYC() {return yc;}
-	public int getZC() {return zc;}
+	public long getPeriod() { return minHighwayPeriod; }
+	public long getX() { return x + xc*cSIZE; }
+	public long getY() { return y + yc*cSIZE; }
+	public long getZ() { return z + zc*cSIZE; }
+	public int getXC() { return xc; }
+	public int getYC() { return yc; }
+	public int getZC() { return zc; }
 	public AbstractRule getRule() {return rule;}
 	
 	public boolean findingPeriod() {return saveState;}
@@ -98,7 +114,7 @@ public abstract class AbstractAnt {
 				oos.writeLong(minHighwayPeriod);
 				oos.write(states);
 			}
-			oos.writeByte(worker.getLevel().cPOW);
+			oos.writeByte(cPOW);
 			oos.writeInt(worker.getLevel().chunks.size());
 			for(Entry<MultiKey<? extends Integer>, Chunk> c : worker.getLevel().chunks.entrySet()) {
 				MultiKey<? extends Integer> key = c.getKey();

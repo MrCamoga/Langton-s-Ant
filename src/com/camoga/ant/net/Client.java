@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 import com.camoga.ant.WorkerManager;
 import com.camoga.ant.gui.Window;
 
-public class Client {	
+public class Client {
 	
 	public static final Logger LOG = Logger.getLogger("Client");
 	Socket socket;
@@ -94,6 +94,7 @@ public class Client {
 		
 		try {
 			os.writeByte(PacketType.REGISTER.getId());
+			os.writeLong(0x1ddf45c8f51ddb88L);
 			os.writeByte(hash.length());
 			os.write(hash.getBytes());
 			os.writeByte(username.length());
