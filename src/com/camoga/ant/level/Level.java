@@ -102,7 +102,7 @@ public class Level {
 		if(max > maxChunk) maxChunk = max;
 
 		if(!worker.getAnt().findingPeriod() && !worker.getAnt().periodFound() && maxChunk > Settings.chunkCheck) {
-			if(chunks.size()/(double)(maxChunk*maxChunk*maxChunk) < 0.20) { // Proportion of chunks generated over size of square that bounds all chunks. If prop -> 0 ant forms a highway (prop might go near 0 if ant forms a thin triangle)
+			if(chunks.size()/(double)(maxChunk*maxChunk) < 0.20) { // Proportion of chunks generated over size of square that bounds all chunks. If prop -> 0 ant forms a highway (prop might go near 0 if ant forms a thin triangle)
 				worker.getAnt().setFindingPeriod(true);
 				deleteOldChunks = true;				
 			}
@@ -127,7 +127,7 @@ public class Level {
 	}
 
 	//TODO improve render
-	public void render(int[] pixels, int chunks, int width, int height, boolean followAnt) {
+	public void render(int[] pixels, int width, int height, boolean followAnt) {
 		int xa = followAnt ? worker.getAnt().getXC():0;
 		int ya = followAnt ? worker.getAnt().getYC():0;
 		int za = followAnt ? worker.getAnt().getZC():0;
@@ -144,11 +144,15 @@ public class Level {
 			pixels[i] = 0xff000000;
 		}
 
+		int xchunks = width/worker.getLevel().cSIZE;
+		int ychunks = height/worker.getLevel().cSIZE;
+		int zchunks = 1024/worker.getLevel().cSIZE;
+
 		if(worker.getType() <= 1) {
-			for(int yc = 0; yc < chunks; yc++) {
+			for(int yc = 0; yc < ychunks; yc++) {
 				int ycf = yc<<cPOW;
-				for(int xc = 0; xc < chunks; xc++) {
-					Chunk c = getChunk2(xc-chunks/2+xa, yc-chunks/2+ya);
+				for(int xc = 0; xc < xchunks; xc++) {
+					Chunk c = getChunk2(xc-xchunks/2+xa, yc-ychunks/2+ya);
 					if(c == null) continue;
 					int xcf = xc<<cPOW;
 					int i = 0;
@@ -164,12 +168,12 @@ public class Level {
 				}
 			}			
 		} else if(worker.getType() == 2) {
-			for(int zc = 0; zc < chunks; zc++) {
+			for(int zc = 0; zc < zchunks; zc++) {
 				int zcf = zc<<(cPOW*2);
-				for(int yc = 0; yc < chunks; yc++) {
+				for(int yc = 0; yc < ychunks; yc++) {
 					int ycf = yc<<cPOW;
-					for(int xc = 0; xc < chunks; xc++) {
-						Chunk c = getChunk2(xc-chunks/2+xa, yc-chunks/2+ya, zc-chunks/2+za);
+					for(int xc = 0; xc < xchunks; xc++) {
+						Chunk c = getChunk2(xc-xchunks/2+xa, yc-ychunks/2+ya, zc-zchunks/2+za);
 						if(c == null) continue;
 						int xcf = xc<<cPOW;
 						int i = 0;

@@ -103,7 +103,8 @@ public class Worker {
 //				autosavetimer = System.currentTimeMillis();
 //			}
 			
-			if(type == 1 && !extended && getLevel().chunks.size() < 8 &&  maxiterations != -1 && iterations > maxiterations) {
+			//Detect cyclic "highways"
+			if(type > 0 && !extended && getLevel().chunks.size() < 16 &&  maxiterations != -1 && iterations > maxiterations) {
 				extended = true;
 				max += 100000000;
 				getAnt().setFindingPeriod(true);
@@ -134,10 +135,8 @@ public class Worker {
 	}
 	
 	protected void saveImage(File file, boolean info) {
-//		Simulation.saveBinHighway(new File(Simulation.rule+".bin"));
-//		if(0==0) return;
 		BufferedImage image = new BufferedImage(1024, 1024, BufferedImage.TYPE_INT_RGB);
-		level.render(((DataBufferInt)(image.getRaster().getDataBuffer())).getData(), Settings.canvasSize, image.getWidth(), image.getHeight(), true);
+		level.render(((DataBufferInt)(image.getRaster().getDataBuffer())).getData(), image.getWidth(), image.getHeight(), true);
 		if(info) {
 			Graphics g = image.createGraphics();
 			//TODO merge with render method

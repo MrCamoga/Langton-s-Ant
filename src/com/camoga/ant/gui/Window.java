@@ -130,7 +130,7 @@ public class Window {
 			int h = 15;
 			if(w.isRunning()) {
 				AbstractAnt a = w.getAnt();
-				w.getLevel().render(pixels, canvasImage.getWidth()/w.getLevel().cSIZE, canvasImage.getWidth(), canvasImage.getHeight(), a.findingPeriod());				
+				w.getLevel().render(pixels, canvasImage.getWidth(), canvasImage.getHeight(), a.findingPeriod());				
 				g.drawImage(canvasImage, 0, 0, 800, 800, null);
 				g.setColor(Color.WHITE);
 				g.drawString(String.format("Iterations: %,d", w.getIterations()), 10, h+=15); 
