@@ -36,7 +36,6 @@ public class Client {
 	
 	static int ASSIGN_SIZE = 50;
 	static long lastResultsTime;
-	volatile static long[] lastAssignTime = new long[3];
 	static long DELAY_BETWEEN_RESULTS = 120000;
 	static int RECONNECT_TIME = 60000;
 	static boolean STOP_ON_DISCONNECT;
@@ -47,12 +46,16 @@ public class Client {
 	public static boolean logged = false;
 	public static String username, password;
 	
-	public static ArrayDeque<Long>[] assignments = new ArrayDeque[3];
-	public static ByteArrayOutputStream[] storedrules = new ByteArrayOutputStream[3];
+	public static final int ANT_TYPES = 4;
+	volatile static long[] lastAssignTime = new long[ANT_TYPES];
+	public static ArrayDeque<Long>[] assignments = new ArrayDeque[ANT_TYPES];
+	public static ByteArrayOutputStream[] storedrules = new ByteArrayOutputStream[ANT_TYPES];
+	public static int[] offset = {40,40,48,56};
+	public static int[] ruleTypeIDs = {PacketType.GETASSIGN.getId(), PacketType.GETHEXASSIGN.getId(), PacketType.GET3DASSIGN.getId(), PacketType.GET4DASSIGN.getId()};
 	
 	public static Client client;
 	
-	public Client(int normalworkers, int hexworkers, int r3workers, boolean nolog) throws IOException {
+	public Client(int normalworkers, int hexworkers, int r3workers, int r4workers, boolean nolog) throws IOException {
 		if(nolog) {
 			LOG.setLevel(java.util.logging.Level.OFF);
 		} else {
@@ -70,13 +73,11 @@ public class Client {
 			System.exit(0);
 		}
 
-		assignments[0] = new ArrayDeque<Long>();
-		assignments[1] = new ArrayDeque<Long>();
-		assignments[2] = new ArrayDeque<Long>();
-		storedrules[0] = new ByteArrayOutputStream();
-		storedrules[1] = new ByteArrayOutputStream();
-		storedrules[2] = new ByteArrayOutputStream();
-		WorkerManager.setWorkers(normalworkers, hexworkers, r3workers);
+		for(int i = 0; i < ANT_TYPES; i++) {
+			assignments[i] = new ArrayDeque<Long>();
+			storedrules[i] = new ByteArrayOutputStream();			
+		}
+		WorkerManager.setWorkers(normalworkers, hexworkers, r3workers, r4workers);
 
 		//TODO
 //		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -126,10 +127,8 @@ public class Client {
 		if(WorkerManager.size(type) == 0) return;
 		if(System.currentTimeMillis()-lastAssignTime[type] < 15000) return;
 		lastAssignTime[type] = System.currentTimeMillis();
-		try {
-			if(type == 0) os.write(PacketType.GETASSIGNMENT.getId());
-			else if(type == 1) os.write(PacketType.GETHEXASSIGN.getId());
-			else if(type == 2) os.write(PacketType.GET3DASSIGN.getId());
+		try {			
+			if(type < ANT_TYPES) os.write(ruleTypeIDs[type]);
 			else throw new RuntimeException();
 			os.writeInt(WorkerManager.size(type)*ASSIGN_SIZE);
 		} catch (IOException e) {
@@ -141,26 +140,14 @@ public class Client {
 		if(System.currentTimeMillis()-lastResultsTime < DELAY_BETWEEN_RESULTS) return;
 		boolean datasent = false;
 		try {
-			if(storedrules[0].size() > 1) {
-				os.write(PacketType.SENDRESULTS.getId());
-				os.writeInt(storedrules[0].size()/40);
-				os.write(storedrules[0].toByteArray());
-				storedrules[0].reset();
-				datasent = true;
-			}
-			if(storedrules[1].size() > 1) {
-				os.write(PacketType.SENDHEXRESULTS.getId());
-				os.writeInt(storedrules[1].size()/40);
-				os.write(storedrules[1].toByteArray());
-				storedrules[1].reset();
-				datasent = true;
-			}
-			if(storedrules[2].size() > 1) {
-				os.write(PacketType.SEND3DRESULTS.getId());
-				os.writeInt(storedrules[2].size()/48);
-				os.write(storedrules[2].toByteArray());
-				storedrules[2].reset();
-				datasent = true;
+			for(int i = 0; i < ANT_TYPES; i++) {
+				if(storedrules[i].size() > 1) {
+					os.write(ruleTypeIDs[i]+1);
+					os.writeInt(storedrules[i].size()/offset[i]);
+					os.write(storedrules[i].toByteArray());
+					storedrules[i].reset();
+					datasent = true;
+				}
 			}
 			if(datasent) {
 				LOG.info("Data sent to server");
@@ -196,40 +183,43 @@ public class Client {
 							LOG.info("Logged in as " + username);
 							logged = true;
 							storeCredentials();
-							getAssignment(0);
-							getAssignment(1);
-							getAssignment(2);
+							for(int i = 0; i < ANT_TYPES; i++) getAssignment(i);
 						} else if(result == 1) {
 							Client.username = null;
 							Client.password = null;
 							LOG.warning("Wrong username or password!");
 						}
 						break;
-					case GETASSIGNMENT:
+					case GETASSIGN:
 						int size = is.readInt();
-						ByteBuffer bb = ByteBuffer.wrap(is.readNBytes(size*8));
 						for(int i = 0; i < size; i++) {
-							assignments[0].add(bb.getLong());
-						}
-						LOG.info("New assignment of " + size/2 + " rules!");
-						WorkerManager.start();
-						break;
-					case GETHEXASSIGN:
-						size = is.readInt();
-						bb = ByteBuffer.wrap(is.readNBytes(size*8));
-						for(int i = 0; i < size; i++) {
-							assignments[1].add(bb.getLong());
+							assignments[0].add(is.readLong());
 						}
 						LOG.info("New assignment of " + size/2 + " rules");
 						WorkerManager.start();
 						break;
+					case GETHEXASSIGN:
+						size = is.readInt();
+						for(int i = 0; i < size; i++) {
+							assignments[1].add(is.readLong());
+						}
+						LOG.info("New assignment of " + size/2 + " hex rules");
+						WorkerManager.start();
+						break;
 					case GET3DASSIGN:
 						size = is.readInt();
-						bb = ByteBuffer.wrap(is.readNBytes(size*8));
 						for(int i = 0; i < size; i++) {
-							assignments[2].add(bb.getLong());
+							assignments[2].add(is.readLong());
 						}
 						LOG.info("New assignment of " + size/2 + " 3d rules");
+						WorkerManager.start();
+						break;
+					case GET4DASSIGN:
+						size = is.readInt();
+						for(int i = 0; i < size; i++) {
+							assignments[3].add(is.readLong());
+						}
+						LOG.info("New assignment of " + size/2 + " 4d rules");
 						WorkerManager.start();
 						break;
 					case REGISTER:
@@ -270,6 +260,7 @@ public class Client {
 		int normalworkers = 0;
 		int hexworkers = 0;
 		int r3workers = 0;
+		int r4workers = 0;
 		for(int i = 0; i < args.length; i++) {
 			String cmd = args[i];
 				switch(cmd) {
@@ -291,6 +282,9 @@ public class Client {
 				case "-w3":
 					r3workers = Integer.parseInt(args[++i]);
 					break;
+				case "-w4":
+					r4workers = Integer.parseInt(args[++i]);
+					break;
 				case "-sd":
 					STOP_ON_DISCONNECT = true;
 					break;
@@ -307,8 +301,8 @@ public class Client {
 					throw new RuntimeException("Invalid parameters");
 				}
 		}
-		if(normalworkers == 0 && hexworkers == 0 && r3workers == 0) normalworkers = 1;
-		client = new Client(normalworkers,hexworkers,r3workers,nolog);
+		if(normalworkers == 0 && hexworkers == 0 && r3workers == 0 && r4workers == 0) normalworkers = 1;
+		client = new Client(0,hexworkers,r3workers,1,nolog);
 		if(gui)	new Window();
 	}
 	

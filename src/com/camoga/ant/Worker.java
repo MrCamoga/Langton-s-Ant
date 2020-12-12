@@ -13,6 +13,7 @@ import javax.imageio.ImageIO;
 import com.camoga.ant.ants.AbstractAnt;
 import com.camoga.ant.ants.Ant;
 import com.camoga.ant.ants.Ant3D;
+import com.camoga.ant.ants.Ant4D;
 import com.camoga.ant.ants.HexAnt;
 import com.camoga.ant.level.Level;
 import com.camoga.ant.net.Client;
@@ -41,6 +42,8 @@ public class Worker {
 			ant = new HexAnt(this);
 		} else if(type==2) {
 			ant = new Ant3D(this);
+		}  else if(type==3) {
+			ant = new Ant4D(this);
 		} else throw new RuntimeException();
 	}
 	
@@ -127,6 +130,12 @@ public class Worker {
 			long[] d = {Math.abs(ant.xend-ant.xstart), Math.abs(ant.yend-ant.ystart), Math.abs(ant.zend-ant.zstart)};
 			Arrays.sort(d);
 			return new long[] {rule,period,iterations,d[2],d[1],d[0]};	
+		} else if(type == 3) {
+			long period = ant.periodFound() ? ant.getPeriod():(ant.findingPeriod() ? 1:0);
+			if(period <= 1) return new long[] {rule,period,iterations,0,0,0,0};
+			long[] d = {Math.abs(ant.xend-ant.xstart), Math.abs(ant.yend-ant.ystart), Math.abs(ant.zend-ant.zstart), Math.abs(ant.wend-ant.wstart)};
+			Arrays.sort(d);
+			return new long[] {rule,period,iterations,d[3],d[2],d[1],d[0]};	
 		}
 		return null;
 	}

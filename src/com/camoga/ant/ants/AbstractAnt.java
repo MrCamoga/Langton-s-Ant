@@ -27,22 +27,24 @@ public abstract class AbstractAnt {
 	// Ant
 	protected int dir;
 	protected int state;
-	protected int xc,yc,zc;
-	protected int x,y,z;
+	protected int wc,xc,yc,zc;
+	protected int w,x,y,z;
 	
 	// Highway
 	protected boolean saveState = false;
 	protected byte[] states;
 	protected int repeatLength;
 	protected long stateindex;
-	public long xstart, ystart, zstart, xend, yend, zend;
+	public long wstart, xstart, ystart, zstart, wend, xend, yend, zend;
 	protected long minHighwayPeriod = 0;  // This is the final period length
 	protected boolean PERIODFOUND = false;
 	
 	public AbstractAnt(Worker worker, int dimension) {
 		this.worker = worker;
 		this.dimension = dimension;
-		cPOW = dimension == 2 ? 7:5;
+		if(dimension==2) cPOW = 7;
+		else if(dimension==3) cPOW = 5;
+		else if(dimension==4) cPOW = 4;
 		cSIZE = 1<<cPOW;
 		cSIZEm = cSIZE-1;
 		worker.getLevel().chunkSize = 1<<(cPOW*dimension);
@@ -55,9 +57,11 @@ public abstract class AbstractAnt {
 		if(states == null || states.length != stateslen) states = new byte[stateslen];
 		this.rule.createRule(rule);
 		worker.getLevel().init();
+		w = 0;
 		x = 0;
 		y = 0;
 		z = 0;
+		wc = 0;
 		xc = 0;
 		yc = 0;	
 		zc = 0;
@@ -72,14 +76,18 @@ public abstract class AbstractAnt {
 		if(dimension == 2) {
 			chunk = worker.getLevel().getChunk(0, 0);
 		} else if(dimension == 3) {
-			worker.getLevel().getChunk(0, 0, 0);
+			chunk = worker.getLevel().getChunk(0, 0, 0);
+		} else if(dimension == 4) {
+			chunk = worker.getLevel().getChunk(0, 0, 0, 0);
 		} else throw new RuntimeException("Invalid dimension");
 	}
 	
 	public long getPeriod() { return minHighwayPeriod; }
+	public long getW() { return w + wc*cSIZE; }
 	public long getX() { return x + xc*cSIZE; }
 	public long getY() { return y + yc*cSIZE; }
 	public long getZ() { return z + zc*cSIZE; }
+	public int getWC() { return wc; }
 	public int getXC() { return xc; }
 	public int getYC() { return yc; }
 	public int getZC() { return zc; }
@@ -94,6 +102,7 @@ public abstract class AbstractAnt {
 		xstart = getX();
 		ystart = getY();
 		zstart = getZ();
+		wstart = getW();
 	}
 	
 	public void saveState(String file) {

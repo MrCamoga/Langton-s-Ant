@@ -4,7 +4,7 @@ import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
 
 public class Ant3D extends AbstractAnt {
-
+	
 	static final int[] directionx = new int[] {1,0,0,0,0,-1,0,-1,0,1,0,0,0,0,-1,0,1,0,1,0,0,0,0,-1};
 	static final int[] directiony = new int[] {0,0,-1,1,0,0,0,0,0,0,1,-1,1,-1,0,0,0,0,0,0,-1,1,0,0};
 	static final int[] directionz = new int[] {0,1,0,0,-1,0,-1,0,1,0,0,0,0,0,0,-1,0,1,0,1,0,0,-1,0};
@@ -38,7 +38,7 @@ public class Ant3D extends AbstractAnt {
 	};
 	
 	public Ant3D(Worker worker) {
-		super(worker,2);
+		super(worker,3);
 		rule = new Rule3D();
 	}
 	
