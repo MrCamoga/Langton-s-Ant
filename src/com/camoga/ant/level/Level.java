@@ -43,7 +43,7 @@ public class Level {
 	
 	public int maxChunk;
 	/**
-	 * 
+	 * Get chunk at coordinate xc, yc and creates one if doesn't exist. It also initiates period calculator when the ant is far away from the center
 	 * @param xc x coord of chunk
 	 * @param yc y coord of chunk
 	 * @return
@@ -72,12 +72,23 @@ public class Level {
 	}
 	
 	/**
-	 * 
-	 * @param xc x coord of chunk
-	 * @param yc y coord of chunk
-	 * @param zc z coord of chunk
+	 * Get chunk at coordinate xc, yc and creates one if doesn't exist.
+	 * @param xc
+	 * @param yc
 	 * @return
 	 */
+	public Chunk getChunk3(int xc, int yc) {
+		Chunk result = chunks.get(xc,yc);
+		if(result != null) {
+			result.lastVisit = worker.getIterations();
+			return result;
+		}
+
+		result = new Chunk();
+		chunks.put(xc,yc,result);
+		return result;
+	}
+	
 	public Chunk getChunk(int xc, int yc, int zc) {
 		Chunk result = chunks.get(xc,yc,zc);
 		if(result != null) {

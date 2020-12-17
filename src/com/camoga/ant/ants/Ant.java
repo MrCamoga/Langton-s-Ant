@@ -40,6 +40,9 @@ public class Ant extends AbstractAnt {
 //	double r2x, r2y;
 //	boolean regression;
 	
+	int dir1, dir2, state1, state2, index;
+	byte s1, s2;
+	
 	public int move() {
 		int iteration = 0;
 		for(; iteration < Settings.itpf; iteration+=2) {
@@ -54,31 +57,12 @@ public class Ant extends AbstractAnt {
 				chunk = worker.getLevel().getChunk(xc, yc);
 			}
 		
-			int index = x|(y<<cPOW);
-			state = chunk.cells[index];
-			dir = (dir + rule.turn[state])&0b11;
+			index = x|(y<<cPOW);
+			state1 = chunk.cells[index];
+			dir1 = (dir2 + rule.turn[state1])&0b11;
 			if(++chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
 			
-			x += directionx[dir];
-			
-			if(findingPeriod()) {
-				byte s = (byte)(dir<<6 | state);
-				if(stateindex < states.length) states[(int) stateindex] = s;
-				stateindex++;
-				if(states[repeatLength]!=s) {
-					repeatLength = 0;
-					minHighwayPeriod = stateindex;
-					xend = getX();
-					yend = getY();
-				} else {
-					repeatLength++;
-					if(repeatLength == states.length || repeatLength > Settings.repeatcheck*minHighwayPeriod) {
-						PERIODFOUND = true;
-						saveState = false;
-						break;
-					}
-				}
-			}
+			x += directionx[dir1];
 
 			changechunk: {
 				if(x > cSIZEm) {
@@ -88,28 +72,31 @@ public class Ant extends AbstractAnt {
 					x = cSIZEm;
 					xc--;
 				} else break changechunk;
-				chunk = worker.getLevel().getChunk(xc, yc);
+				chunk = worker.getLevel().getChunk3(xc, yc);
 			}
 			
 			index = x|(y<<cPOW);
-			state = chunk.cells[index];
-			dir = (dir + rule.turn[state])&0b11;
+			state2 = chunk.cells[index];
+			dir2 = (dir1 + rule.turn[state2])&0b11;
 			if(++chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
 			
-			y += directiony[dir];
+			y += directiony[dir2];
 			
 			if(findingPeriod()) {
-				byte s = (byte)(dir<<6 | state);
-				if(stateindex < states.length) states[(int) stateindex] = s;
-				stateindex++;
+				s1 = (byte)(dir1<<6 | state1);
+				s2 = (byte)(dir2<<6 | state2);
+				if(stateindex < states.length) {
+					states[(int) stateindex++] = s1;
+					states[(int) stateindex++] = s2;
+				} else stateindex+=2;
 				
-				if(states[repeatLength]!=s) {
+				if(states[repeatLength]!=s1) {
 					repeatLength = 0;
 					minHighwayPeriod = stateindex;
 					xend = getX();
 					yend = getY();
 				} else {
-					repeatLength++;
+					repeatLength+=2;
 					if(repeatLength == states.length || repeatLength > Settings.repeatcheck*minHighwayPeriod) {
 						PERIODFOUND = true;
 						saveState = false;
