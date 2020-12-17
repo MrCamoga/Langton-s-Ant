@@ -42,15 +42,9 @@ public class Ant extends AbstractAnt {
 	
 	public int move() {
 		int iteration = 0;
-		for(; iteration < Settings.itpf; iteration++) {
+		for(; iteration < Settings.itpf; iteration+=2) {
 			changechunk: {
-				if(x > cSIZEm) {
-					x = 0;
-					xc++;
-				} else if(x < 0) {
-					x = cSIZEm;
-					xc--;
-				} else if(y > cSIZEm) {
+				if(y > cSIZEm) {
 					y = 0;
 					yc++;
 				} else if(y < 0) {
@@ -59,30 +53,53 @@ public class Ant extends AbstractAnt {
 				} else break changechunk;
 				chunk = worker.getLevel().getChunk(xc, yc);
 			}
-			
+		
 			int index = x|(y<<cPOW);
 			state = chunk.cells[index];
 			dir = (dir + rule.turn[state])&0b11;
 			if(++chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
 			
 			x += directionx[dir];
+			
+			if(findingPeriod()) {
+				byte s = (byte)(dir<<6 | state);
+				if(stateindex < states.length) states[(int) stateindex] = s;
+				stateindex++;
+				if(states[repeatLength]!=s) {
+					repeatLength = 0;
+					minHighwayPeriod = stateindex;
+					xend = getX();
+					yend = getY();
+				} else {
+					repeatLength++;
+					if(repeatLength == states.length || repeatLength > Settings.repeatcheck*minHighwayPeriod) {
+						PERIODFOUND = true;
+						saveState = false;
+						break;
+					}
+				}
+			}
+
+			changechunk: {
+				if(x > cSIZEm) {
+					x = 0;
+					xc++;
+				} else if(x < 0) {
+					x = cSIZEm;
+					xc--;
+				} else break changechunk;
+				chunk = worker.getLevel().getChunk(xc, yc);
+			}
+			
+			index = x|(y<<cPOW);
+			state = chunk.cells[index];
+			dir = (dir + rule.turn[state])&0b11;
+			if(++chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
+			
 			y += directiony[dir];
 			
 			if(findingPeriod()) {
-				// Regression to discard triangles/squares
-//				if(regression && (index&4095) == 0) {
-//					regression(iteration + worker.getIterations());
-//					if(n > 32000) {
-//						regression = false;
-//						if((r2x < 0.95 && rvx > 100) || (r2y < 0.95 && rvy > 100)) {
-//							System.out.println(r2x + ", " + r2y + ", " + rvx + ", " + rvy);
-//							PERIODFOUND = true;
-//							minHighwayPeriod = 3;
-//							break;							
-//						}
-//					}
-//				}
-				byte s = (byte)(dir<<6 | state); //Only works for rules with <= 64 colors
+				byte s = (byte)(dir<<6 | state);
 				if(stateindex < states.length) states[(int) stateindex] = s;
 				stateindex++;
 				
@@ -94,8 +111,6 @@ public class Ant extends AbstractAnt {
 				} else {
 					repeatLength++;
 					if(repeatLength == states.length || repeatLength > Settings.repeatcheck*minHighwayPeriod) {
-//					if(repeatLength == states.length || (repeatLength > Settings.repeatcheck*minHighwayPeriod && (r2x > 0.99 || rvx < 100) && (r2y > 0.99 || rvy < 100))) {
-//						System.out.println(r2x + ", " + r2y + ", " + rvx + ", " + rvy + ", " + worker.getLevel().prop);
 						PERIODFOUND = true;
 						saveState = false;
 						break;
