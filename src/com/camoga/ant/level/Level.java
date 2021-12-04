@@ -24,8 +24,24 @@ public class Level {
 		
 		public byte[] cells = new byte[chunkSize];
 		
-		public Chunk() {
-			lastVisit = worker.getIterations();
+		public Chunk[] neighbours = new Chunk[4];
+		
+		public Chunk getChunk(int xc, int yc, int dir) {
+			if(neighbours[dir] == null) {
+				neighbours[dir] = Level.this.getChunk(xc, yc);
+				neighbours[dir].neighbours[dir^2] = this;
+			}
+			neighbours[dir].lastVisit = worker.getIterations();
+			return neighbours[dir];
+		}
+		
+		public Chunk getChunk3(int xc, int yc, int dir) {
+			if(neighbours[dir] == null) {
+				neighbours[dir] = Level.this.getChunk3(xc, yc);
+				neighbours[dir].neighbours[dir^2] = this;
+			}
+			neighbours[dir].lastVisit = worker.getIterations();
+			return neighbours[dir];
 		}
 	}
 	
@@ -42,6 +58,7 @@ public class Level {
 	}
 	
 	public int maxChunk;
+	
 	/**
 	 * Get chunk at coordinate xc, yc and creates one if doesn't exist. It also initiates period calculator when the ant is far away from the center
 	 * @param xc x coord of chunk
@@ -50,24 +67,50 @@ public class Level {
 	 */
 	public Chunk getChunk(int xc, int yc) {
 		Chunk result = chunks.get(xc,yc);
-		if(result != null) {
-			result.lastVisit = worker.getIterations();
-			return result;
-		}
+		if(result == null) {
+			chunks.put(xc,yc,result = new Chunk());
 
-		result = new Chunk();
-		chunks.put(xc,yc,result);
-
-		//Farthest chunk ant has traveled
-		int max = Math.max(Math.abs(xc), Math.abs(yc));
-		if(max > maxChunk) maxChunk = max;
-
-		if(!worker.getAnt().findingPeriod() && !worker.getAnt().periodFound() && maxChunk > Settings.chunkCheck) {
-			if(chunks.size()/(double)(maxChunk*maxChunk) < 0.20) { // Proportion of chunks generated over size of square that bounds all chunks. If prop -> 0 ant forms a highway (prop might go near 0 if ant forms a thin triangle)
-				worker.getAnt().setFindingPeriod(true);
-				deleteOldChunks = true;				
+			//Farthest chunk ant has traveled
+			int max = Math.max(Math.abs(xc), Math.abs(yc));
+			if(max > maxChunk) maxChunk = max;
+			if(!worker.getAnt().findingPeriod() && !worker.getAnt().periodFound() && maxChunk > Settings.chunkCheck) {
+				if(chunks.size()/(double)(maxChunk*maxChunk) < 0.20) { // Proportion of chunks generated over size of square that bounds all chunks. If prop -> 0 ant forms a highway (prop might go near 0 if ant forms a thin triangle)
+					deleteOldChunks = true;
+					worker.setFindingPeriod(true);
+				}
 			}
 		}
+
+		result.lastVisit = worker.getIterations();
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @param xc x coord of chunk
+	 * @param yc y coord of chunk
+	 * @param zc z coord of chunk
+	 * @return
+	 */
+	public Chunk getChunk(int xc, int yc, int zc) {
+		Chunk result = chunks.get(xc,yc,zc);
+		if(result == null) {
+			result = new Chunk();
+			chunks.put(xc,yc,zc,result);
+
+			//Farthest chunk ant has traveled
+			int max = Math.max(Math.max(Math.abs(xc), Math.abs(yc)), Math.abs(zc));
+			if(max > maxChunk) maxChunk = max;
+
+			if(!worker.getAnt().findingPeriod() && !worker.getAnt().periodFound() && maxChunk > Settings.chunkCheck) {
+				if(chunks.size()/(double)(maxChunk*maxChunk) < 0.20) { // Proportion of chunks generated over size of square that bounds all chunks. If prop -> 0 ant forms a highway (prop might go near 0 if ant forms a thin triangle)
+					worker.getAnt().setFindingPeriod(true);
+					deleteOldChunks = true;				
+				}
+			}
+		}
+		result.lastVisit = worker.getIterations();
+		
 		return result;
 	}
 	
@@ -79,84 +122,45 @@ public class Level {
 	 */
 	public Chunk getChunk3(int xc, int yc) {
 		Chunk result = chunks.get(xc,yc);
-		if(result != null) {
-			result.lastVisit = worker.getIterations();
-			return result;
+		if(result == null) {
+			chunks.put(xc,yc,result = new Chunk());
 		}
-
-		result = new Chunk();
-		chunks.put(xc,yc,result);
-		return result;
-	}
-	
-	public Chunk getChunk(int xc, int yc, int zc) {
-		Chunk result = chunks.get(xc,yc,zc);
-		if(result != null) {
-			result.lastVisit = worker.getIterations();
-			return result;
-		}
-
-		result = new Chunk();
-		chunks.put(xc,yc,zc,result);
-
-		//Farthest chunk ant has traveled
-		int max = Math.max(Math.max(Math.abs(xc), Math.abs(yc)), Math.abs(zc));
-		if(max > maxChunk) maxChunk = max;
-
-		if(!worker.getAnt().findingPeriod() && !worker.getAnt().periodFound() && maxChunk > Settings.chunkCheck) {
-			if(chunks.size()/(double)(maxChunk*maxChunk) < 0.20) { // Proportion of chunks generated over size of square that bounds all chunks. If prop -> 0 ant forms a highway (prop might go near 0 if ant forms a thin triangle)
-				worker.getAnt().setFindingPeriod(true);
-				deleteOldChunks = true;				
-			}
-		}
+		result.lastVisit = worker.getIterations();
 		return result;
 	}
 
 	public Chunk getChunk(int xc, int yc, int zc, int wc) {
 		Chunk result = chunks.get(xc,yc,zc,wc);
-		if(result != null) {
-			result.lastVisit = worker.getIterations();
-			return result;
-		}
-
-		result = new Chunk();
-		chunks.put(xc,yc,zc,wc,result);
-
-		//Farthest chunk ant has traveled
-		int max = Math.max(Math.max(Math.max(Math.abs(xc), Math.abs(yc)), Math.abs(zc)), Math.abs(wc));
-		if(max > maxChunk) maxChunk = max;
-
-		if(!worker.getAnt().findingPeriod() && !worker.getAnt().periodFound() && maxChunk > Settings.chunkCheck) {
-			if(chunks.size()/(double)(maxChunk*maxChunk) < 0.20) { // Proportion of chunks generated over size of square that bounds all chunks. If prop -> 0 ant forms a highway (prop might go near 0 if ant forms a thin triangle)
-				worker.getAnt().setFindingPeriod(true);
-				deleteOldChunks = true;				
+		if(result == null) {
+			result = new Chunk();
+			chunks.put(xc,yc,zc,wc,result);
+	
+			//Farthest chunk ant has traveled
+			int max = Math.max(Math.max(Math.max(Math.abs(xc), Math.abs(yc)), Math.abs(zc)), Math.abs(wc));
+			if(max > maxChunk) maxChunk = max;
+	
+			if(!worker.getAnt().findingPeriod() && !worker.getAnt().periodFound() && maxChunk > Settings.chunkCheck) {
+				if(chunks.size()/(double)(maxChunk*maxChunk) < 0.20) { // Proportion of chunks generated over size of square that bounds all chunks. If prop -> 0 ant forms a highway (prop might go near 0 if ant forms a thin triangle)
+					worker.getAnt().setFindingPeriod(true);
+					deleteOldChunks = true;				
+				}
 			}
 		}
+
+		result.lastVisit = worker.getIterations();
 		return result;
 	}
 	
 	public Chunk getChunk2(int xc, int yc) {
-		try {
-			return chunks.get(xc,yc);			
-		} catch(NullPointerException e) {
-			return null;
-		}
+		return chunks.get(xc,yc);
 	}
 	
 	public Chunk getChunk2(int xc, int yc, int zc) {
-		try {
-			return chunks.get(xc,yc,zc);			
-		} catch(NullPointerException e) {
-			return null;
-		}
+		return chunks.get(xc,yc,zc);
 	}
 	
 	public Chunk getChunk2(int xc, int yc, int zc, int wc) {
-		try {
-			return chunks.get(xc,yc,zc,wc);
-		} catch(NullPointerException e) {
-			return null;
-		}
+		return chunks.get(xc,yc,zc,wc);
 	}
 
 	//TODO improve render

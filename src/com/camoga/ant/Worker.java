@@ -17,6 +17,7 @@ import com.camoga.ant.ants.Ant4D;
 import com.camoga.ant.ants.HexAnt;
 import com.camoga.ant.level.Level;
 import com.camoga.ant.net.Client;
+import com.camoga.ant.test.VideoCreator;
 
 public class Worker {
 
@@ -26,6 +27,9 @@ public class Worker {
 	boolean kill;
 	boolean running;
 	int workerid;
+	
+//	boolean recordingVideo = false;
+//	VideoCreator video;
 	
 	long autosavetimer;
 	AbstractAnt ant;
@@ -44,7 +48,7 @@ public class Worker {
 			ant = new Ant3D(this);
 		}  else if(type==3) {
 			ant = new Ant4D(this);
-		} else throw new RuntimeException();
+		} else throw new RuntimeException("Invalid type of ant");
 	}
 	
 	public void start() {
@@ -54,32 +58,25 @@ public class Worker {
 		Client.LOG.info("Worker " + workerid + " started");
 		running = true;
 	}
-
+	
 	public void run() {
 		long[] p;
 		long time;
+		
+//		video = new VideoCreator();
+//		recordingVideo = false;
+		
 		while((p = Client.getRule(type)) != null && !kill) {
 			long rule = p[0];
-			long iterations = p[1];
+			long maxiterations = p[1];
+//			long rule = 33611548;
+//			long maxiterations = 1000000000L;
 
-			ant.init(rule, iterations);
+			ant.init(rule, maxiterations);
 			this.iterations = 0;
 			
-			if(type==2) {
-				int[] letters = Arrays.copyOf(ant.getRule().letter, ant.getRule().letter.length);
-				if((letters[ant.getRule().getSize()-1]&1) == 0) continue;
-				Arrays.sort(letters);
-				int count = 1;
-				int current = letters[0];
-				for(int i = 0; i < letters.length; i++) {
-					if(letters[i] != current) count++;
-					current = letters[i];
-				}
-				if(count < 3) continue;				
-			}
-			
 			time = System.nanoTime();
-			long[] result = runRule(rule,iterations);
+			long[] result = runRule(rule,maxiterations);
 			Client.storeRules(type,result);
 			float seconds = (float) ((-time + (time = System.nanoTime()))/1e9);
 			Client.LOG.info(String.format("%s\t%s\t%s it/s\t%s s\t%s", Long.toUnsignedString(rule), ant.getRule().string(), this.iterations/seconds, seconds, (result[1] > 1 ? (result[1] + " " + Arrays.toString(Arrays.copyOfRange(result, 3, result.length))):result[1]==1 ? "?":"")));
@@ -94,17 +91,26 @@ public class Worker {
 		boolean extended = false;
 		while(!ant.periodFound() && (maxiterations == -1 || iterations < max)) {
 			iterations += ant.move();
+
 			if(level.deleteOldChunks) {
-				getLevel().chunks.entrySet().removeIf(e -> iterations - e.getValue().lastVisit > 100000000);
+				getLevel().chunks.entrySet().removeIf(e -> iterations - e.getValue().lastVisit > 1000000000);
+				System.out.println("");
 			}
-//			System.out.println(getLevel().chunks.size()/Math.pow(getLevel().maxChunk, 2) + ", " + iterations);
+			
+//			if(recordingVideo) {
+//				video.addFrame(this);
+//			}
+//			
+//			new ObjExport(this);
+//			System.exit(0);
+			
 //			if(Settings.autosave && System.currentTimeMillis()-autosavetimer > 900000) { // Autosave every 15 mins
 //				ant.saveState(ant.getRule()+".state");
 //				System.out.println("Autosave");
 //				autosavetimer = System.currentTimeMillis();
 //			}
 			
-			if(type > 0 && !extended && getLevel().chunks.size() < 16 &&  maxiterations != -1 && iterations > maxiterations) {
+			if(type > 0 && !extended && getLevel().chunks.size() <= (1<<ant.dimension) &&  maxiterations != -1 && iterations > maxiterations) {
 				extended = true;
 				max += 100000000;
 				getAnt().setFindingPeriod(true);
@@ -163,6 +169,10 @@ public class Worker {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void setFindingPeriod(boolean b) {
+		getAnt().setFindingPeriod(b);
 	}
 	
 	public long getIterations() {
