@@ -32,11 +32,12 @@ import com.camoga.ant.net.Client;
 
 public class Window {
 	
-	
 	Thread thread;
 	boolean running;
 	public static JFrame f;
 	static AntCanvas canvas;
+	
+	int width = 768, height = 768;
 	
 	public Window() {
 		try {
@@ -104,7 +105,7 @@ public class Window {
 	}
 	
 	class AntCanvas extends Canvas {
-		BufferedImage canvasImage = new BufferedImage(1024, 1024, BufferedImage.TYPE_INT_RGB);
+		BufferedImage canvasImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		int[] pixels = ((DataBufferInt) canvasImage.getRaster().getDataBuffer()).getData();
 		
 		public AntCanvas() {

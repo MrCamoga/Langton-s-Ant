@@ -7,6 +7,8 @@ public class Ant extends AbstractAnt {
 
 	static final int[] directionx = new int[] {0,1,0,-1};
 	static final int[] directiony = new int[] {-1,0,1,0};
+	static int[] directioni;
+
 	
 	public Ant(Worker worker) {
 		super(worker,2);
@@ -15,6 +17,7 @@ public class Ant extends AbstractAnt {
 	
 	public void init(long rule, long iterations) {
 		super.init(rule, iterations);
+		directioni = new int[] {-cSIZE,1,cSIZE,-1};
 //		rxt = 0;
 //		ryt = 0;
 //		rx = 0;
@@ -29,6 +32,9 @@ public class Ant extends AbstractAnt {
 //		rvx = 100;
 //		rvy = 100;
 //		regression = true;
+		index = 0;
+		dir1 = 0;
+		dir2 = 0;
 	}
 
 	// Regression
@@ -50,36 +56,40 @@ public class Ant extends AbstractAnt {
 				if(y > cSIZEm) {
 					y = 0;
 					yc++;
+					index -= cSIZE2;
 				} else if(y < 0) {
 					y = cSIZEm;
 					yc--;
+					index += cSIZE2;
 				} else break changechunk;
-				chunk = worker.getLevel().getChunk(xc, yc);
+//				chunk = worker.getLevel().getChunk(xc, yc);
+				chunk = chunk.getNeighbour(xc, yc, dir2);
 			}
 		
-			index = x|(y<<cPOW);
-			state1 = chunk.cells[index];
+			state1 = chunk.cells[index]++;
+			if(chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
 			dir1 = (dir2 + rule.turn[state1])&0b11;
-			if(++chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
-			
+			index += directioni[dir1];
 			x += directionx[dir1];
 
 			changechunk: {
 				if(x > cSIZEm) {
 					x = 0;
 					xc++;
+					index -= cSIZE;
 				} else if(x < 0) {
 					x = cSIZEm;
 					xc--;
+					index += cSIZE;
 				} else break changechunk;
-				chunk = worker.getLevel().getChunk3(xc, yc);
+//				chunk = worker.getLevel().getChunk3(xc, yc);
+				chunk = chunk.getNeighbour3(xc, yc, dir1);
 			}
 			
-			index = x|(y<<cPOW);
-			state2 = chunk.cells[index];
+			state2 = chunk.cells[index]++;
+			if(chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
 			dir2 = (dir1 + rule.turn[state2])&0b11;
-			if(++chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
-			
+			index += directioni[dir2];
 			y += directiony[dir2];
 			
 			if(findingPeriod()) {

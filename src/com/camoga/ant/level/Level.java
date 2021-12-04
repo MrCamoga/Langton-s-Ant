@@ -26,7 +26,14 @@ public class Level {
 		
 		public Chunk[] neighbours = new Chunk[4];
 		
-		public Chunk getChunk(int xc, int yc, int dir) {
+		/**
+		 * Returns neighbour chunk in direction dir, creates one if doesn't exist and checks for highways
+		 * @param xc x coordinate of neighbour chunk
+		 * @param yc y coordinate of neighbour chunk
+		 * @param dir direction of neighbour
+		 * @return neighbour chunk
+		 */
+		public Chunk getNeighbour(int xc, int yc, int dir) {
 			if(neighbours[dir] == null) {
 				neighbours[dir] = Level.this.getChunk(xc, yc);
 				neighbours[dir].neighbours[dir^2] = this;
@@ -35,7 +42,14 @@ public class Level {
 			return neighbours[dir];
 		}
 		
-		public Chunk getChunk3(int xc, int yc, int dir) {
+		/**
+		 * Returns neighbour chunk in direction dir and creates one if doesn't exist
+		 * @param xc x coordinate of neighbour chunk
+		 * @param yc y coordinate of neighbour chunk
+		 * @param dir direction of neighbour
+		 * @return neighbour chunk
+		 */
+		public Chunk getNeighbour3(int xc, int yc, int dir) {
 			if(neighbours[dir] == null) {
 				neighbours[dir] = Level.this.getChunk3(xc, yc);
 				neighbours[dir].neighbours[dir^2] = this;

@@ -23,6 +23,7 @@ public abstract class AbstractAnt {
 	public int cPOW;
 	public int cSIZE;
 	public int cSIZEm;
+	public int cSIZE2;
 	
 	// Ant
 	protected int dir;
@@ -47,6 +48,7 @@ public abstract class AbstractAnt {
 		else if(dimension==4) cPOW = 4;
 		cSIZE = 1<<cPOW;
 		cSIZEm = cSIZE-1;
+		cSIZE2 = cSIZE<<cPOW;
 		worker.getLevel().chunkSize = 1<<(cPOW*dimension);
 	}
 	

@@ -17,7 +17,6 @@ import com.camoga.ant.ants.Ant4D;
 import com.camoga.ant.ants.HexAnt;
 import com.camoga.ant.level.Level;
 import com.camoga.ant.net.Client;
-import com.camoga.ant.test.VideoCreator;
 
 public class Worker {
 
@@ -92,9 +91,9 @@ public class Worker {
 		while(!ant.periodFound() && (maxiterations == -1 || iterations < max)) {
 			iterations += ant.move();
 
+			// Chunk deletion only activates when highway has started
 			if(level.deleteOldChunks) {
-				getLevel().chunks.entrySet().removeIf(e -> iterations - e.getValue().lastVisit > 1000000000);
-				System.out.println("");
+				getLevel().chunks.entrySet().removeIf(e -> iterations - e.getValue().lastVisit > 100000000);
 			}
 			
 //			if(recordingVideo) {
