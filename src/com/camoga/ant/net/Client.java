@@ -23,6 +23,14 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
 import com.camoga.ant.WorkerManager;
 import com.camoga.ant.gui.Window;
 
@@ -55,7 +63,7 @@ public class Client {
 	
 	public static Client client;
 	
-	public Client(int normalworkers, int hexworkers, int r3workers, int r4workers, boolean nolog) throws IOException {
+	public Client(int w, int wh, int w3, int w4, boolean nolog) throws IOException {
 		if(nolog) {
 			LOG.setLevel(java.util.logging.Level.OFF);
 		} else {
@@ -77,9 +85,10 @@ public class Client {
 			assignments[i] = new ArrayDeque<Long>();
 			storedrules[i] = new ByteArrayOutputStream();			
 		}
-		WorkerManager.setWorkers(normalworkers, hexworkers, r3workers, r4workers);
-
 		//TODO
+		WorkerManager.setWorkers(w, wh, w3, w4);
+//		WorkerManager.start();
+		
 //		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 //			//save rules that take too much time to compute (>1e10 iterations)
 //		}));
@@ -229,6 +238,10 @@ public class Client {
 							LOG.warning("Username already registered");
 							username = null;
 							password = null;
+						} else {
+							LOG.warning("An error has ocurred");
+							username = null;
+							password = null;
 						}
 						break;
 					default:
@@ -254,56 +267,57 @@ public class Client {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		host = "langtonsantproject.sytes.net";
-		boolean gui = !GraphicsEnvironment.isHeadless();
-		boolean nolog = false;
-		int normalworkers = 0;
-		int hexworkers = 0;
-		int r3workers = 0;
-		int r4workers = 0;
-		for(int i = 0; i < args.length; i++) {
-			String cmd = args[i];
-				switch(cmd) {
-				case "--nogui":
-					gui = false;
-					break;
-				case "--host":
-					host = args[++i];
-					break;
-				case "--nolog":
-					nolog = true;
-					break;
-				case "-w":
-					normalworkers = Integer.parseInt(args[++i]);
-					break;
-				case "-wh":
-					hexworkers = Integer.parseInt(args[++i]);
-					break;
-				case "-w3":
-					r3workers = Integer.parseInt(args[++i]);
-					break;
-				case "-w4":
-					r4workers = Integer.parseInt(args[++i]);
-					break;
-				case "-sd":
-					STOP_ON_DISCONNECT = true;
-					break;
-				case "-u":
-					String username = args[++i];
-					System.out.print("Enter password: ");
-					String password = hash(System.console().readPassword());
-					if(username != null && password != null) {
-						Client.username = username;
-						Client.password = password;
-					}
-					break;
-				default:
-					throw new RuntimeException("Invalid parameters");
+		Options options = new Options();
+		
+		options.addOption(Option.builder("h").longOpt("help").hasArg(false).desc("print help").build());
+		options.addOption(Option.builder("ng").longOpt("nogui").hasArg(false).desc("run without GUI").build());                      
+		options.addOption(Option.builder("nl").longOpt("nolog").hasArg(false).desc("run without log").build());                      
+		options.addOption(Option.builder().longOpt("host").hasArg(true).desc("server address").build());                             
+		options.addOption(Option.builder("u").longOpt("user").hasArg(true).desc("login username").build());                          
+		options.addOption(Option.builder("w").hasArg(true).desc("number of 2d square grid ants").type(Number.class).build());        
+		options.addOption(Option.builder("wh").hasArg(true).desc("number of 2d hexagonal grid ants").type(Number.class).build());    
+		options.addOption(Option.builder("w3").hasArg(true).desc("number of 3d ants").type(Number.class).build());                   
+		options.addOption(Option.builder("w4").hasArg(true).desc("number of 4d ants").type(Number.class).build());                   
+		
+		CommandLineParser parser = new DefaultParser();
+		HelpFormatter formatter = new HelpFormatter();
+		CommandLine cmd = null;
+		
+		try {
+			cmd = parser.parse(options, args);
+
+			if(cmd.hasOption("h")) {
+				formatter.printHelp("java -jar langton.jar <opt>", options);
+				System.exit(0);
+			}
+			
+			int workers2 = cmd.hasOption("w") ? ((Number) cmd.getParsedOptionValue("w")).intValue():0;
+			int workershex = cmd.hasOption("wh") ? ((Number) cmd.getParsedOptionValue("wh")).intValue():0;
+			int workers3 = cmd.hasOption("w3") ? ((Number) cmd.getParsedOptionValue("w3")).intValue():0;
+			int workers4 = cmd.hasOption("w4") ? ((Number) cmd.getParsedOptionValue("w4")).intValue():0;
+			boolean nolog = cmd.hasOption("nl");
+			if(cmd.hasOption("u")) {
+				String username = cmd.getOptionValue("u");
+				System.out.print("Enter password: ");
+				String password = hash(System.console().readPassword());
+				if(username != null && password != null) {
+					Client.username = username;
+					Client.password = password;
 				}
+			}
+			boolean gui = !GraphicsEnvironment.isHeadless() && !cmd.hasOption("ng");
+			host = cmd.hasOption("host") ? cmd.getOptionValue("host"):"langtonsantproject.sytes.net";
+			if(workers2 == 0 && workershex == 0 && workers3 == 0 && workers4 == 0) workers2 = 1;
+			client = new Client(workers2,workershex,workers3,workers4,nolog);
+//			client = new Client(1, 0, 0, 0, false);
+			if(gui)
+				new Window();
+			
+		} catch(ParseException e) {
+			System.out.println(e.getMessage());
+			formatter.printHelp("java -jar langton.jar <opt>", options);
+			System.exit(1);
 		}
-		if(normalworkers == 0 && hexworkers == 0 && r3workers == 0 && r4workers == 0) normalworkers = 1;
-		client = new Client(0,hexworkers,r3workers,1,nolog);
-		if(gui)	new Window();
 	}
 	
 	//TODO synchronized removeFirst
@@ -330,6 +344,9 @@ public class Client {
 	
 	public synchronized static void storeRules(int type, long[] rule) {
 		try {
+			if(type<2 && rule.length != 5) throw new RuntimeException();
+			if(type==2 && rule.length != 6) throw new RuntimeException();
+			if(type==3 && rule.length != 7) throw new RuntimeException();
 			ByteBuffer bb = ByteBuffer.allocate(8*rule.length);
 			for(int i = 0; i < rule.length; i++) {
 				bb.putLong(rule[i]);
