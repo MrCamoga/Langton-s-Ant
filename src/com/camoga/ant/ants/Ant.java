@@ -8,7 +8,6 @@ public class Ant extends AbstractAnt {
 	static final int[] directionx = new int[] {0,1,0,-1};
 	static final int[] directiony = new int[] {-1,0,1,0};
 	static int[] directioni;
-
 	
 	public Ant(Worker worker) {
 		super(worker,2);
@@ -62,8 +61,8 @@ public class Ant extends AbstractAnt {
 					yc--;
 					index += cSIZE2;
 				} else break changechunk;
-//				chunk = worker.getLevel().getChunk(xc, yc);
-				chunk = chunk.getNeighbour(xc, yc, dir2);
+				chunk = worker.getLevel().getChunk(xc, yc);
+//				chunk = chunk.getNeighbour(xc, yc, dir2); //TODO fix memory leak
 			}
 		
 			state1 = chunk.cells[index]++;
@@ -82,8 +81,8 @@ public class Ant extends AbstractAnt {
 					xc--;
 					index += cSIZE;
 				} else break changechunk;
-//				chunk = worker.getLevel().getChunk3(xc, yc);
-				chunk = chunk.getNeighbour3(xc, yc, dir1);
+				chunk = worker.getLevel().getChunk(xc, yc);
+//				chunk = chunk.getNeighbour3(xc, yc, dir1);
 			}
 			
 			state2 = chunk.cells[index]++;
