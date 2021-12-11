@@ -7,10 +7,15 @@ public abstract class AbstractRule {
 	public int[] letter;
 	protected int size;
 	protected int[] colors;
+	protected String ruleString;
 	
 	public abstract void createRule(long rule);
-	
-	public abstract String string();
+
+	/**
+	 * Returns rule string currently being simulated
+	 * @return
+	 */
+	public String toString() {return ruleString;}
 
 	public long getRule() {return rule;}
 	public int[] getColors() {return colors;}

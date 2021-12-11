@@ -131,11 +131,11 @@ public class Window {
 			int h = 15;
 			if(w.isRunning()) {
 				AbstractAnt a = w.getAnt();
-				w.getLevel().render(pixels, canvasImage.getWidth(), canvasImage.getHeight(), a.findingPeriod());				
+				w.getLevel().render(pixels, canvasImage.getWidth(), canvasImage.getHeight(), Settings.followAnt || a.findingPeriod());				
 				g.drawImage(canvasImage, 0, 0, 800, 800, null);
 				g.setColor(Color.WHITE);
 				g.drawString(String.format("Iterations: %,d", w.getIterations()), 10, h+=15); 
-				g.drawString(String.format("Rule: %s (%s)", a.getRule().string(), Long.toUnsignedString(a.getRule().getRule())), 10, h+=15);
+				g.drawString(String.format("Rule: %s (%s)", a.getRule(), Long.toUnsignedString(a.getRule().getRule())), 10, h+=15);
 				if(a instanceof Ant) {
 //					g.drawString("Regression: " + ((Ant)a).r2x + ", " + ((Ant)a).r2y + ", " + ((Ant)a).rvx + ", " + ((Ant)a).rvy, 10, h+=15);
 //					g.drawString("Proportion: " + w.getLevel().prop, 10, h+=15);

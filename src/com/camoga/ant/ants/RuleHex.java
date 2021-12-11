@@ -21,10 +21,11 @@ public class RuleHex extends AbstractRule {
 			rule = Long.divideUnsigned(rule, 6);
 		}
 		if(size > 32) throw new RuntimeException("More than 32 states not supported");
+		
+		generateString();
 	}
 	
-	public String toString() {
-		if(ruleString != null) return ruleString;
+	private String generateString() {
 		ruleString = "";
 		for(int i = 0; i < size; i++) {
 			ruleString += letters[turn[i]];

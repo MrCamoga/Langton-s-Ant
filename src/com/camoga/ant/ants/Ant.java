@@ -82,7 +82,7 @@ public class Ant extends AbstractAnt {
 					index += cSIZE;
 				} else break changechunk;
 				chunk = worker.getLevel().getChunk(xc, yc);
-//				chunk = chunk.getNeighbour3(xc, yc, dir1);
+//				chunk = chunk.getNeighbour(xc, yc, dir1);
 			}
 			
 			state2 = chunk.cells[index]++;

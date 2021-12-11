@@ -16,17 +16,14 @@ public class Rule extends AbstractRule {
 			colors[i] = r.nextInt(0x1000000);
 		}
 		colors[0] = 0xff101010;
+		generateString();
 	}
 	
-	/**
-	 * Returns rule string currently being simulated
-	 * @return
-	 */
-	public String string() {
-		String rule = "";
+	private String generateString() {
+		ruleString = "";
 		for(int i = 0; i < turn.length; i++) {
-			rule += turn[i] == 1 ? "R":"L";
+			ruleString += turn[i] == 1 ? "R":"L";
 		}
-		return rule;
+		return ruleString;
 	}
 }
