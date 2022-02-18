@@ -179,6 +179,8 @@ public class Client {
 				
 				if(username != null && password != null) {
 					login(username,password);
+				} else if(System.getenv("LANGTON_USER") != null && System.getenv("LANGTON_PASS") != null) {
+					login(System.getenv("LANGTON_USER"), System.getenv("LANGTON_PASS"));
 				} else if(properties.getProperty("username") != null && properties.getProperty("hash") != null) {
 					login(properties.getProperty("username"), new BigInteger(Client.properties.getProperty("hash"),16).toString(16));
 				}
