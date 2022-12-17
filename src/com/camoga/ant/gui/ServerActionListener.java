@@ -4,6 +4,7 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
+import java.util.Optional;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -21,46 +22,22 @@ public class ServerActionListener implements ActionListener {
 			JPanel panel = new JPanel();
 			if(Client.logged) {
 				JOptionPane.showConfirmDialog(Window.f, "You are already logged as " + Client.username, "Connect to Server", JOptionPane.OK_CANCEL_OPTION);
-			} else if(Client.properties.getProperty("username") == null || Client.properties.getProperty("hash") == null){
-				Object[] options = new Object[] {"Cancel", "Register", "Login"};
+			} else {
+				Object[] options = new Object[] {"Login","Cancel"};
 				
-				JTextField username = new JTextField(20);
-				JPasswordField pw = new JPasswordField();
+				JTextField username = new JTextField(Optional.of(Client.properties.getProperty("username")).orElse(""),24);
+				JPasswordField pw = new JPasswordField(Optional.of(Client.properties.getProperty("secrettoken")).orElse(""),32);
 				panel.setLayout(new GridLayout(2, 2));
 				panel.add(new JLabel("Username: "));
 				panel.add(username);
-				panel.add(new JLabel("Password: "));
+				panel.add(new JLabel("Secret token: "));
 				panel.add(pw);
-				int option = JOptionPane.showOptionDialog(Window.f, panel, "Connect to Server", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, null);
+				int option = JOptionPane.showOptionDialog(Window.f, panel, "Connect to Server", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, null);
 				
-				if(option == JOptionPane.CANCEL_OPTION) { //Login
+				if(option == JOptionPane.YES_OPTION) {
 					String user = username.getText();
-					String hash = Client.hash(pw.getPassword());
+					String hash = new String(pw.getPassword());
 					Client.client.login(user, hash);
-				} else if(option == JOptionPane.NO_OPTION) { //Register
-					panel.removeAll();
-					JPasswordField pw2 = new JPasswordField();
-					panel.setLayout(new GridLayout(3,2));
-					panel.add(new JLabel("Username: "));
-					panel.add(username);
-					panel.add(new JLabel("Password: "));
-					panel.add(pw);
-					panel.add(new JLabel("Repeat password: "));
-					panel.add(pw2);
-					
-					options = new Object[] {"Cancel", "Register"};
-					option = JOptionPane.showOptionDialog(Window.f, panel, "Connect to Server", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, null);
-					
-					if(option==JOptionPane.NO_OPTION) { // register
-						if(!Arrays.equals(pw.getPassword(), pw2.getPassword())) {
-							JOptionPane.showInputDialog(Window.f, "Passwords do not match", "Error", JOptionPane.ERROR_MESSAGE);
-							return;
-						} else {
-							String user = username.getText();
-							String hash = Client.hash(pw.getPassword());
-							Client.client.register(user, hash);
-						}
-					}
 				}
 			}
 			break;

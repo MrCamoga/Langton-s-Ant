@@ -11,15 +11,16 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.math.BigInteger;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.URI;
 import java.net.UnknownHostException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.security.MessageDigest;
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -33,6 +34,14 @@ import org.apache.commons.cli.ParseException;
 
 import com.camoga.ant.WorkerManager;
 import com.camoga.ant.gui.Window;
+import com.camoga.ant.net.packets.Packet.PacketType;
+import com.camoga.ant.net.packets.Packet.StatusCodes;
+import com.camoga.ant.net.packets.Packet00Version;
+import com.camoga.ant.net.packets.Packet01Auth;
+import com.camoga.ant.net.packets.Packet02Assignment;
+import com.camoga.ant.net.packets.Packet03Result;
+import com.camoga.ant.net.packets.Packet04Message;
+import com.camoga.ant.net.packets.Packet05Status;
 
 public class Client {
 	
@@ -41,6 +50,7 @@ public class Client {
 	static DataOutputStream os;
 	static DataInputStream is;
 	static String host;
+	static final int[] VERSION = {0,13,0};
 	
 	static int ASSIGN_SIZE = 50;
 	static long lastResultsTime;
@@ -59,13 +69,12 @@ public class Client {
 	public static ArrayDeque<Long>[] assignments = new ArrayDeque[ANT_TYPES];
 	public static ByteArrayOutputStream[] storedrules = new ByteArrayOutputStream[ANT_TYPES];
 	public static int[] offset = {48,40,48,56};
-	public static int[] ruleTypeIDs = {PacketType.GETASSIGN.getId(), PacketType.GETHEXASSIGN.getId(), PacketType.GET3DASSIGN.getId(), PacketType.GET4DASSIGN.getId()};
-	
+
 	public static Client client;
 	
 	public Client(int w, int wh, int w3, int w4, boolean nolog) throws IOException {
 		if(nolog) {
-			LOG.setLevel(java.util.logging.Level.OFF);
+			LOG.setLevel(java.util.logging.Level.WARNING);
 		} else {
 			LOG.setLevel(java.util.logging.Level.INFO);
 			System.setProperty("java.util.logging.SimpleFormatter.format", "%5$s%n");			
@@ -85,9 +94,8 @@ public class Client {
 			assignments[i] = new ArrayDeque<Long>();
 			storedrules[i] = new ByteArrayOutputStream();			
 		}
-		//TODO
+
 		WorkerManager.setWorkers(w, wh, w3, w4);
-//		WorkerManager.start();
 		
 //		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 //			//save rules that take too much time to compute (>1e10 iterations)
@@ -96,37 +104,34 @@ public class Client {
 		connectionthread.start();
 	}
 	
-	public void register(String username, String hash) {
-		if(logged) return;
-		
-		Client.username = username;
-		Client.password = hash;
-		
-		try {
-			os.writeByte(PacketType.REGISTER.getId());
-			os.writeLong(0x1ddf45c8f51ddb88L);
-			os.writeByte(hash.length());
-			os.write(hash.getBytes());
-			os.writeByte(username.length());
-			os.write(username.getBytes());
-		} catch(IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public void login(String username, String hash) {
+	public void login(String username, String secrettoken) {
 		if(logged) return;
 		Client.username = username;
-		Client.password = hash;
-
+		Client.password = secrettoken;
+		
 		try {
-			os.writeByte(PacketType.AUTH.getId());
-			os.writeLong(0x1ddf45c8f51ddb88L);
-			os.writeByte(hash.length());
-			os.write(hash.getBytes());
-			os.writeByte(username.length());
-			os.write(username.getBytes());
-		} catch (IOException e) {
+			// Get access token
+			String accesstoken;
+			URI url = URI.create("https://langtonsantproject.sytes.net/getaccesstoken.php");
+			HttpClient client = HttpClient.newHttpClient();
+			HttpRequest req = HttpRequest.newBuilder()
+					.uri(url)
+					.setHeader("Content-Type", "application/x-www-form-urlencoded")
+					.POST(HttpRequest.BodyPublishers.ofString(String.format("username=%s&pass=%s",username,secrettoken)))
+					.build();
+			HttpResponse<String> response = client.send(req, HttpResponse.BodyHandlers.ofString());
+			int status = response.statusCode();
+			if(status != 200) {
+				LOG.warning("An error ocurred while getting access token. Error code: " + response.headers().firstValue("status").orElse(""));
+				return;
+			} else {
+				accesstoken = response.body();
+			}
+			Packet00Version versionpacket = new Packet00Version(VERSION);
+			versionpacket.writeData(os);
+			Packet01Auth loginpacket = new Packet01Auth(username, accesstoken);
+			loginpacket.writeData(os);
+		} catch (IOException | InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
@@ -136,25 +141,22 @@ public class Client {
 		if(WorkerManager.size(type) == 0) return;
 		if(System.currentTimeMillis()-lastAssignTime[type] < 15000) return;
 		lastAssignTime[type] = System.currentTimeMillis();
-		try {			
-			if(type < ANT_TYPES) os.write(ruleTypeIDs[type]);
-			else throw new RuntimeException();
-			os.writeInt(WorkerManager.size(type)*ASSIGN_SIZE);
+		try {
+			Packet02Assignment packet = new Packet02Assignment(type, WorkerManager.size(type)*ASSIGN_SIZE);
+			packet.writeData(os);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public static void sendAssignmentResult() {
+	public synchronized static void sendAssignmentResult() {
 		if(System.currentTimeMillis()-lastResultsTime < DELAY_BETWEEN_RESULTS) return;
 		boolean datasent = false;
 		try {
 			for(int i = 0; i < ANT_TYPES; i++) {
 				if(storedrules[i].size() > 1) {
-					os.write(ruleTypeIDs[i]+1);
-					os.writeInt(storedrules[i].size()/offset[i]);
-					os.write(storedrules[i].toByteArray());
-					storedrules[i].reset();
+					Packet03Result packet = new Packet03Result(i,storedrules[i].size()/offset[i],storedrules[i]);
+					packet.writeData(os);
 					datasent = true;
 				}
 			}
@@ -181,8 +183,8 @@ public class Client {
 					login(username,password);
 				} else if(System.getenv("LANGTON_USER") != null && System.getenv("LANGTON_PASS") != null) {
 					login(System.getenv("LANGTON_USER"), System.getenv("LANGTON_PASS"));
-				} else if(properties.getProperty("username") != null && properties.getProperty("hash") != null) {
-					login(properties.getProperty("username"), new BigInteger(Client.properties.getProperty("hash"),16).toString(16));
+				} else if(properties.getProperty("username") != null && properties.getProperty("secrettoken") != null) {
+					login(properties.getProperty("username"), Client.properties.getProperty("secrettoken"));
 				}
 
 				while(true) {
@@ -201,49 +203,38 @@ public class Client {
 							LOG.warning("Wrong username or password!");
 						}
 						break;
-					case GETASSIGN:
-						int size = is.readInt();
-						for(int i = 0; i < size; i++) {
-							assignments[0].add(is.readLong());
-						}
-						LOG.info("New assignment of " + size/2 + " rules");
+					case ASSIGNMENT:
+						Packet02Assignment packet = new Packet02Assignment(is);
+						packet.getData().forEachRemaining(assignments[packet.getType()]::add);
+						LOG.info("New assignment of " + packet.getSize()/2 + " rules");
 						WorkerManager.start();
 						break;
-					case GETHEXASSIGN:
-						size = is.readInt();
-						for(int i = 0; i < size; i++) {
-							assignments[1].add(is.readLong());
-						}
-						LOG.info("New assignment of " + size/2 + " hex rules");
-						WorkerManager.start();
+					case RESULTS: // check if successful and delete data, else retry or store data in file for future retry
 						break;
-					case GET3DASSIGN:
-						size = is.readInt();
-						for(int i = 0; i < size; i++) {
-							assignments[2].add(is.readLong());
-						}
-						LOG.info("New assignment of " + size/2 + " 3d rules");
-						WorkerManager.start();
+					case MESSAGE:
+						Packet04Message packetmessage = new Packet04Message(is);
+						LOG.info(packetmessage.getMessage());
 						break;
-					case GET4DASSIGN:
-						size = is.readInt();
-						for(int i = 0; i < size; i++) {
-							assignments[3].add(is.readLong());
-						}
-						LOG.info("New assignment of " + size/2 + " 4d rules");
-						WorkerManager.start();
-						break;
-					case REGISTER:
-						int ok = is.readByte();
-						if(ok==0) LOG.info("Account registered");
-						else if(ok==1) {
-							LOG.warning("Username already registered");
-							username = null;
-							password = null;
-						} else {
-							LOG.warning("An error has ocurred");
-							username = null;
-							password = null;
+					case STATUS:
+						Packet05Status packetstatus = new Packet05Status(is);
+						int status = packetstatus.getStatusCode();
+						String message = packetstatus.getFullMessage();
+						switch(StatusCodes.getStatus(status)) {
+						case AUTHDISABLED, INTERNALERROR: // retry login (slow)
+							break;
+						case BADTOKEN, OUTDATED, UNSETTOKEN:
+							LOG.warning(message);
+							System.exit(1);
+							break;
+						case EXPIREDTOKEN: // retry login (fast)
+							break;
+						case LOGGED: // get assignment
+							break;
+						case INVALID:
+							break;
+						default:
+							break;
+						
 						}
 						break;
 					default:
@@ -252,7 +243,7 @@ public class Client {
 				}
 				
 			} catch(UnknownHostException | SocketException e) {
-				LOG.warning("Could not connect to the server");
+				LOG.info("Could not connect to the server");
 				logged = false;
 				try {
 					Thread.sleep(RECONNECT_TIME);
@@ -300,8 +291,8 @@ public class Client {
 			boolean nolog = cmd.hasOption("nl");
 			if(cmd.hasOption("u")) {
 				String username = cmd.getOptionValue("u");
-				System.out.print("Enter password: ");
-				String password = hash(System.console().readPassword());
+				System.out.print("Enter secret token: ");
+				String password = new String(System.console().readPassword());
 				if(username != null && password != null) {
 					Client.username = username;
 					Client.password = password;
@@ -311,7 +302,6 @@ public class Client {
 			host = cmd.hasOption("host") ? cmd.getOptionValue("host"):"langtonsantproject.sytes.net";
 			if(workers2 == 0 && workershex == 0 && workers3 == 0 && workers4 == 0) workers2 = 1;
 			client = new Client(workers2,workershex,workers3,workers4,nolog);
-//			client = new Client(1, 0, 0, 0, false);
 			if(gui)
 				new Window();
 			
@@ -321,20 +311,12 @@ public class Client {
 			System.exit(1);
 		}
 	}
-	
-	//TODO synchronized removeFirst
-	public static long[] getRules(int type, int size) {
-		if(assignments[type].size() < 2*size) {
-			getAssignment(type);
-			return null;
-		}
-		long[] rules = new long[size*2];
-		for(int i = 0; i < size; i++) {
-			rules[i] = assignments[type].removeFirst();
-		}
-		return rules;
-	}
-	
+
+	/**
+	 * 
+	 * @param type
+	 * @return {rule, iterations}
+	 */
 	public synchronized static long[] getRule(int type) {
 		if(assignments[type].size() < 2*WorkerManager.size()*ASSIGN_SIZE) {
 			getAssignment(type);
@@ -360,40 +342,21 @@ public class Client {
 			e.printStackTrace();
 		}
 	}
-
-	public static String hash(char[] chars) {
-		byte[] password = null;
-		try {
-			password = new byte[chars.length];
-			for(int i = 0; i < chars.length; i++) {
-				password[i] = (byte) chars[i];
-			}
-			MessageDigest md = MessageDigest.getInstance("SHA-256");
-			byte[] hash = md.digest(password);
-			
-			String strhash = "";
-			for(int i = 0; i < hash.length; i++) {
-				strhash += Integer.toHexString(hash[i]&0xff);
-			}			
-			return strhash;
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		} finally {
-			Arrays.fill(chars, (char) 0);
-			Arrays.fill(password, (byte)0);			
-		}
-		return null;
-	}
 	
-	public static void storeCredentials() {
-		if(username != null && password != null) {
-			Client.properties.setProperty("username", username);
-			Client.properties.setProperty("hash", password);			
-		}
+	public static void saveProperties() {
 		try {
 			Client.properties.store(new FileOutputStream("langton.properties"), null);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public static void storeCredentials() {
+		if(username != null && password != null) {
+			Client.properties.setProperty("username", username);
+			Client.properties.setProperty("secrettoken", password);			
+		}
+		
+		saveProperties();
 	}
 }
