@@ -58,7 +58,7 @@ public class Client {
 	volatile static long[] lastAssignTime = new long[ANT_TYPES];
 	public static ArrayDeque<Long>[] assignments = new ArrayDeque[ANT_TYPES];
 	public static ByteArrayOutputStream[] storedrules = new ByteArrayOutputStream[ANT_TYPES];
-	public static int[] offset = {40,40,48,56};
+	public static int[] offset = {48,40,48,56};
 	public static int[] ruleTypeIDs = {PacketType.GETASSIGN.getId(), PacketType.GETHEXASSIGN.getId(), PacketType.GET3DASSIGN.getId(), PacketType.GET4DASSIGN.getId()};
 	
 	public static Client client;
@@ -346,7 +346,8 @@ public class Client {
 	
 	public synchronized static void storeRules(int type, long[] rule) {
 		try {
-			if(type<2 && rule.length != 5) throw new RuntimeException();
+			if(type==0 && rule.length != 6) throw new RuntimeException();
+			if(type==1 && rule.length != 5) throw new RuntimeException();
 			if(type==2 && rule.length != 6) throw new RuntimeException();
 			if(type==3 && rule.length != 7) throw new RuntimeException();
 			ByteBuffer bb = ByteBuffer.allocate(8*rule.length);

@@ -59,7 +59,7 @@ public class Ant4D extends AbstractAnt {
 	
 	public void init(long rule, long iterations) {
 		super.init(rule, iterations);
-		repeatLength = 2;
+		match = 2;
 		states[2] = -1;
 	}
 
@@ -114,16 +114,16 @@ public class Ant4D extends AbstractAnt {
 					stateindex+=2;
 				}
 				
-				if(states[repeatLength]!=(byte)dir || states[repeatLength+1]!=(byte)state) {
-					repeatLength = 0;
-					minHighwayPeriod = stateindex;
+				if(states[match]!=(byte)dir || states[match+1]!=(byte)state) {
+					match = 0;
+					period = stateindex;
 					xend = getX();
 					yend = getY();
 					zend = getZ();
 					wend = getW();
 				} else {
-					repeatLength+=2;
-					if(repeatLength == states.length || repeatLength > Settings.repeatcheck*minHighwayPeriod) {
+					match+=2;
+					if(match == states.length || match > Settings.repeatpercent*period) {
 						PERIODFOUND = true;
 						saveState = false;
 						break;
@@ -135,6 +135,6 @@ public class Ant4D extends AbstractAnt {
 	}
 	
 	public long getPeriod() {
-		return minHighwayPeriod/2;
+		return period/2;
 	}
 }

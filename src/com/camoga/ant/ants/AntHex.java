@@ -45,14 +45,14 @@ public class AntHex extends AbstractAnt {
 				byte s1 = (byte)(dir<<5 | state); //Only works for rules with <= 32 colors
 				if(stateindex < states.length) states[(int) stateindex] = s1;
 				stateindex++;
-				if(states[repeatLength]!=s1) {
-					repeatLength = 0;
-					minHighwayPeriod = stateindex;
+				if(states[match]!=s1) {
+					match = 0;
+					period = stateindex;
 					xend = getX();
 					yend = getY();
 				} else {
-					repeatLength++;
-					if(repeatLength == states.length || repeatLength > Settings.repeatcheck*minHighwayPeriod) {
+					match++;
+					if(match == states.length || match > Settings.repeatpercent*period) {
 						PERIODFOUND = true;
 						saveState = false;
 						break;

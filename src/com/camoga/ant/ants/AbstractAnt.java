@@ -33,11 +33,12 @@ public abstract class AbstractAnt {
 	
 	// Highway
 	protected boolean saveState = false;
-	protected byte[] states;
-	protected int repeatLength;
+	public byte[] states;
+	protected int match;
 	protected long stateindex;
 	public long wstart, xstart, ystart, zstart, wend, xend, yend, zend;
-	protected long minHighwayPeriod = 0;  // This is the final period length
+	public long direction, directionstart, directionend;
+	protected long period = 0;  // This is the final period length
 	protected boolean PERIODFOUND = false;
 	
 	public AbstractAnt(Worker worker, int dimension) {
@@ -55,7 +56,7 @@ public abstract class AbstractAnt {
 	public abstract int move();
 	
 	public void init(long rule, long iterations) {
-		int stateslen = iterations == -1 ? 200000000:(int) Math.min(Math.max(5000000,iterations/(int)Settings.repeatcheck*2), 200000000);
+		int stateslen = iterations == -1 ? 200000000:(int) Math.min(Math.max(5000000,iterations/(int)Settings.repeatpercent*2), 200000000);
 		if(states == null || states.length != stateslen) states = new byte[stateslen];
 		this.rule.createRule(rule);
 		worker.getLevel().init();
@@ -68,12 +69,13 @@ public abstract class AbstractAnt {
 		yc = 0;	
 		zc = 0;
 		dir = 0;
+		direction = 0;
 		state = 0;
 		saveState = false;
-		repeatLength = 1;
+		match = 1;
 		states[1] = -1;
 		stateindex = 0;
-		minHighwayPeriod = 0;
+		period = 0;
 		PERIODFOUND = false;
 		if(dimension == 2) {
 			chunk = worker.getLevel().getChunk(0, 0);
@@ -84,7 +86,7 @@ public abstract class AbstractAnt {
 		} else throw new RuntimeException("Invalid dimension");
 	}
 	
-	public long getPeriod() { return minHighwayPeriod; }
+	public long getPeriod() { return period; }
 	public long getW() { return w + wc*cSIZE; }
 	public long getX() { return x + xc*cSIZE; }
 	public long getY() { return y + yc*cSIZE; }
@@ -105,6 +107,7 @@ public abstract class AbstractAnt {
 		ystart = getY();
 		zstart = getZ();
 		wstart = getW();
+		directionstart = direction;
 	}
 	
 	public void saveState(String file) {
@@ -121,8 +124,8 @@ public abstract class AbstractAnt {
 			oos.writeBoolean(saveState);
 			if(saveState) {
 				oos.writeLong(stateindex);
-				oos.writeInt(repeatLength);
-				oos.writeLong(minHighwayPeriod);
+				oos.writeInt(match);
+				oos.writeLong(period);
 				oos.write(states);
 			}
 			oos.writeByte(cPOW);

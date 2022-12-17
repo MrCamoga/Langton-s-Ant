@@ -11,7 +11,7 @@ public class Rule extends AbstractRule {
 		turn = new int[size];
 		Random r = new Random();
 		for(int i = 0; rule != 0; i++) {
-			turn[i] = (rule&1) == 1 ? 1:3;
+			turn[i] = (rule&1) == 1 ? 1:-1;
 			rule >>>= 1;
 			colors[i] = r.nextInt(0x1000000);
 		}

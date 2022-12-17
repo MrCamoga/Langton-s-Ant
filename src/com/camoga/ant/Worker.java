@@ -20,7 +20,7 @@ import com.camoga.ant.net.Client;
 
 public class Worker {
 
-	long iterations = 0;
+	public long iterations = 0;
 	
 	Thread thread;	
 	boolean kill;
@@ -61,25 +61,15 @@ public class Worker {
 	public void run() {
 		long[] p;
 		long time;
-//		video = new VideoCreator();
-//		recordingVideo = false;
-
 		while((p = Client.getRule(type)) != null && !kill) {
 			long rule = p[0];
 			long maxiterations = p[1];
-//			long rule = 17195316;
-//			long maxiterations = 100000000;
 			
 			time = System.nanoTime();
 			long[] result = runRule(rule,maxiterations);
 			Client.storeRules(type,result);
-			// measuring sensitivity and specificity of highway detection
-//			if(result[1] > 1) {
-//				saveImage(new File("TEST/positive/"+rule+".png"), true);
-//			} else if(result[1] == 1) saveImage(new File("TEST/unknown/"+rule+".png"), true);
-//			else if(result[1] == 0) saveImage(new File("TEST/negative/"+rule+".png"), true);
 			float seconds = (float) ((-time + (time = System.nanoTime()))/1e9);
-			Client.LOG.info(String.format("%s\t%s\t%s it/s\t%s s\t%s", Long.toUnsignedString(rule), ant.getRule(), this.iterations/seconds, seconds, (result[1] > 1 ? (result[1] + " " + Arrays.toString(Arrays.copyOfRange(result, 3, result.length))):result[1]==1 ? "?":"")));
+			Client.LOG.info(String.format("%02d %s\t%s\t%.4E it/s\t%.4f s\t%s", workerid, Long.toUnsignedString(rule), ant.getRule(), this.iterations/seconds, seconds, (result[1] > 1 ? (result[1] + " " + Arrays.toString(Arrays.copyOfRange(result, 3, result.length))):result[1]==1 ? "?":"")));
 		}
 		Client.LOG.warning("Worker " + workerid + " has stopped");
 		running = false;
@@ -92,17 +82,14 @@ public class Worker {
 		ant.init(rule, maxiterations);
 		this.iterations = 0;
 
-//		long lastX = ant.getX();
-//		long lastY = ant.getY();
-		
 		int maxChunk = 1;
 		
 		while(!ant.periodFound() && (maxiterations == -1 || iterations < max)) {
 			iterations += ant.move();
 
 			// Chunk deletion only activates when highway has started
-			if(level.deleteOldChunks && iterations > 200000000) {
-				getLevel().chunks.entrySet().removeIf(e -> iterations - e.getValue().lastVisit > 200000000);
+			if(level.deleteOldChunks && iterations > 1000000000) {
+				getLevel().chunks.entrySet().removeIf(e -> iterations - e.getValue().lastVisit > 1000000000);
 			}
 			
 			// Detect highways
@@ -115,11 +102,6 @@ public class Worker {
 					setFindingPeriod(true);
 				}
 			}
-//			long newX = ant.getX();
-//			long newY = ant.getY();
-//			Client.LOG.info(Math.abs(newY-lastY)+" " + Math.abs(newX-lastX));
-//			lastX = newX;
-//			lastY = newY;
 			
 			if(Settings.autosave && maxiterations > 50e9 && System.currentTimeMillis()-autosavetimer > 900000) { // Autosave every 15 mins
 				ant.saveState(ant.getRule()+".state");
@@ -135,14 +117,22 @@ public class Worker {
 		}
 		if(type == 0) { // 2d ant square grid
 			long period = ant.periodFound() ? ant.getPeriod():(ant.findingPeriod() ? 1:0);
-			if(period <= 1) return new long[] {rule,period,iterations,0,0};
+			long winding = (ant.directionend-ant.directionstart);
+			if(period > 1) { // detect triangles
+				double dist = Math.sqrt(ant.getX()*ant.getX()+ant.getY()*ant.getY());
+				double highdist = Math.sqrt((ant.xend-ant.xstart)*(ant.xend-ant.xstart)+(ant.yend-ant.ystart)*(ant.yend-ant.ystart));
+				double dot = (ant.getX()*(ant.xend-ant.xstart)+ant.getY()*(ant.yend-ant.ystart))/(dist*highdist);
+				if(dot < 0.8) period = 0;
+				if((winding&3) != 0) period = 1; // check full turn
+			}
+			if(period <= 1) return new long[] {rule,period,iterations,0,0,0};
 			long[] d = {Math.abs(ant.xend-ant.xstart), Math.abs(ant.yend-ant.ystart)};
 			Arrays.sort(d);
-			return new long[] {rule,period,iterations,d[1],d[0]};			
+			return new long[] {rule,period,iterations,d[1],d[0],winding>>2};
 		} else if(type == 1) { // hex ant
 			if(ant.findingPeriod()) return new long[] {rule,0,iterations,1,0};
 			if(!ant.periodFound()) return new long[] {rule,0,iterations,0,0};
-			// Find the shortest path to dx,dy. We covert to cube coordinates and pick the ones with the same sign
+			// Find the shortest path to dx,dy. We convert to cube coordinates and pick the ones with the same sign
 			long[] coordinates = {ant.xend-ant.xstart,ant.yend-ant.ystart,0}; coordinates[2] = -coordinates[1] - coordinates[0];
 			Arrays.sort(coordinates);
 			if(coordinates[1] >= 0) return new long[] {rule,ant.getPeriod(),iterations,coordinates[2],coordinates[1]};
