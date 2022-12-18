@@ -8,13 +8,13 @@ Moves supported by each mode:
 - Square: R, L
 - Hexagonal: F, R, r, B, l, L
 - 3D: R, L, U, D
-- 4D: R, L, U, D, X, Y (90ยบ and -90ยบ rotations along xy, xz and xw planes)
+- 4D: R, L, U, D, X, Y (90บ and -90บ rotations along xy, xz and xw planes)
 
 More information on [Wikipedia](https://en.wikipedia.org/wiki/Langton%27s_ant#Extension_to_multiple_colors)
 
 ## How to use
 
-The sign up must be done using the gui. After that, you can run the program on console
+You first have to register [here](https://langtonsantproject.sytes.net/register.php). After that, go to settings and generate a secret token to login on the java client. The token can be regenerated again if it's lost.
 
 ### Commands
 
@@ -34,17 +34,24 @@ Example:
 
 ## How it works
 
-The server sends rules to each client to see if they formed a highway and if so, find their period
+The server sends rules to each client to check if they form a highway and if so, find their period, size and the ant rotation.
 
-Every few minutes, the client sends the data back to the server and stores the rules in the database
+Every few minutes, the client sends the data back to the server and stores the rules in the database.
 
-This way we make sure that no rule is tested multiple times
+This way we make sure that no rule is tested multiple times.
 
 ## TODO
 - [ ] Server
   - [ ] Verify rules by different clients
   - [ ] Prevent people from sending false data (trust system based on rule verification by other users)
-- [ ] Webpage to visualize all the data
+- [x] Webpage
+  - [x] Simulator (2d, hex, 3d, 4d,...), step by step, change map size, save image or video,...
+  - [x] Search highways on database
+  - [x] Login/Register
+  - [x] Like rules
+  - [x] User statistics and profiles
+  - [x] API to retrieve rule data and user activity
+  - [ ] Translation to other languages WIP
 - [ ] Improve GUI
 - [ ] Different work types:
   - [ ] Verify rules 
@@ -53,36 +60,17 @@ This way we make sure that no rule is tested multiple times
 - [ ] Render hexagonal grid
 - [ ] Parallel computing on GPU (doesn't seem possible)
 - [ ] Compute approximate period of highways on the fly
-- [ ] Algorithm to differentiate triangles/squares from highways:
-- [x] Store size of highways (displacement of the ant each period, e.g. the displacement of the original ant is 2ร—2). This could be useful to distinguish highways with the same period but different structure
+- [x] Algorithm to differentiate triangles/squares from highways:
+- [x] Calculate size of highways (displacement of the ant each period, e.g. the displacement of the original ant is 2x2). This is useful to distinguish highways with the same period but different structure.
+- [x] Calculate ant rotation (accumulated rotation of the ant to further distinguish ants with same period and size).
+- [x] Improved client-server protocol.
 
-## Top highways with longest period
+## Database
 
-|Rule Number|Period|Rule String|
-|:-:|-:|:-|  
-|54787787             	 |6518789812888   	 |RRLRLLRRLRRRRRRRRRLLLLRLRR                                      |
-|34340555             	 |3409034558708   	 |RRLRLLRRLRRRRRRRRRLRLLLLLR                                      |
-|120192715            	 |317869216552    	 |RRLRLLRRLRRRRRRRRLLRLRLLRRR                                     |
-|5772148427           	 |241836027556    	 |RRLRLLRRLRRRRRRRRRLRLLLLLLLRRLRLR                               |
-|45089076             	 |200631077404    	 |LLRLRRLLRLLLLLLLLLLLRRLRLR                                      |
-|15416631             	 |117440512200    	 |RRRLRRLLRLRRRRLLRRLRLRRR                                        |
-|52116791             	 |113816934400    	 |RRRLRRLLRLRRRRLLRRLRRLLLRR                                      |
-|5403410740           	 |99463945900     	 |LLRLRRLLRLLLLLLRRLLLRLLLLRLLLLRLR                               |
-|13025588             	 |66487151028     	 |LLRLRRLLRLLLLLRRLRRLLLRR                                        |
-|22593844             	 |28299602536     	 |LLRLRRLLRLLLLLRRLLLRRLRLR                                       |
-|18858376907          	 |26423448520     	 |RRLRLLRRLRRRRRRRRRLRLLLLLLRLLRRLLLR                             |
-|113508043            	 |20009040104     	 |RRLRLLRRLRRRRRRRRRLLLLRRLRR                                     |
-|96567604             	 |14264116224     	 |LLRLRRLLRLLLLLLRRLLLLLRRRLR                                     |
-|13730100             	 |13498292016     	 |LLRLRRLLRLLLLLLRRLLLRLRR                                        |
-|23723769547          	 |7112124816      	 |RRLRLLRRLRRRRRRRRRLRLLLLLRRLLLLRRLR                             |
-|141229771            	 |6902623604      	 |RRLRLLRRLRRRRRRRLRLRLRRLLLLR                                    |
-|3539252              	 |6740764524      	 |LLRLRRLLRLLLLLLLLRRLRR                                          |
-|786123               	 |5307264488      	 |RRLRLLRRLRRRRRRRRRLR                                            |
-|31575506635          	 |3886098700      	 |RRLRLLRRLRRRRRRRRRLRLLLLLRLRRLRLRRR                             |
-|3477339851           	 |3289325504      	 |RRLRLLRRLRRRRRRRRRLLLLRLRRRRLLRR                                |
-                                 
+Go to [Langton's Ant Rule DB](https://langtonsantproject.sytes.net/searchrule.php) to explore the database.
 
 ### Biggest highways with unknown period
+
 | Tested to # iters	|	Rule String					|	Rule number		|	Highway size	|	Estimated period	|	Real period		|	Rel. Error	|
 |:-:|:-|:-:|:-:|:-:|:-:|:-:|
 |	4.7e11			|	LLRLRRRLRRLLLRRLLLLLLRLLRLRR|	220226420   	|	> 2^500		??	|	3e154				|					|				|
@@ -108,13 +96,3 @@ This way we make sure that no rule is tested multiple times
 |					|								|	120192715		|	34543080		|	318476375254		|	317869216552	|	0.191%		|
 |					|	RRLRLLRRLRRRRRRRRRLRLLLLLR	|	34340555   		|	478474920		|	3406262955480 		|	3409034558708	|	0.081%		|
 |					|	RRLRLLRRLRRRRRRRRRLLLLRLRR	|	54787787		|	777109320		|	6524244609340		|	6518789812888	|	0.083%		|
-
-### Some functions that generate lots of highways
-
-|functions| longest highway | longest highway period | % form highways | info |
-|:-:|:-:|:-:|:-:|:-:|
-|16384n+16075		| **RRLRLLRRLRRRRR**RRRRLR| 5307264488	| 28.1% | biggest highway found |
-|16384n+15435<br>16384n+948		|**RRLRLLRLLLRRRR**RRR|	320374420 | 10.7% | periods of around 1m |
-|8192n+8106		|	**LRLRLRLRRRRRR**RLRRRRRLRLRR | 907904  | 94.9% | periods vary from 3k to 27k |
-|16384n+12892	| **LLRRRLRLLRLLRR**RLLRLLLRLRRLRLRLL RLLRLRLLLRRLLRRRRRLRRRRRLRLRLRR| 8797680 | 44.6%	|	got the rule from [vmainen](https://www.reddit.com/r/cellular_automata/comments/9mfthz/langtons_ant_exhibiting_a_distinct_highwaypattern/). Periods around 5k |
-|32768n+28757		|	**RLRLRLRLLLLLRRR**RLLLR | 300078 |24.1% | 20k - 300k |
