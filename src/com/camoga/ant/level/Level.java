@@ -1,11 +1,16 @@
 package com.camoga.ant.level;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import java.io.Serializable;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 
 import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
+import com.camoga.ant.ants.AbstractAnt;
 
 /**
  * y++: down
@@ -58,7 +63,7 @@ public class Level {
 	public int maxChunk;
 	
 	/**
-	 * Get chunk at coordinate xc, yc and creates one if doesn't exist. It also initiates period calculator when the ant is far away from the center
+	 * Get chunk at coordinate xc, yc and creates one if doesn't exist.
 	 * @param xc x coord of chunk
 	 * @param yc y coord of chunk
 	 * @return
@@ -100,15 +105,21 @@ public class Level {
 	
 	public Chunk getChunk2(int xc, int yc, int zc, int wc) { return chunks.get(xc,yc,zc,wc); }
 
+	
+	private static Font font = new Font("Tahoma", Font.PLAIN, 12);
 	//TODO improve render
-	public void render(int[] pixels, int width, int height, boolean followAnt) {
+	public void render(BufferedImage image, int[] pixels, int width, int height, boolean followAnt, boolean info) {
 		int xa = followAnt ? worker.getAnt().getXC():0;
 		int ya = followAnt ? worker.getAnt().getYC():0;
 		int za = followAnt ? worker.getAnt().getZC():0;
 		
+		Graphics g = image.getGraphics();
+//		g.setFont(font);
+		AbstractAnt ant = worker.getAnt();
+		
 //		System.out.println(xa+","+ya);
 
-		int[] colors = worker.getAnt().getRule().getColors();
+		int[] colors = ant.getRule().getColors();
 		if(colors == null) return;
 		
 		if(!Settings.renderVoid) for(int i = 0; i < pixels.length; i++) {
@@ -118,8 +129,8 @@ public class Level {
 			pixels[i] = 0xff000000;
 		}
 		
-		int cSIZE = worker.getAnt().cSIZE;
-		int cPOW = worker.getAnt().cPOW;
+		int cSIZE = ant.cSIZE;
+		int cPOW = ant.cPOW;
 
 		int xchunks = width/cSIZE;
 		int ychunks = height/cSIZE;
@@ -145,12 +156,12 @@ public class Level {
 				}
 			}			
 		} else if(worker.getType() == 2) { // z-axis projection
-			for(int zc = 0; zc < zchunks; zc++) {
+			for(int zc = -2; zc <= 2; zc++) {
 //				int zcf = zc<<(cPOW*2);
 				for(int yc = 0; yc < ychunks; yc++) {
 					int ycf = yc<<cPOW;
 					for(int xc = 0; xc < xchunks; xc++) {
-						Chunk c = getChunk2(xc-xchunks/2+xa, yc-ychunks/2+ya, zc-zchunks/2+za);
+						Chunk c = getChunk2(xc-xchunks/2+xa, yc-ychunks/2+ya, za + zc);
 						if(c == null) continue;
 						int xcf = xc<<cPOW;
 						int i = 0;
@@ -166,6 +177,7 @@ public class Level {
 									int state = c.cells[zo|i];
 									if(state == 0) continue;
 									pixels[index] = colors[state%colors.length];
+									break;
 								}
 								i++;
 							}
@@ -174,7 +186,20 @@ public class Level {
 				}
 			}
 		}
+
+		int h = 5;
+		int gap = 16;
+		g.setColor(Color.WHITE);
+		g.drawString(String.format("Iterations: %,d", worker.getIterations()), 10, h+=gap); 
+		g.drawString(String.format("Rule: %s (%s)", ant.getRule(), Long.toUnsignedString(ant.getRule().getRule())), 10, h+=gap);
 		
+		if(ant.findingPeriod()) {
+			g.setColor(Color.red);
+			g.drawString(String.format("Finding period... %,d", ant.getPeriod()), 10, h+=gap);
+		} else if(ant.periodFound()) {
+			g.setColor(Color.WHITE);
+			g.drawString(String.format("Period: %,d", ant.getPeriod()), 10, h+=gap);
+		}
 		//HEXAGONAL GRID
 //		else if(worker.getType()==1) {
 //			Chunk c = getChunk2(0, 0);

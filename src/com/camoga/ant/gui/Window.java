@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
@@ -109,7 +110,7 @@ public class Window {
 		int[] pixels = ((DataBufferInt) canvasImage.getRaster().getDataBuffer()).getData();
 		
 		public AntCanvas() {
-			setPreferredSize(new Dimension(800, 800));
+			setPreferredSize(new Dimension(640,640));
 		}
 		
 		public void run() {
@@ -128,30 +129,12 @@ public class Window {
 			Graphics g = getBufferStrategy().getDrawGraphics();
 			Worker w = WorkerManager.getWorker(0);
 			if(w==null) return;
-			int h = 15;
+
 			if(w.isRunning()) {
-				AbstractAnt a = w.getAnt();
-				w.getLevel().render(pixels, canvasImage.getWidth(), canvasImage.getHeight(), Settings.followAnt || a.findingPeriod());				
-				g.drawImage(canvasImage, 0, 0, 800, 800, null);
-				g.setColor(Color.WHITE);
-				g.drawString(String.format("Iterations: %,d", w.getIterations()), 10, h+=15); 
-				g.drawString(String.format("Rule: %s (%s)", a.getRule(), Long.toUnsignedString(a.getRule().getRule())), 10, h+=15);
-				if(a instanceof Ant) {
-//					g.drawString("Regression: " + ((Ant)a).r2x + ", " + ((Ant)a).r2y + ", " + ((Ant)a).rvx + ", " + ((Ant)a).rvy, 10, h+=15);
-//					g.drawString("Proportion: " + w.getLevel().prop, 10, h+=15);
-				}
+				w.getLevel().render(canvasImage, pixels, canvasImage.getWidth(), canvasImage.getHeight(), Settings.followAnt || w.getAnt().findingPeriod(), true);				
 			}
 
-			AbstractAnt ant = w.getAnt();
-
-			if(ant.findingPeriod()) {
-				g.setColor(Color.red);
-				g.drawString(String.format("Finding period... %,d", ant.getPeriod()), 10, h+=15);
-			} else if(ant.periodFound()) {
-				g.setColor(Color.WHITE);
-				g.drawString(String.format("Period: %,d", ant.getPeriod()), 10, 62);
-			}
-
+			g.drawImage(canvasImage, 0, 0, 800, 800, null);
 			g.dispose();
 			getBufferStrategy().show();
 		}
