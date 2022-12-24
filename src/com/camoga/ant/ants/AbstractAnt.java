@@ -72,7 +72,7 @@ public abstract class AbstractAnt {
 		direction = 0;
 		state = 0;
 		saveState = false;
-		match = 1;
+		match = 2;
 		states[1] = -1;
 		stateindex = 0;
 		period = 0;

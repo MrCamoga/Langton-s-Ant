@@ -10,7 +10,7 @@ public class Packet02Assignment extends Packet {
 	protected int type, size, count;
 	
 	public Packet02Assignment(DataInputStream is) throws IOException {
-		super(PacketType.ASSIGNMENT,is); // TODO put readData on parent class
+		super(PacketType.ASSIGNMENT); // TODO put readData on parent class
 		readData(is);
 	}
 	
@@ -35,24 +35,4 @@ public class Packet02Assignment extends Packet {
 
 	public int getType() { return type; }
 	public int getSize() { return size; }
-	public Iterator<Long> getData() {
-		if(is == null) return null;
-		Iterator<Long> it = new Iterator<Long>() {
-			public boolean hasNext() {
-				return count<size;
-			}
-
-			@Override
-			public Long next() {
-				try {
-					count++;
-					return is.readLong();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				return null;
-			}
-		};
-		return it;
-	}
 }

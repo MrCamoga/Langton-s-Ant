@@ -38,12 +38,16 @@ public abstract class Packet {
 		INVALID(-1),
 		OUTDATED(0), // client version is outdated
 		EXPIREDTOKEN(1), // user access token has expired
-		BADTOKEN(2), // user access token is wrong
+		BADAUTH(2), // user credentials are wrong
 		UNSETTOKEN(3), // user secret token is not set
 		LOGGED(4), // user has successfully logged in
 		NEWVERSION(5), // there is a new version available
+		BADREQUEST(6), // bad packet
+		UNAUTHORIZED(7), // 
+		RATELIMIT(8), // TODO rate limit exceeded
 		INTERNALERROR(64), // general server error
-		AUTHDISABLED(65) //	login disabled for maintenance
+		AUTHDISABLED(65), //	login disabled for maintenance
+		ANTDISABLED(66), // some type of ant (2d, hex, 3d, 4d,...) is disabled
 		;
 		
 		protected int code;

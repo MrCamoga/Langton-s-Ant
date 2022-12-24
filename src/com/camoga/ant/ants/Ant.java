@@ -79,16 +79,16 @@ public class Ant extends AbstractAnt {
 					states[(int) stateindex++] = s1;
 					states[(int) stateindex++] = s2;
 				} else stateindex+=2;
-				
-				if(states[match]!=s1 || states[match+1]!=s2) {
+
+				if(states[match] != s1 || states[match+1] != s2) {
 					match = 0;
 					period = stateindex;
 					xend = getX();
 					yend = getY();
 					directionend = direction;
 				} else {
-					match+=2;
-					if(match == states.length || match > Settings.repeatpercent*period) {
+					match += 2;
+					if(match == states.length || match > 50000+Settings.repeatpercent*period) {
 						PERIODFOUND = true;
 						saveState = false;
 						break;

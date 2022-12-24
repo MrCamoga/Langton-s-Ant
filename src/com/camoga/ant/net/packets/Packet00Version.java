@@ -6,32 +6,31 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import com.camoga.ant.Version;
+
 public class Packet00Version extends Packet {
 
-	protected int[] version = new int[3];
+	protected Version version;
 	
-	public Packet00Version(int[] version) {
+	public Packet00Version(Version version) {
 		super(PacketType.VERSION);
-		for(int i = 0; i < version.length; i++) this.version[i] = version[i];
+		this.version = version;
 	}
 
 	@Override
 	public void writeData(DataOutputStream os) throws IOException {
 		super.writeData(os);
-		for(int v : version) os.writeInt(v);
+		os.writeInt(version.getMajor());
+		os.writeInt(version.getMinor());
+		os.writeInt(version.getPatch());
 	}
 
 	@Override
 	public void readData(DataInputStream is) throws IOException {
-		for(int i = 0; i < version.length; i++) is.readInt();
+		version = new Version(is.readInt(),is.readInt(),is.readInt());
 	}
 
-	public int getMajor() { return version[0]; }
-	public int getMinor() { return version[1]; }
-	public int getPatch() { return version[2]; }
-	
-	public String getVersion() { 
-		return Arrays.stream(version).mapToObj(String::valueOf).collect(Collectors.joining("."));
+	public Version getVersion() { 
+		return version;
 	}
-	
 }

@@ -35,9 +35,9 @@ public class ServerActionListener implements ActionListener {
 				int option = JOptionPane.showOptionDialog(Window.f, panel, "Connect to Server", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, null);
 				
 				if(option == JOptionPane.YES_OPTION) {
-					String user = username.getText();
-					String hash = new String(pw.getPassword());
-					Client.client.login(user, hash);
+					Client.username = username.getText();
+					Client.secrettoken = new String(pw.getPassword());
+					Client.client.login();
 				}
 			}
 			break;

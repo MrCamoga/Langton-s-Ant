@@ -44,6 +44,7 @@ This way we make sure that no rule is tested multiple times.
 - [ ] Server
   - [ ] Verify rules by different clients
   - [ ] Prevent people from sending false data (trust system based on rule verification by other users)
+  - [x] Improved client-server protocol.
 - [x] Webpage
   - [x] Simulator (2d, hex, 3d, 4d,...), step by step, change map size, save image or video,...
   - [x] Search highways on database
@@ -52,6 +53,7 @@ This way we make sure that no rule is tested multiple times.
   - [x] User statistics and profiles
   - [x] API to retrieve rule data and user activity
   - [ ] Translation to other languages WIP
+  - [ ] Add new winding data to database
 - [ ] Improve GUI
 - [ ] Different work types:
   - [ ] Verify rules 
@@ -63,7 +65,7 @@ This way we make sure that no rule is tested multiple times.
 - [x] Algorithm to differentiate triangles/squares from highways:
 - [x] Calculate size of highways (displacement of the ant each period, e.g. the displacement of the original ant is 2x2). This is useful to distinguish highways with the same period but different structure.
 - [x] Calculate ant rotation (accumulated rotation of the ant to further distinguish ants with same period and size).
-- [x] Improved client-server protocol.
+- [ ] Make period calculation work 100% of the time in O(n).
 
 ## Database
 

@@ -21,6 +21,7 @@ import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -32,6 +33,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import com.camoga.ant.Version;
 import com.camoga.ant.WorkerManager;
 import com.camoga.ant.gui.Window;
 import com.camoga.ant.net.packets.Packet.PacketType;
@@ -50,7 +52,8 @@ public class Client {
 	static DataOutputStream os;
 	static DataInputStream is;
 	static String host;
-	static final int[] VERSION = {0,13,0};
+	static final int PORT = 7357;
+	static final Version VERSION = new Version(1,0,0);
 	
 	static int ASSIGN_SIZE = 50;
 	static long lastResultsTime;
@@ -62,7 +65,7 @@ public class Client {
 	
 	Thread connectionthread;
 	public static boolean logged = false;
-	public static String username, password;
+	public static String username, secrettoken;
 	
 	public static final int ANT_TYPES = 4;
 	volatile static long[] lastAssignTime = new long[ANT_TYPES];
@@ -79,10 +82,12 @@ public class Client {
 			LOG.setLevel(java.util.logging.Level.INFO);
 			System.setProperty("java.util.logging.SimpleFormatter.format", "%5$s%n");			
 		}
+		LOG.info("Langton's Ant Client v"+VERSION);
 		
 		properties = new Properties();
 		try {
-			properties.load(new InputStreamReader(new FileInputStream("langton.properties"),Charset.forName("UTF-8")));	//FIXME sometimes data is erased from langton.properties
+			LOG.info("Reading config...");
+			properties.load(new InputStreamReader(new FileInputStream("langton.properties"),Charset.forName("UTF-8")));
 		} catch(FileNotFoundException e) {
 			new File("langton.properties").createNewFile();
 		} catch(IOException e) {
@@ -96,7 +101,8 @@ public class Client {
 		}
 
 		WorkerManager.setWorkers(w, wh, w3, w4);
-		
+		LOG.info("Running on " + (w+wh+w3+w4) + " threads");
+//		WorkerManager.start();
 //		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 //			//save rules that take too much time to compute (>1e10 iterations)
 //		}));
@@ -104,10 +110,20 @@ public class Client {
 		connectionthread.start();
 	}
 	
-	public void login(String username, String secrettoken) {
+	private int logintries = 0;
+	public void login() {
 		if(logged) return;
-		Client.username = username;
-		Client.password = secrettoken;
+		if(username != null && secrettoken != null) {}
+		else if(System.getenv("LANGTON_USER") != null && System.getenv("LANGTON_PASS") != null) {
+			Client.username = System.getenv("LANGTON_USER");
+			Client.secrettoken = System.getenv("LANGTON_PASS");
+		} else if(properties.getProperty("username") != null && properties.getProperty("secrettoken") != null) {
+			Client.username = properties.getProperty("username");
+			Client.secrettoken = properties.getProperty("secrettoken");
+		} else {
+			LOG.warning("You have to login.");
+			System.exit(0);
+		}
 		
 		try {
 			// Get access token
@@ -122,11 +138,14 @@ public class Client {
 			HttpResponse<String> response = client.send(req, HttpResponse.BodyHandlers.ofString());
 			int status = response.statusCode();
 			if(status != 200) {
-				LOG.warning("An error ocurred while getting access token. Error code: " + response.headers().firstValue("status").orElse(""));
+				LOG.warning(response.body());
+				LOG.warning("An error ocurred while getting access token. Error code: " + response.headers().firstValue("status").orElse(status+""));
+				if(status==401) System.exit(1);
 				return;
 			} else {
 				accesstoken = response.body();
 			}
+			
 			Packet00Version versionpacket = new Packet00Version(VERSION);
 			versionpacket.writeData(os);
 			Packet01Auth loginpacket = new Packet01Auth(username, accesstoken);
@@ -169,43 +188,35 @@ public class Client {
 		}
 	}
 	
-	private void run() {	
+	private void run() {
 		lastResultsTime = System.currentTimeMillis();
 		while(!STOP_ON_DISCONNECT) {
 			try {
-				socket = new Socket(host,7357);
+				socket = new Socket(host,PORT);
 				os = new DataOutputStream(socket.getOutputStream());
 				is = new DataInputStream(socket.getInputStream());
 				
 				LOG.info("Connected to server");
 				
-				if(username != null && password != null) {
-					login(username,password);
-				} else if(System.getenv("LANGTON_USER") != null && System.getenv("LANGTON_PASS") != null) {
-					login(System.getenv("LANGTON_USER"), System.getenv("LANGTON_PASS"));
-				} else if(properties.getProperty("username") != null && properties.getProperty("secrettoken") != null) {
-					login(properties.getProperty("username"), Client.properties.getProperty("secrettoken"));
-				}
+				login();
 
 				while(true) {
-					switch(PacketType.getPacketType(is.readByte())) {
+					PacketType pk = PacketType.getPacketType(is.readByte());
+					switch(pk) {
 					case AUTH:
-						byte result = is.readByte();
-						if(result == 0) {
-							username = new String(is.readNBytes(is.readByte()));
-							LOG.info("Logged in as " + username);
-							logged = true;
-							storeCredentials();
-							for(int i = 0; i < ANT_TYPES; i++) getAssignment(i);
-						} else if(result == 1) {
-							Client.username = null;
-							Client.password = null;
-							LOG.warning("Wrong username or password!");
-						}
+						Packet01Auth packetlogin = new Packet01Auth(is);
+						username = packetlogin.getUsername();
+						LOG.info("Logged in as " + username);
+						logged = true;
+						logintries = 0;
+						storeCredentials();
+						for(int i = 0; i < ANT_TYPES; i++) getAssignment(i);
 						break;
 					case ASSIGNMENT:
 						Packet02Assignment packet = new Packet02Assignment(is);
-						packet.getData().forEachRemaining(assignments[packet.getType()]::add);
+						for(int i = 0; i < packet.getSize(); i++) {
+							assignments[packet.getType()].add(is.readLong());
+						}
 						LOG.info("New assignment of " + packet.getSize()/2 + " rules");
 						WorkerManager.start();
 						break;
@@ -220,21 +231,27 @@ public class Client {
 						int status = packetstatus.getStatusCode();
 						String message = packetstatus.getFullMessage();
 						switch(StatusCodes.getStatus(status)) {
-						case AUTHDISABLED, INTERNALERROR: // retry login (slow)
+						case AUTHDISABLED, INTERNALERROR, ANTDISABLED: // retry login (slow)
+							LOG.warning(message);
 							break;
-						case BADTOKEN, OUTDATED, UNSETTOKEN:
+						case EXPIREDTOKEN: // retry login (fast)
+							LOG.warning(message);
+						case BADAUTH:
+							logintries++;
+							if(logintries<5) break;
+						case OUTDATED, UNSETTOKEN:
 							LOG.warning(message);
 							System.exit(1);
 							break;
-						case EXPIREDTOKEN: // retry login (fast)
-							break;
-						case LOGGED: // get assignment
-							break;
-						case INVALID:
-							break;
+//						case INVALID:
+//							LOG.warning(message);
+//							break;
+//						case UNAUTHORIZED:
+//							LOG.warning(message);
+//							break;
 						default:
+							LOG.warning(message);
 							break;
-						
 						}
 						break;
 					default:
@@ -292,10 +309,10 @@ public class Client {
 			if(cmd.hasOption("u")) {
 				String username = cmd.getOptionValue("u");
 				System.out.print("Enter secret token: ");
-				String password = new String(System.console().readPassword());
-				if(username != null && password != null) {
+				String secrettoken = new String(System.console().readPassword());
+				if(username != null && secrettoken != null) {
 					Client.username = username;
-					Client.password = password;
+					Client.secrettoken = secrettoken;
 				}
 			}
 			boolean gui = !GraphicsEnvironment.isHeadless() && !cmd.hasOption("ng");
@@ -352,9 +369,9 @@ public class Client {
 	}
 	
 	public static void storeCredentials() {
-		if(username != null && password != null) {
+		if(username != null && secrettoken != null) {
 			Client.properties.setProperty("username", username);
-			Client.properties.setProperty("secrettoken", password);			
+			Client.properties.setProperty("secrettoken", secrettoken);			
 		}
 		
 		saveProperties();

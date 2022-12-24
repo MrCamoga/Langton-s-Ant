@@ -13,6 +13,11 @@ public class Packet01Auth extends Packet {
 		this.username = username;
 		this.accesstoken = accesstoken;
 	}
+	
+	public Packet01Auth(DataInputStream is) throws IOException {
+		super(PacketType.AUTH, is);
+		readData(is);
+	}
 
 	@Override
 	public void writeData(DataOutputStream os) throws IOException {
@@ -26,7 +31,6 @@ public class Packet01Auth extends Packet {
 	@Override
 	public void readData(DataInputStream is) throws IOException {
 		username = new String(is.readNBytes(is.readInt()));
-		accesstoken = new String(is.readNBytes(is.readInt()));
 	}
 
 	public String getUsername() { return username; }

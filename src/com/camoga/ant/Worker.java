@@ -1,7 +1,5 @@
 package com.camoga.ant;
 
-import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.File;
@@ -97,7 +95,7 @@ public class Worker {
 				//Farthest chunk ant has traveled
 				int maxc = Math.max(Math.abs(getAnt().getXC()), Math.abs(getAnt().getYC()));
 				if(maxc > maxChunk) maxChunk = maxc;
-				if(maxChunk > Settings.chunkCheck && getLevel().chunks.size()/(double)(maxChunk*maxChunk) < 0.20) { // Proportion of chunks generated over size of square that bounds all chunks. If prop -> 0 ant forms a highway (prop might go near 0 if ant forms a thin triangle)
+				if(maxChunk > Settings.chunkCheck && level.chunks.size() < 0.2*maxChunk*maxChunk) { // Proportion of chunks generated over size of square that bounds all chunks. If prop -> 0 ant forms a highway (prop might go near 0 if ant forms a thin triangle)
 					getLevel().deleteOldChunks = true;
 					setFindingPeriod(true);
 				}
@@ -118,15 +116,15 @@ public class Worker {
 		if(type == 0) { // 2d ant square grid
 			long period = ant.periodFound() ? ant.getPeriod():(ant.findingPeriod() ? 1:0);
 			long winding = (ant.directionend-ant.directionstart);
+			long[] d = {Math.abs(ant.xend-ant.xstart), Math.abs(ant.yend-ant.ystart)};
 			if(period > 1) { // detect triangles
 				double dist = Math.sqrt(ant.getX()*ant.getX()+ant.getY()*ant.getY());
-				double highdist = Math.sqrt((ant.xend-ant.xstart)*(ant.xend-ant.xstart)+(ant.yend-ant.ystart)*(ant.yend-ant.ystart));
+				double highdist = Math.sqrt(d[0]*d[0]+d[1]*d[1]);
 				double dot = (ant.getX()*(ant.xend-ant.xstart)+ant.getY()*(ant.yend-ant.ystart))/(dist*highdist);
-				if(dot < 0.8) period = 0;
-				if((winding&3) != 0) period = 1; // check full turn
+				if(dot < 0.3) period = 0;
+				if((winding&3) != 0) period = 1;
 			}
 			if(period <= 1) return new long[] {rule,period,iterations,0,0,0};
-			long[] d = {Math.abs(ant.xend-ant.xstart), Math.abs(ant.yend-ant.ystart)};
 			Arrays.sort(d);
 			return new long[] {rule,period,iterations,d[1],d[0],winding>>2};
 		} else if(type == 1) { // hex ant
@@ -155,21 +153,7 @@ public class Worker {
 	
 	protected void saveImage(File file, boolean info) {
 		BufferedImage image = new BufferedImage(1024, 1024, BufferedImage.TYPE_INT_RGB);
-		level.render(((DataBufferInt)(image.getRaster().getDataBuffer())).getData(), image.getWidth(), image.getHeight(), true);
-		if(info) {
-			Graphics g = image.createGraphics();
-			//TODO merge with render method
-			g.setColor(Color.WHITE);
-			g.drawString("Iterations: " + iterations, 10, 30); 
-			g.drawString("Rule: " + ant.getRule() + " ("+ant.getRule().getRule()+")", 10, 46);
-			if(ant.findingPeriod()) {
-				g.setColor(Color.red);
-				g.drawString("Finding period... " + ant.getPeriod(), 10, 62);
-			} else if(ant.periodFound()) {
-				g.setColor(Color.WHITE);
-				g.drawString("Period: " + ant.getPeriod(), 10, 62);
-			}			
-		}
+		level.render(image, ((DataBufferInt)(image.getRaster().getDataBuffer())).getData(), image.getWidth(), image.getHeight(), true, info);
 		
 		try {
 			ImageIO.write(image, "PNG", file);

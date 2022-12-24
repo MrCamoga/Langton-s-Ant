@@ -10,6 +10,12 @@ public class Packet03Result extends Packet {
 	protected int type, size;
 	protected ByteArrayOutputStream rules;
 	
+	/**
+	 * 
+	 * @param type type of ant
+	 * @param size number of rules
+	 * @param baos
+	 */
 	public Packet03Result(int type, int size, ByteArrayOutputStream baos) {
 		super(PacketType.RESULTS);
 		this.type = type;
