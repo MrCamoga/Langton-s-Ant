@@ -53,7 +53,7 @@ public class Client {
 	static DataInputStream is;
 	static String host;
 	static final int PORT = 7357;
-	static final Version VERSION = new Version(1,0,0);
+	static final Version VERSION = new Version(1,0,1);
 	
 	static int ASSIGN_SIZE = 50;
 	static long lastResultsTime;
@@ -176,6 +176,7 @@ public class Client {
 				if(storedrules[i].size() > 1) {
 					Packet03Result packet = new Packet03Result(i,storedrules[i].size()/offset[i],storedrules[i]);
 					packet.writeData(os);
+					storedrules[i].reset();
 					datasent = true;
 				}
 			}
