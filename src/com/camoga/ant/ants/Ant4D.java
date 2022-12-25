@@ -1,6 +1,7 @@
 package com.camoga.ant.ants;
 
 import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
@@ -35,18 +36,13 @@ public class Ant4D extends AbstractAnt {
 	static {
 		transform = new int[192*256];
 		try {
-			BufferedReader br = new BufferedReader(new InputStreamReader(Ant4D.class.getClassLoader().getResourceAsStream("4dtransform.txt")));
-			String line;
-			int i = 0;
-			while((line = br.readLine()) != null) {
-				String[] s = line.split(",");
-				for(int j = 0; j < s.length; j++) {
-					transform[(i<<8) | j] = Integer.parseInt(s[j]);
-				}
-				i++;
+			DataInputStream dis = new DataInputStream(Ant4D.class.getClassLoader().getResourceAsStream("4d.table"));
+			for(int i = 0; dis.available() > 0;) {
+				if((i&0xff) == 192) i+=64;
+				transform[i++] = dis.read()&0xff;
 			}
-			br.close();
-			if(Arrays.hashCode(transform) != 447971329) throw new RuntimeException("Invalid 4dtransform");
+			dis.close();
+			if(Arrays.hashCode(transform) != 447971329) throw new RuntimeException("Invalid 4d table.");
 		} catch(IOException e) {
 			e.printStackTrace();
 		}

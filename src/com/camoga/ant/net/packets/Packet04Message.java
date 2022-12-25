@@ -4,8 +4,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import com.camoga.ant.net.packets.Packet.PacketType;
-
 public class Packet04Message extends Packet {
 
 	protected String message;

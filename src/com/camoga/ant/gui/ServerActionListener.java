@@ -3,7 +3,6 @@ package com.camoga.ant.gui;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Arrays;
 import java.util.Optional;
 
 import javax.swing.JLabel;

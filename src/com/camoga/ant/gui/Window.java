@@ -2,9 +2,7 @@ package com.camoga.ant.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Canvas;
-import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
@@ -27,8 +25,6 @@ import javax.swing.text.DefaultCaret;
 import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
 import com.camoga.ant.WorkerManager;
-import com.camoga.ant.ants.AbstractAnt;
-import com.camoga.ant.ants.Ant;
 import com.camoga.ant.net.Client;
 
 public class Window {
