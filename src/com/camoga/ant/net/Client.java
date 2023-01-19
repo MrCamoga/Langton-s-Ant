@@ -53,7 +53,7 @@ public class Client {
 	static DataInputStream is;
 	static String host;
 	static final int PORT = 7357;
-	static final Version VERSION = new Version(1,0,1);
+	static final Version VERSION = new Version(1,0,2);
 	
 	static int ASSIGN_SIZE = 50;
 	static long lastResultsTime;
@@ -128,7 +128,7 @@ public class Client {
 		try {
 			// Get access token
 			String accesstoken;
-			URI url = URI.create("https://langtonsantproject.sytes.net/getaccesstoken.php");
+			URI url = URI.create("https://langtonsant.es/getaccesstoken.php");
 			HttpClient client = HttpClient.newHttpClient();
 			HttpRequest req = HttpRequest.newBuilder()
 					.uri(url)
@@ -317,7 +317,7 @@ public class Client {
 				}
 			}
 			boolean gui = !GraphicsEnvironment.isHeadless() && !cmd.hasOption("ng");
-			host = cmd.hasOption("host") ? cmd.getOptionValue("host"):"langtonsantproject.sytes.net";
+			host = cmd.hasOption("host") ? cmd.getOptionValue("host"):"langtonsant.es";
 			if(workers2 == 0 && workershex == 0 && workers3 == 0 && workers4 == 0) workers2 = 1;
 			client = new Client(workers2,workershex,workers3,workers4,nolog);
 			if(gui)
