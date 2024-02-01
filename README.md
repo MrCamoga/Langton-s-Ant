@@ -14,7 +14,7 @@ More information on [Wikipedia](https://en.wikipedia.org/wiki/Langton%27s_ant#Ex
 
 ## How to use
 
-You first have to register [here](https://langtonsantproject.sytes.net/register.php). After that, go to settings and generate a secret token to login on the java client. The token can be regenerated again if it's lost.
+You first have to register [here](https://langtonsant.es/register.php). After that, go to settings and generate a secret token to login on the java client. The token can be regenerated again if it's lost.
 
 ### Commands
 
@@ -42,8 +42,7 @@ This way we make sure that no rule is tested multiple times.
 
 ## TODO
 - [ ] Server
-  - [ ] Verify rules by different clients
-  - [ ] Prevent people from sending false data (trust system based on rule verification by other users)
+  - [ ] Verify rules by different clients (WIP)
   - [x] Improved client-server protocol.
 - [x] Webpage
   - [x] Simulator (2d, hex, 3d, 4d,...), step by step, change map size, save image or video,...
@@ -51,12 +50,15 @@ This way we make sure that no rule is tested multiple times.
   - [x] Login/Register
   - [x] Like rules
   - [x] User statistics and profiles
-  - [x] API to retrieve rule data and user activity
-  - [ ] Translation to other languages WIP
-  - [ ] Add new winding data to database
+  - [x] API
+  - [x] Add new winding data to database
+  - [ ] Add histogram of the states used in the highway construction?
+  - [ ] User lists to save rules (WIP)
+  - [ ] Comments on rules (WIP)
+  - [ ] Translation to other languages (WIP)
 - [ ] Improve GUI
+- [ ] Refactor code 
 - [ ] Different work types:
-  - [ ] Verify rules 
   - [ ] Approximate period of big highways
   - [ ] Find exact period of big highways
 - [ ] Render hexagonal grid
@@ -65,13 +67,15 @@ This way we make sure that no rule is tested multiple times.
 - [x] Algorithm to differentiate triangles/squares from highways:
 - [x] Calculate size of highways (displacement of the ant each period, e.g. the displacement of the original ant is 2x2). This is useful to distinguish highways with the same period but different structure.
 - [x] Calculate ant rotation (accumulated rotation of the ant to further distinguish ants with same period and size).
-- [ ] Make period calculation work 100% of the time in O(n).
+- [ ] Make period calculation work 100% of the time in O(n). Right now the period calculation breaks on 0.1% of the rules but at least it says they have period 1 so they can be retested in the future.
 
 ## Database
 
-Go to [Langton's Ant Rule DB](https://langtonsantproject.sytes.net/searchrule.php) to explore the database.
+Go to [Langton's Ant Rule DB](https://langtonsant.es/db/rules) to explore the database.
 
 ### Biggest highways with unknown period
+
+If we find the size of the highway and the velocity at which it advances, we can estimate the total period of some huge highways (supposing the ant in fact forms a highway and doesn't break midway). To get the size of the highway, we find the period of each line of cells and compute the least common multiple of all of them. For the velocity, we iterate the ant and note approximately how many iterations it takes the ant to advance one cell in the direction the highway is growing.
 
 | Tested to # iters	|	Rule String					|	Rule number		|	Highway size	|	Estimated period	|	Real period		|	Rel. Error	|
 |:-:|:-|:-:|:-:|:-:|:-:|:-:|

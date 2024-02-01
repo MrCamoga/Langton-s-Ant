@@ -66,8 +66,9 @@ public class Worker {
 			time = System.nanoTime();
 			long[] result = runRule(rule,maxiterations);
 			Client.storeRules(type,result);
+			
 			float seconds = (float) ((-time + (time = System.nanoTime()))/1e9);
-			Client.LOG.info(String.format("%02d %s\t%s\t%.4E it/s\t%.4f s\t%s", workerid, Long.toUnsignedString(rule), ant.getRule(), this.iterations/seconds, seconds, (result[1] > 1 ? (result[1] + " " + Arrays.toString(Arrays.copyOfRange(result, 3, result.length))):result[1]==1 ? "?":"")));
+			Client.LOG.info(String.format("%02d %s\t%s\t%.4E it/s\t%.4f s\t%s", workerid, Long.toUnsignedString(rule), ant.getRule(), this.iterations/seconds, seconds, (result[1] > 1 ? (result[1] + " " + Arrays.toString(Arrays.copyOfRange(result, 4, result.length))):result[1]==1 ? "?":"")));
 		}
 		Client.LOG.warning("Worker " + workerid + " has stopped");
 		running = false;
@@ -124,9 +125,10 @@ public class Worker {
 				if(dot < 0.3) period = 0;
 				if((winding&3) != 0) period = 1;
 			}
-			if(period <= 1) return new long[] {rule,period,iterations,0,0,0};
+			int hash = ((Ant)ant).computeHash();
+			if(period <= 1) return new long[] {rule,period,iterations,hash,0,0,0};
 			Arrays.sort(d);
-			return new long[] {rule,period,iterations,d[1],d[0],winding>>2};
+			return new long[] {rule,period,iterations,hash,d[1],d[0],winding>>2};
 		} else if(type == 1) { // hex ant
 			if(ant.findingPeriod()) return new long[] {rule,0,iterations,1,0};
 			if(!ant.periodFound()) return new long[] {rule,0,iterations,0,0};

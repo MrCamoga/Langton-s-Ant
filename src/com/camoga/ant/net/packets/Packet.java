@@ -18,7 +18,7 @@ public abstract class Packet {
 		INVALID(-1),
 		VERSION(0), AUTH(1),
 		ASSIGNMENT(2), RESULTS(3),
-		MESSAGE(4), STATUS(5);
+		MESSAGE(4), STATUS(5), DISCONNECT(6);
 		
 		private int id;
 		

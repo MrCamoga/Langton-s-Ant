@@ -21,7 +21,6 @@ import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -53,7 +52,7 @@ public class Client {
 	static DataInputStream is;
 	static String host;
 	static final int PORT = 7357;
-	static final Version VERSION = new Version(1,0,2);
+	static final Version VERSION = new Version(1,1,0);
 	
 	static int ASSIGN_SIZE = 50;
 	static long lastResultsTime;
@@ -71,11 +70,11 @@ public class Client {
 	volatile static long[] lastAssignTime = new long[ANT_TYPES];
 	public static ArrayDeque<Long>[] assignments = new ArrayDeque[ANT_TYPES];
 	public static ByteArrayOutputStream[] storedrules = new ByteArrayOutputStream[ANT_TYPES];
-	public static int[] offset = {48,40,48,56};
+	public static int[] offset = {56,40,48,56};
 
 	public static Client client;
-	
-	public Client(int w, int wh, int w3, int w4, boolean nolog) throws IOException {
+
+	public Client(int w2, int wh, int w3, int w4, boolean nolog) throws IOException {
 		if(nolog) {
 			LOG.setLevel(java.util.logging.Level.WARNING);
 		} else {
@@ -100,8 +99,8 @@ public class Client {
 			storedrules[i] = new ByteArrayOutputStream();			
 		}
 
-		WorkerManager.setWorkers(w, wh, w3, w4);
-		LOG.info("Running on " + (w+wh+w3+w4) + " threads");
+		WorkerManager.setWorkers(w2, wh, w3, w4);
+		LOG.info("Running on " + (w2+wh+w3+w4) + " threads");
 //		WorkerManager.start();
 //		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 //			//save rules that take too much time to compute (>1e10 iterations)
@@ -194,6 +193,7 @@ public class Client {
 		while(!STOP_ON_DISCONNECT) {
 			try {
 				socket = new Socket(host,PORT);
+
 				os = new DataOutputStream(socket.getOutputStream());
 				is = new DataInputStream(socket.getInputStream());
 				
@@ -232,7 +232,9 @@ public class Client {
 						int status = packetstatus.getStatusCode();
 						String message = packetstatus.getFullMessage();
 						switch(StatusCodes.getStatus(status)) {
-						case AUTHDISABLED, INTERNALERROR, ANTDISABLED: // retry login (slow)
+						case AUTHDISABLED:
+						case INTERNALERROR:
+						case ANTDISABLED: // retry login (slow)
 							LOG.warning(message);
 							break;
 						case EXPIREDTOKEN: // retry login (fast)
@@ -240,7 +242,8 @@ public class Client {
 						case BADAUTH:
 							logintries++;
 							if(logintries<5) break;
-						case OUTDATED, UNSETTOKEN:
+						case OUTDATED:
+						case UNSETTOKEN:
 							LOG.warning(message);
 							System.exit(1);
 							break;
@@ -346,10 +349,7 @@ public class Client {
 	
 	public synchronized static void storeRules(int type, long[] rule) {
 		try {
-			if(type==0 && rule.length != 6) throw new RuntimeException();
-			if(type==1 && rule.length != 5) throw new RuntimeException();
-			if(type==2 && rule.length != 6) throw new RuntimeException();
-			if(type==3 && rule.length != 7) throw new RuntimeException();
+			if(rule.length*8 != offset[type]) throw new RuntimeException();
 			ByteBuffer bb = ByteBuffer.allocate(8*rule.length);
 			for(int i = 0; i < rule.length; i++) {
 				bb.putLong(rule[i]);

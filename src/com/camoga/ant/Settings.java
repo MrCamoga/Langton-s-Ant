@@ -8,7 +8,7 @@ public class Settings {
 	public static boolean followAnt = true;
 	static boolean smoothFollow = false; //TODO
 	public static boolean renderVoid = false; // draws black where no chunk has been generated
-	public static int itpf = 2000000; // iterations between frames
+	public static int itpf = 1000000; // iterations between frames
 	
 	//FIND HIGHWAYS
 	public static int chunkCheck = 80; // Check if the ant forms a highway when the ant goes further than this chunk from the origin
