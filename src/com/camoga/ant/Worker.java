@@ -114,6 +114,7 @@ public class Worker {
 				getAnt().setFindingPeriod(true);
 			}
 		}
+		int hash = ant.computeHash();
 		if(type == 0) { // 2d ant square grid
 			long period = ant.periodFound() ? ant.getPeriod():(ant.findingPeriod() ? 1:0);
 			long winding = (ant.directionend-ant.directionstart);
@@ -125,30 +126,29 @@ public class Worker {
 				if(dot < 0.3) period = 0;
 				if((winding&3) != 0) period = 1;
 			}
-			int hash = ((Ant)ant).computeHash();
 			if(period <= 1) return new long[] {rule,period,iterations,hash,0,0,0};
 			Arrays.sort(d);
 			return new long[] {rule,period,iterations,hash,d[1],d[0],winding>>2};
 		} else if(type == 1) { // hex ant
-			if(ant.findingPeriod()) return new long[] {rule,0,iterations,1,0};
-			if(!ant.periodFound()) return new long[] {rule,0,iterations,0,0};
+			if(ant.findingPeriod()) return new long[] {rule,0,iterations,hash,1,0};
+			if(!ant.periodFound()) return new long[] {rule,0,iterations,hash,0,0};
 			// Find the shortest path to dx,dy. We convert to cube coordinates and pick the ones with the same sign
 			long[] coordinates = {ant.xend-ant.xstart,ant.yend-ant.ystart,0}; coordinates[2] = -coordinates[1] - coordinates[0];
 			Arrays.sort(coordinates);
-			if(coordinates[1] >= 0) return new long[] {rule,ant.getPeriod(),iterations,coordinates[2],coordinates[1]};
-			return new long[] {rule,ant.getPeriod(),iterations,-coordinates[0],-coordinates[1]};
+			if(coordinates[1] >= 0) return new long[] {rule,ant.getPeriod(),iterations,hash,coordinates[2],coordinates[1]};
+			return new long[] {rule,ant.getPeriod(),iterations,hash,-coordinates[0],-coordinates[1]};
 		} else if(type == 2) { // 3d ant
 			long period = ant.periodFound() ? ant.getPeriod():(ant.findingPeriod() ? 1:0);
-			if(period <= 1) return new long[] {rule,period,iterations,0,0,0};
+			if(period <= 1) return new long[] {rule,period,iterations,hash,0,0,0};
 			long[] d = {Math.abs(ant.xend-ant.xstart), Math.abs(ant.yend-ant.ystart), Math.abs(ant.zend-ant.zstart)};
 			Arrays.sort(d);
-			return new long[] {rule,period,iterations,d[2],d[1],d[0]};	
+			return new long[] {rule,period,iterations,hash,d[2],d[1],d[0]};	
 		} else if(type == 3) { // 4d ant
 			long period = ant.periodFound() ? ant.getPeriod():(ant.findingPeriod() ? 1:0);
-			if(period <= 1) return new long[] {rule,period,iterations,0,0,0,0};
+			if(period <= 1) return new long[] {rule,period,iterations,hash,0,0,0,0};
 			long[] d = {Math.abs(ant.xend-ant.xstart), Math.abs(ant.yend-ant.ystart), Math.abs(ant.zend-ant.zstart), Math.abs(ant.wend-ant.wstart)};
 			Arrays.sort(d);
-			return new long[] {rule,period,iterations,d[3],d[2],d[1],d[0]};	
+			return new long[] {rule,period,iterations,hash,d[3],d[2],d[1],d[0]};	
 		}
 		return null;
 	}

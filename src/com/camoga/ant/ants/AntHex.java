@@ -2,6 +2,7 @@ package com.camoga.ant.ants;
 
 import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
+import com.camoga.ant.level.Level.Chunk;
 
 public class AntHex extends AbstractAnt {
 
@@ -61,5 +62,30 @@ public class AntHex extends AbstractAnt {
 			}
 		}
 		return iterations;
+	}
+	
+	public int computeHash() {
+		int hash = 1;
+		for(int i = -3, yc = this.yc, y = this.y+i; i < 4; i++, y++) {
+			if(y < 0) {
+				y += cSIZE;
+				yc--;
+			} else if(y > cSIZEm) {
+				y-= cSIZE;
+				yc++;
+			}
+			for(int j = -3, xc = this.xc, x = this.x+j; j < 4; j++, x++) {
+				if(x < 0) {
+					x += cSIZE;
+					xc--;
+				} else if(x > cSIZEm) {
+					x-= cSIZE;
+					xc++;
+				}
+				Chunk c = worker.getLevel().getChunk2(xc, yc);
+				hash = 31*hash + (c!=null ? c.cells[(y<<cPOW) | x]:0);
+			}
+		}
+		return hash;
 	}
 }

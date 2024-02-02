@@ -2,6 +2,7 @@ package com.camoga.ant.ants;
 
 import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
+import com.camoga.ant.level.Level.Chunk;
 
 public class Ant extends AbstractAnt {
 
@@ -32,14 +33,11 @@ public class Ant extends AbstractAnt {
 				if(y > cSIZEm) {
 					y = 0;
 					yc++;
-//					index -= cSIZE2;
 				} else if(y < 0) {
 					y = cSIZEm;
 					yc--;
-//					index += cSIZE2;
 				} else break changechunk;
 				chunk = worker.getLevel().getChunk(xc, yc);
-//				chunk = chunk.getNeighbour(xc, yc, dir2); //TODO fix memory leak
 			}
 		
 			index = (y<<cPOW)|x;
@@ -47,21 +45,17 @@ public class Ant extends AbstractAnt {
 			if(chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
 			direction += rule.turn[state1];
 			dir1 = (int)direction&0b11;
-//			index += directioni[dir1];
 			x += directionx[dir1];
 
 			changechunk: {
 				if(x > cSIZEm) {
 					x = 0;
 					xc++;
-//					index -= cSIZE;
 				} else if(x < 0) {
 					x = cSIZEm;
 					xc--;
-//					index += cSIZE;
 				} else break changechunk;
 				chunk = worker.getLevel().getChunk(xc, yc);
-//				chunk = chunk.getNeighbour(xc, yc, dir1);
 			}
 
 			index = (y<<cPOW)|x;
@@ -69,7 +63,6 @@ public class Ant extends AbstractAnt {
 			if(chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
 			direction += rule.turn[state2];
 			dir2 = (int)direction&0b11;
-//			index += directioni[dir2];
 			y += directiony[dir2];
 			
 			if(findingPeriod()) {
@@ -97,5 +90,30 @@ public class Ant extends AbstractAnt {
 			}
 		}
 		return iteration;
+	}
+	
+	public int computeHash() {
+		int hash = 1;
+		for(int i = -3, yc = this.yc, y = this.y+i; i < 4; i++, y++) {
+			if(y < 0) {
+				y += cSIZE;
+				yc--;
+			} else if(y > cSIZEm) {
+				y-= cSIZE;
+				yc++;
+			}
+			for(int j = -3, xc = this.xc, x = this.x+j; j < 4; j++, x++) {
+				if(x < 0) {
+					x += cSIZE;
+					xc--;
+				} else if(x > cSIZEm) {
+					x-= cSIZE;
+					xc++;
+				}
+				Chunk c = worker.getLevel().getChunk2(xc, yc);
+				hash = 31*hash + (c!=null ? c.cells[(y<<cPOW) | x]:0);
+			}
+		}
+		return hash;
 	}
 }

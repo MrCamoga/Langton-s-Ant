@@ -8,6 +8,7 @@ import java.util.Arrays;
 
 import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
+import com.camoga.ant.level.Level.Chunk;
 
 public class Ant4D extends AbstractAnt {
 
@@ -128,6 +129,49 @@ public class Ant4D extends AbstractAnt {
 			}
 		}
 		return iteration;
+	}
+	
+	public int computeHash() {
+		int hash = 1;
+		for(int h = -2, wc = this.wc, w = this.w+h; h < 3; h++, w++) {
+			if(w < 0) {
+				w += cSIZE;
+				wc--;
+			} else if(w > cSIZEm) {
+				w-= cSIZE;
+				wc++;
+			}
+			for(int i = -2, zc = this.zc, z = this.z+i; i < 3; i++, z++) {
+				if(z < 0) {
+					z += cSIZE;
+					zc--;
+				} else if(z > cSIZEm) {
+					z-= cSIZE;
+					zc++;
+				}
+				for(int j = -2, yc = this.yc, y = this.y+j; j < 3; j++, y++) {
+					if(y < 0) {
+						y += cSIZE;
+						yc--;
+					} else if(y > cSIZEm) {
+						y-= cSIZE;
+						yc++;
+					}
+					for(int k = -2, xc = this.xc, x = this.x+k; k < 3; k++, x++) {
+						if(x < 0) {
+							x += cSIZE;
+							xc--;
+						} else if(x > cSIZEm) {
+							x-= cSIZE;
+							xc++;
+						}
+						Chunk c = worker.getLevel().getChunk2(xc, yc, zc, wc);
+						hash = 31*hash + (c!=null ? c.cells[(((((w<<cPOW)|z)<<cPOW)|y)<<cPOW)|x]:0);
+					}
+				}
+			}
+		}
+		return hash;
 	}
 	
 	public long getPeriod() {

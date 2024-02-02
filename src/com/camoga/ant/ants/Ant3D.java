@@ -2,6 +2,7 @@ package com.camoga.ant.ants;
 
 import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
+import com.camoga.ant.level.Level.Chunk;
 
 public class Ant3D extends AbstractAnt {
 	
@@ -110,6 +111,40 @@ public class Ant3D extends AbstractAnt {
 			}
 		}
 		return iteration;
+	}
+	
+	public int computeHash() {
+		int hash = 1;
+		for(int i = -2, zc = this.zc, z = this.z+i; i < 3; i++, z++) {
+			if(z < 0) {
+				z += cSIZE;
+				zc--;
+			} else if(z > cSIZEm) {
+				z-= cSIZE;
+				zc++;
+			}
+			for(int j = -2, yc = this.yc, y = this.y+j; j < 3; j++, y++) {
+				if(y < 0) {
+					y += cSIZE;
+					yc--;
+				} else if(y > cSIZEm) {
+					y-= cSIZE;
+					yc++;
+				}
+				for(int k = -2, xc = this.xc, x = this.x+k; k < 3; k++, x++) {
+					if(x < 0) {
+						x += cSIZE;
+						xc--;
+					} else if(x > cSIZEm) {
+						x-= cSIZE;
+						xc++;
+					}
+					Chunk c = worker.getLevel().getChunk2(xc, yc, zc);
+					hash = 31*hash + (c!=null ? c.cells[(((z<<cPOW)|y)<<cPOW)|x]:0);
+				}
+			}
+		}
+		return hash;
 	}
 	
 	public long getPeriod() {

@@ -55,6 +55,12 @@ public abstract class AbstractAnt {
 	
 	public abstract int move();
 	
+	/**
+	 * Compute a hash around the ant for verification purposes.
+	 * @return
+	 */
+	public abstract int computeHash();
+	
 	public void init(long rule, long iterations) {
 		int stateslen = iterations == -1 ? 200000000:(int) Math.min(Math.max(5000000,iterations/(int)Settings.repeatpercent*2), 200000000);
 		if(states == null || states.length != stateslen) states = new byte[stateslen];
