@@ -3,6 +3,7 @@ package com.camoga.ant.net.packets;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Scanner;
 
 public class Packet04Message extends Packet {
 
@@ -21,13 +22,14 @@ public class Packet04Message extends Packet {
 	@Override
 	public void writeData(DataOutputStream os) throws IOException {
 		super.writeData(os);
-		os.writeInt(message.length());
 		os.write(message.getBytes());
+		os.write(0);
 	}
 
 	@Override
 	public void readData(DataInputStream is) throws IOException {
-		message = new String(is.readNBytes(is.readInt()));
+		Scanner sc = new Scanner(is).useDelimiter("\0");
+		message = sc.next();
 	}
 	
 	public String getMessage() { return message; }

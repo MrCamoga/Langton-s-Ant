@@ -3,6 +3,7 @@ package com.camoga.ant.net.packets;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Scanner;
 
 public class Packet01Auth extends Packet {
 
@@ -22,15 +23,16 @@ public class Packet01Auth extends Packet {
 	@Override
 	public void writeData(DataOutputStream os) throws IOException {
 		super.writeData(os);
-		os.writeInt(username.length());
 		os.write(username.getBytes());
-		os.writeInt(accesstoken.length());
+		os.write(0);
 		os.write(accesstoken.getBytes());
+		os.write(0);
 	}
 
 	@Override
 	public void readData(DataInputStream is) throws IOException {
-		username = new String(is.readNBytes(is.readInt()));
+		Scanner sc = new Scanner(is).useDelimiter("\0");
+		username = sc.next();
 	}
 
 	public String getUsername() { return username; }
