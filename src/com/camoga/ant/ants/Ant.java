@@ -6,10 +6,6 @@ import com.camoga.ant.level.Level.Chunk;
 
 public class Ant extends AbstractAnt {
 
-	static final int[] directionx = new int[] {0,1,0,-1};
-	static final int[] directiony = new int[] {-1,0,1,0};
-	static int[] directioni;
-	
 	public Ant(Worker worker) {
 		super(worker,2);
 		rule = new Rule();
@@ -17,13 +13,12 @@ public class Ant extends AbstractAnt {
 	
 	public void init(long rule, long iterations) {
 		super.init(rule, iterations);
-		directioni = new int[] {-cSIZE,1,cSIZE,-1};
 		index = 0;
-		dir1 = 0;
-		dir2 = 0;
+		diry=1;
+		dirx=0;
 	}
 	
-	int dir1, dir2, state1, state2, index;
+	int dirx, diry, state1, state2, index;
 	byte s1, s2;
 	
 	public int move() {
@@ -44,8 +39,8 @@ public class Ant extends AbstractAnt {
 			state1 = chunk.cells[index]++;
 			if(chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
 			direction += rule.turn[state1];
-			dir1 = (int)direction&0b11;
-			x += directionx[dir1];
+			dirx = diry*rule.turn[state1];
+			x += dirx;
 
 			changechunk: {
 				if(x > cSIZEm) {
@@ -62,12 +57,12 @@ public class Ant extends AbstractAnt {
 			state2 = chunk.cells[index]++;
 			if(chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
 			direction += rule.turn[state2];
-			dir2 = (int)direction&0b11;
-			y += directiony[dir2];
+			diry = -dirx*rule.turn[state2];
+			y += diry;
 			
-			if(findingPeriod()) {
-				s1 = (byte)(state1<<2 | dir1);
-				s2 = (byte)(state2<<2 | dir2);
+			if(saveState) {
+				s1 = (byte)(state1<<2 ^ dirx);
+				s2 = (byte)(state2<<2 ^ diry);
 				if(stateindex < states.length) {
 					states[(int) stateindex++] = s1;
 					states[(int) stateindex++] = s2;
