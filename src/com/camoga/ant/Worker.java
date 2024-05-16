@@ -99,6 +99,7 @@ public class Worker {
 				if(maxChunk > Settings.chunkCheck && level.chunks.size() < 0.2*maxChunk*maxChunk) { // Proportion of chunks generated over size of square that bounds all chunks. If prop -> 0 ant forms a highway (prop might go near 0 if ant forms a thin triangle)
 					getLevel().deleteOldChunks = true;
 					setFindingPeriod(true);
+					max += Settings.extraIterations;
 				}
 			}
 			
