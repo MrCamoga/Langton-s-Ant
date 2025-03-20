@@ -20,7 +20,7 @@ public class Rule4D extends AbstractRule {
 		this.rule = rule;
 		this.size = 0;
 //		rule += 1<<(size*2);
-		colors = new int[32];
+		colors = new int[33];
 		turn = new int[32];
 		letter = new int[32];
 		Random r = new Random();
@@ -31,6 +31,7 @@ public class Rule4D extends AbstractRule {
 			colors[size] = r.nextInt(0x1000000);
 		}
 		colors[0] = 0xff101010;
+		colors[size] = colors[0];
 		generateString();
 //		System.out.println(string());
 //		System.out.println(Arrays.toString(turn));

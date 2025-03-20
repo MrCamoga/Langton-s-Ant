@@ -7,7 +7,7 @@ public class Rule extends AbstractRule {
 	public void createRule(long rule) {
 		this.rule = rule;
 		this.size = 64-Long.numberOfLeadingZeros(rule);
-		colors = new int[size];
+		colors = new int[size+1];
 		turn = new int[size];
 		Random r = new Random();
 		for(int i = 0; rule != 0; i++) {
@@ -16,6 +16,7 @@ public class Rule extends AbstractRule {
 			colors[i] = r.nextInt(0x1000000);
 		}
 		colors[0] = 0xff101010;
+		colors[size] = colors[0];
 		generateString();
 	}
 	

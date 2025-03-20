@@ -9,7 +9,7 @@ public class RuleHex extends AbstractRule {
 	public void createRule(long rule) {
 		this.rule = rule;
 		// size = (byte) (Math.log(rule)/Math.log(6)+1);
-		colors = new int[32];
+		colors = new int[33];
 		turn = new int[32];
 		Random r = new Random();
 		turn[0] = (int) (Long.remainderUnsigned(rule, 3)+1);
@@ -21,6 +21,7 @@ public class RuleHex extends AbstractRule {
 			rule = Long.divideUnsigned(rule, 6);
 		}
 		if(size > 32) throw new RuntimeException("More than 32 states not supported");
+		colors[size] = colors[0];
 		
 		generateString();
 	}

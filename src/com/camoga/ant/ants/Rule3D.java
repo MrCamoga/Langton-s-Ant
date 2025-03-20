@@ -20,7 +20,7 @@ public class Rule3D extends AbstractRule {
 		this.rule = rule;
 		this.size = 32-Long.numberOfLeadingZeros(rule)/2;
 //		rule += 1<<(size*2);
-		colors = new int[size];
+		colors = new int[size+1];
 		turn = new int[size];
 		letter = new int[size];
 		Random r = new Random();
@@ -31,6 +31,7 @@ public class Rule3D extends AbstractRule {
 			colors[i] = r.nextInt(0x1000000);
 		}
 		colors[0] = 0xff101010;
+		colors[size] = colors[0];
 		generateString();
 	}
 	
