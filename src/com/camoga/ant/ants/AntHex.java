@@ -2,15 +2,15 @@ package com.camoga.ant.ants;
 
 import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
-import com.camoga.ant.level.Level.Chunk;
+import com.camoga.ant.ants.Map.Chunk;
 
 public class AntHex extends AbstractAnt {
 
 	static final int[] directionx = new int[] {0,1,1,0,-1,-1};
 	static final int[] directiony = new int[] {-1,-1,0,1,1,0};
 	
-	public AntHex(Worker worker) {
-		super(worker,2);
+	public AntHex() {
+		super(1,2);
 		rule = new RuleHex();
 	}
 	
@@ -18,20 +18,16 @@ public class AntHex extends AbstractAnt {
 		super.init(rule, iterations);
 	}
 	
-	/**
-	 * 
-	 * @return true if ant forms a highway
-	 */
-	public int move() {
-		int iterations = 0;
-		for(; iterations < Settings.itpf; iterations++) {
+	public void move() {
+		int iteration = 0;
+		for(; iteration < Settings.itpf; iteration++) {
 			
 			if(x > cSIZEm || y > cSIZEm || x < 0 || y < 0) {
 				xc += x >> cPOW;
 				x &=cSIZEm;
 				yc += y >> cPOW;
 				y &= cSIZEm;
-				chunk = worker.getLevel().getChunk(xc, yc);
+				chunk = map.getChunk(xc, yc);
 			}
 			
 			int index = x|(y<<cPOW);
@@ -61,7 +57,7 @@ public class AntHex extends AbstractAnt {
 				}
 			}
 		}
-		return iterations;
+		iterations += iteration;
 	}
 	
 	public int computeHash() {
@@ -82,7 +78,7 @@ public class AntHex extends AbstractAnt {
 					x-= cSIZE;
 					xc++;
 				}
-				Chunk c = worker.getLevel().getChunk2(xc, yc);
+				Chunk c = map.getChunk2(xc, yc);
 				hash = 31*hash + (c!=null ? c.cells[(y<<cPOW) | x]:0);
 			}
 		}

@@ -9,12 +9,12 @@ import org.apache.commons.collections4.keyvalue.MultiKey;
 
 import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
-import com.camoga.ant.level.Level.Chunk;
+import com.camoga.ant.ants.Map.Chunk;
 
 public abstract class AbstractAnt {
 
-	protected Worker worker;
 	protected AbstractRule rule;
+	protected int type;
 	
 	protected Chunk chunk;
 
@@ -24,12 +24,15 @@ public abstract class AbstractAnt {
 	public int cSIZE;
 	public int cSIZEm;
 	public int cSIZE2;
+	public Map map;
 	
 	// Ant
 	protected int dir;
 	protected int state;
 	protected int wc,xc,yc,zc;
 	protected int w,x,y,z;
+	protected long iterations;
+	protected long maxiterations;
 	
 	// Highway
 	protected boolean saveState = false;
@@ -41,19 +44,25 @@ public abstract class AbstractAnt {
 	protected long period = 0;  // This is the final period length
 	protected boolean PERIODFOUND = false;
 	
-	public AbstractAnt(Worker worker, int dimension) {
-		this.worker = worker;
+	/**
+	 * 
+	 * @param type unique identifier for the type of ant (0 square 2d, 1 hex, 2 3d, 3 4d, 4 45º, etc)
+	 * @param dimension dimension of the grid
+	 */
+	public AbstractAnt(int type, int dimension) {
 		this.dimension = dimension;
+		this.type = type;
+		this.map = new Map(this);
 		if(dimension==2) cPOW = 7;
 		else if(dimension==3) cPOW = 5;
 		else if(dimension==4) cPOW = 4;
 		cSIZE = 1<<cPOW;
 		cSIZEm = cSIZE-1;
 		cSIZE2 = cSIZE<<cPOW;
-		worker.getLevel().chunkSize = 1<<(cPOW*dimension);
+		map.chunkSize = 1<<(cPOW*dimension);
 	}
 	
-	public abstract int move();
+	public abstract void move();
 	
 	/**
 	 * Compute a hash around the ant for verification purposes.
@@ -61,11 +70,13 @@ public abstract class AbstractAnt {
 	 */
 	public abstract int computeHash();
 	
-	public void init(long rule, long iterations) {
-		int stateslen = iterations == -1 ? 200000000:(int) Math.min(Math.max(5000000,iterations/(int)Settings.repeatpercent*2), 200000000);
+	public void init(long rule, long maxiterations) {
+		this.maxiterations = maxiterations;
+		int stateslen = maxiterations == -1 ? 200000000:(int) Math.min(Math.max(5000000,maxiterations/(int)Settings.repeatpercent*2), 200000000);
 		if(states == null || states.length != stateslen) states = new byte[stateslen];
 		this.rule.createRule(rule);
-		worker.getLevel().init();
+		map.init();
+		iterations = 0;
 		w = 0;
 		x = 0;
 		y = 0;
@@ -84,11 +95,11 @@ public abstract class AbstractAnt {
 		period = 0;
 		PERIODFOUND = false;
 		if(dimension == 2) {
-			chunk = worker.getLevel().getChunk(0, 0);
+			chunk = map.getChunk(0, 0);
 		} else if(dimension == 3) {
-			chunk = worker.getLevel().getChunk(0, 0, 0);
+			chunk = map.getChunk(0, 0, 0);
 		} else if(dimension == 4) {
-			chunk = worker.getLevel().getChunk(0, 0, 0, 0);
+			chunk = map.getChunk(0, 0, 0, 0);
 		} else throw new RuntimeException("Invalid dimension");
 	}
 	
@@ -102,6 +113,8 @@ public abstract class AbstractAnt {
 	public int getYC() { return yc; }
 	public int getZC() { return zc; }
 	public AbstractRule getRule() {return rule;}
+	public int getType() { return type; };
+	public long getIterations() { return iterations; }
 	
 	public boolean findingPeriod() {return saveState;}
 	
@@ -120,7 +133,7 @@ public abstract class AbstractAnt {
 		try {
 			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file));
 			oos.writeLong(rule.getRule());
-			oos.writeLong(worker.getIterations());
+			oos.writeLong(iterations);
 			oos.writeInt(dir);
 			oos.writeInt(state);
 			oos.writeInt(x);
@@ -135,8 +148,8 @@ public abstract class AbstractAnt {
 				oos.write(states);
 			}
 			oos.writeByte(cPOW);
-			oos.writeInt(worker.getLevel().chunks.size());
-			for(Entry<MultiKey<? extends Integer>, Chunk> c : worker.getLevel().chunks.entrySet()) {
+			oos.writeInt(map.chunks.size());
+			for(Entry<MultiKey<? extends Integer>, Chunk> c : map.chunks.entrySet()) {
 				MultiKey<? extends Integer> key = c.getKey();
 				oos.writeInt(key.getKey(0));
 				oos.writeInt(key.getKey(1));

@@ -1,4 +1,4 @@
-package com.camoga.ant.level;
+package com.camoga.ant.ants;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -9,27 +9,26 @@ import java.io.Serializable;
 import org.apache.commons.collections4.map.MultiKeyMap;
 
 import com.camoga.ant.Settings;
-import com.camoga.ant.Worker;
-import com.camoga.ant.ants.AbstractAnt;
 
 /**
  * y++: down
  * x++: right
  *
  */
-public class Level {
+public class Map {
 	
 	public MultiKeyMap<Integer, Chunk> chunks = new MultiKeyMap<Integer, Chunk>();
 	public boolean deleteOldChunks = false;
 	
 	public int chunkSize;
+
+	public int nohit = 0;
+	public int total = 0;
 	
 	public class Chunk implements Serializable {		
-		public long lastVisit;
-		
 		public byte[] cells = new byte[chunkSize];
 		
-//		public Chunk[] neighbours = new Chunk[4];
+		public Chunk[] neighbours = new Chunk[4];
 		
 		/**
 		 * Returns neighbour chunk in direction dir, creates one if doesn't exist and checks for highways
@@ -38,26 +37,35 @@ public class Level {
 		 * @param dir direction of neighbour
 		 * @return neighbour chunk
 		 */
-//		public Chunk getNeighbour(int xc, int yc, int dir) {
-//			if(neighbours[dir] == null) {
-//				neighbours[dir] = Level.this.getChunk(xc, yc);
-//				neighbours[dir].neighbours[dir^2] = this;
-//			}
-//			neighbours[dir].lastVisit = worker.getIterations();
-//			return neighbours[dir];
-//		}
+		public Chunk getNeighbour(int xc, int yc, int dir) {
+			if(neighbours[dir] == null) {
+				(neighbours[dir] = getChunk(xc, yc)).neighbours[dir^2] = this;
+			}
+			return neighbours[dir];
+		}
+
+		// detroy linked references to this chunk
+		public void destroy() {
+			for(int i = 0; i < 4; i++) {
+				if(neighbours[i] != null) {
+					neighbours[i].neighbours[i^2] = null;
+				}
+			}
+		}
 	}
 	
-	private Worker worker;
+	private AbstractAnt ant;
 	
-	public Level(Worker worker) {
-		this.worker = worker;
+	public Map(AbstractAnt ant) {
+		this.ant = ant;
 	}
 	
 	public void init() {
 		chunks.clear();
 		deleteOldChunks = false;
 		maxChunk = 1;
+		nohit = 0;
+		total = 0;
 	}
 	
 	public int maxChunk;
@@ -71,7 +79,6 @@ public class Level {
 	public Chunk getChunk(int xc, int yc) {
 		Chunk result = chunks.get(xc,yc);
 		if(result == null) chunks.put(xc,yc,result = new Chunk());
-		result.lastVisit = worker.getIterations();
 		
 		return result;
 	}
@@ -86,7 +93,6 @@ public class Level {
 	public Chunk getChunk(int xc, int yc, int zc) {
 		Chunk result = chunks.get(xc,yc,zc);
 		if(result == null) chunks.put(xc,yc,zc,result = new Chunk());
-		result.lastVisit = worker.getIterations();
 		
 		return result;
 	}
@@ -94,7 +100,6 @@ public class Level {
 	public Chunk getChunk(int xc, int yc, int zc, int wc) {
 		Chunk result = chunks.get(xc,yc,zc,wc);
 		if(result == null) chunks.put(xc,yc,zc,wc,result = new Chunk());
-		result.lastVisit = worker.getIterations();
 		
 		return result;
 	}
@@ -109,13 +114,12 @@ public class Level {
 	private static Font font = new Font("Tahoma", Font.PLAIN, 12);
 	//TODO improve render
 	public void render(BufferedImage image, int[] pixels, int width, int height, boolean followAnt, boolean info) {
-		int xa = followAnt ? worker.getAnt().getXC():0;
-		int ya = followAnt ? worker.getAnt().getYC():0;
-		int za = followAnt ? worker.getAnt().getZC():0;
+		int xa = followAnt ? ant.getXC():0;
+		int ya = followAnt ? ant.getYC():0;
+		int za = followAnt ? ant.getZC():0;
 		
 		Graphics g = image.getGraphics();
 //		g.setFont(font);
-		AbstractAnt ant = worker.getAnt();
 		
 //		System.out.println(xa+","+ya);
 
@@ -136,11 +140,16 @@ public class Level {
 		int ychunks = height/cSIZE;
 		int zchunks = 1024/cSIZE;
 
-		if(worker.getType() <= 1) {
+		if(ant.getType() <= 1) {
 			for(int yc = 0; yc < ychunks; yc++) {
 				int ycf = yc<<cPOW;
 				for(int xc = 0; xc < xchunks; xc++) {
-					Chunk c = getChunk2(xc-xchunks/2+xa, yc-ychunks/2+ya);
+					Chunk c;
+					try {
+						c = getChunk2(xc-xchunks/2+xa, yc-ychunks/2+ya);
+					} catch(NullPointerException e) {
+						c = null;
+					}
 					if(c == null) continue;
 					int xcf = xc<<cPOW;
 					int i = 0;
@@ -149,13 +158,13 @@ public class Level {
 						for(int xo = 0; xo < cSIZE; xo++) {
 							int index = (xo|xcf) + y;
 							if(index >= pixels.length) continue;
-							pixels[index] = colors[c.cells[i]%colors.length];
+							pixels[index] = colors[c.cells[i]];
 							i++;
 						}
 					}
 				}
 			}			
-		} else if(worker.getType() == 2) { // z-axis projection
+		} else if(ant.getType() == 2) { // z-axis projection
 			for(int zc = -2; zc <= 2; zc++) {
 //				int zcf = zc<<(cPOW*2);
 				for(int yc = 0; yc < ychunks; yc++) {
@@ -176,7 +185,7 @@ public class Level {
 								for(int zo = 0; zo < c.cells.length; zo += 1 <<(cPOW*2)) {
 									int state = c.cells[zo|i];
 									if(state == 0) continue;
-									pixels[index] = colors[state%colors.length];
+									pixels[index] = colors[state];
 									break;
 								}
 								i++;
@@ -190,7 +199,7 @@ public class Level {
 		int h = 5;
 		int gap = 16;
 		g.setColor(Color.WHITE);
-		g.drawString(String.format("Iterations: %,d", worker.getIterations()), 10, h+=gap); 
+		g.drawString(String.format("Iterations: %,d", ant.getIterations()), 10, h+=gap); 
 		g.drawString(String.format("Rule: %s (%s)", ant.getRule(), Long.toUnsignedString(ant.getRule().getRule())), 10, h+=gap);
 		
 		if(ant.findingPeriod()) {
@@ -213,7 +222,7 @@ public class Level {
 //						for(int xh = 0; xh < 7; xh++) {
 //							int xf = xp+xh+x;
 //							if(xf < 0 || yf < 0 || xf >= width || yf >= height) continue;
-//							pixels[xf+yf*width] = colors[c.cells[x|(y<<Settings.cPOW)]%colors.length];
+//							pixels[xf+yf*width] = colors[c.cells[x|(y<<Settings.cPOW)]];
 //						}
 //					}
 //				}

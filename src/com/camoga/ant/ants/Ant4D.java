@@ -8,7 +8,7 @@ import java.util.Arrays;
 
 import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
-import com.camoga.ant.level.Level.Chunk;
+import com.camoga.ant.ants.Map.Chunk;
 
 public class Ant4D extends AbstractAnt {
 
@@ -49,8 +49,8 @@ public class Ant4D extends AbstractAnt {
 		}
 	}
 	
-	public Ant4D(Worker worker) {
-		super(worker,4);
+	public Ant4D() {
+		super(3,4);
 		rule = new Rule4D();
 	}
 	
@@ -60,7 +60,7 @@ public class Ant4D extends AbstractAnt {
 		states[2] = -1;
 	}
 
-	public int move() {
+	public void move() {
 		int iteration = 0;
 		for(; iteration < Settings.itpf; iteration++) {
 			changechunk: {
@@ -89,7 +89,7 @@ public class Ant4D extends AbstractAnt {
 					w = cSIZEm;
 					wc--;
 				} else break changechunk;
-				chunk = worker.getLevel().getChunk(xc, yc, zc, wc);
+				chunk = map.getChunk(xc, yc, zc, wc);
 			}
 			
 			int index = (((((w<<cPOW)|z)<<cPOW)|y)<<cPOW)|x;
@@ -128,7 +128,7 @@ public class Ant4D extends AbstractAnt {
 				}
 			}
 		}
-		return iteration;
+		iterations += iteration;
 	}
 	
 	public int computeHash() {
@@ -165,7 +165,7 @@ public class Ant4D extends AbstractAnt {
 							x-= cSIZE;
 							xc++;
 						}
-						Chunk c = worker.getLevel().getChunk2(xc, yc, zc, wc);
+						Chunk c = map.getChunk2(xc, yc, zc, wc);
 						hash = 31*hash + (c!=null ? c.cells[(((((w<<cPOW)|z)<<cPOW)|y)<<cPOW)|x]:0);
 					}
 				}

@@ -2,7 +2,7 @@ package com.camoga.ant.ants;
 
 import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
-import com.camoga.ant.level.Level.Chunk;
+import com.camoga.ant.ants.Map.Chunk;
 
 public class Ant3D extends AbstractAnt {
 	
@@ -38,8 +38,8 @@ public class Ant3D extends AbstractAnt {
 			23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,0,0,0,0,0,0,0,
 	};
 	
-	public Ant3D(Worker worker) {
-		super(worker,3);
+	public Ant3D() {
+		super(2,3);
 		rule = new Rule3D();
 	}
 	
@@ -49,7 +49,7 @@ public class Ant3D extends AbstractAnt {
 		states[2] = -1;
 	}
 
-	public int move() {
+	public void move() {
 		int iteration = 0;
 		for(; iteration < Settings.itpf; iteration++) {
 			changechunk: {
@@ -72,7 +72,7 @@ public class Ant3D extends AbstractAnt {
 					z = cSIZEm;
 					zc--;
 				} else break changechunk;
-				chunk = worker.getLevel().getChunk(xc, yc, zc);
+				chunk = map.getChunk(xc, yc, zc);
 			}
 			
 			int index = (((z<<cPOW)|y)<<cPOW)|x;
@@ -110,7 +110,7 @@ public class Ant3D extends AbstractAnt {
 				}
 			}
 		}
-		return iteration;
+		iterations += iteration;
 	}
 	
 	public int computeHash() {
@@ -139,7 +139,7 @@ public class Ant3D extends AbstractAnt {
 						x-= cSIZE;
 						xc++;
 					}
-					Chunk c = worker.getLevel().getChunk2(xc, yc, zc);
+					Chunk c = map.getChunk2(xc, yc, zc);
 					hash = 31*hash + (c!=null ? c.cells[(((z<<cPOW)|y)<<cPOW)|x]:0);
 				}
 			}
