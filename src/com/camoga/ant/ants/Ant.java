@@ -27,6 +27,12 @@ public class Ant extends AbstractAnt {
 	public void move() {
 		int iteration = 0;
 		for(; iteration < Settings.itpf; iteration+=2) {
+
+			/*if((e=y&0xffffff80) != 0) {
+				yc += e>>cPOW;
+				y -= e;
+				chunk = chunk.getNeighbour(xc, yc, diry+2);
+			}*/
 			changechunk: {
 				if(y > cSIZEm) {
 					y = 0;
@@ -55,6 +61,11 @@ public class Ant extends AbstractAnt {
 				} else break changechunk;
 				chunk = chunk.getNeighbour(xc, yc, dirx+1);
 			}
+			/*if((e=x&0xffffff80) != 0) {
+				xc += e >> cPOW;
+				x -= e;
+				chunk = chunk.getNeighbour(xc, yc, dirx+1);
+			}*/
 
 			index = (y<<cPOW)|x;
 			state2 = chunk.cells[index]++;
