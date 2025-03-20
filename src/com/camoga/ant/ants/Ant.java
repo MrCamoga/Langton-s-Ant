@@ -2,12 +2,12 @@ package com.camoga.ant.ants;
 
 import com.camoga.ant.Settings;
 import com.camoga.ant.Worker;
-import com.camoga.ant.level.Level.Chunk;
+import com.camoga.ant.ants.Map.Chunk;
 
 public class Ant extends AbstractAnt {
 
-	public Ant(Worker worker) {
-		super(worker,2);
+	public Ant() {
+		super(0,2);
 		rule = new Rule();
 	}
 	
@@ -21,7 +21,7 @@ public class Ant extends AbstractAnt {
 	int dirx, diry, state1, state2, index;
 	byte s1, s2;
 	
-	public int move() {
+	public void move() {
 		int iteration = 0;
 		for(; iteration < Settings.itpf; iteration+=2) {
 			changechunk: {
@@ -32,7 +32,7 @@ public class Ant extends AbstractAnt {
 					y = cSIZEm;
 					yc--;
 				} else break changechunk;
-				chunk = worker.getLevel().getChunk(xc, yc);
+				chunk = chunk.getNeighbour(xc, yc, diry+2);
 			}
 		
 			index = (y<<cPOW)|x;
@@ -50,7 +50,7 @@ public class Ant extends AbstractAnt {
 					x = cSIZEm;
 					xc--;
 				} else break changechunk;
-				chunk = worker.getLevel().getChunk(xc, yc);
+				chunk = chunk.getNeighbour(xc, yc, dirx+1);
 			}
 
 			index = (y<<cPOW)|x;
@@ -84,7 +84,7 @@ public class Ant extends AbstractAnt {
 				}
 			}
 		}
-		return iteration;
+		iterations += (long)iteration;
 	}
 	
 	public int computeHash() {
@@ -105,7 +105,7 @@ public class Ant extends AbstractAnt {
 					x-= cSIZE;
 					xc++;
 				}
-				Chunk c = worker.getLevel().getChunk2(xc, yc);
+				Chunk c = map.getChunk2(xc, yc);
 				hash = 31*hash + (c!=null ? c.cells[(y<<cPOW) | x]:0);
 			}
 		}

@@ -78,8 +78,16 @@ public class Worker {
 			ant.move();
 
 			// Chunk deletion only activates when highway has started
-			if(level.deleteOldChunks && iterations > 1000000000) {
-				getLevel().chunks.entrySet().removeIf(e -> iterations - e.getValue().lastVisit > 1000000000);
+			if(ant.map.deleteOldChunks && ant.getIterations() > 1000000000) {
+				ant.map.chunks.entrySet().removeIf(e -> {
+					for(int i = 0; i < ant.dimension; i++) {
+						if(Math.abs(e.getKey().getKey(i)-ant.getChunkCoord(i)) > 200) {
+							e.getValue().destroy();
+							return true;	// if ant is far away from chunk, delete. // TODO take into account chunk size
+						} 
+					}
+					return false;
+				});
 			}
 			
 			// Detect highways
