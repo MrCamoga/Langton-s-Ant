@@ -15,10 +15,14 @@ public class Ant extends AbstractAnt {
 		index = 0;
 		diry=1;
 		dirx=0;
+		histogram = new long[this.rule.size];
+		histogram2 = new long[this.rule.size];
 	}
 	
 	int dirx, diry, state1, state2, index;
 	byte s1, s2;
+	public long[] histogram;
+	long[] histogram2;
 	
 	public void move() {
 		int iteration = 0;
@@ -67,12 +71,19 @@ public class Ant extends AbstractAnt {
 					states[(int) stateindex++] = s2;
 				} else stateindex+=2;
 
+				//histogram2[state1]++;
+				//histogram2[state2]++;
+
 				if(states[match] != s1 || states[match+1] != s2) {
 					match = 0;
 					period = stateindex;
 					xend = getX();
 					yend = getY();
 					directionend = direction;
+					/*for(int i = 0; i < rule.size; i++) {
+						histogram[i] += histogram2[i];
+						histogram2[i] = 0;
+					}*/
 				} else {
 					match += 2;
 					if(match == states.length || match > 50000+Settings.repeatpercent*period) {
