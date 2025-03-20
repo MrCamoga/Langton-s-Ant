@@ -60,7 +60,7 @@ public class Worker {
 			Client.storeRules(type,result);
 			
 			float seconds = (float) ((-time + (time = System.nanoTime()))/1e9);
-			Client.LOG.info(String.format("%02d %s\t%s\t%.4E it/s\t%.4f s\t%s", workerid, Long.toUnsignedString(rule), ant.getRule(), this.iterations/seconds, seconds, (result[1] > 1 ? (result[1] + " " + Arrays.toString(Arrays.copyOfRange(result, 4, result.length))):result[1]==1 ? "?":"")));
+			Client.LOG.info(String.format("%02d %s\t%s\t%.4E it/s\t%.4f s\t%s", workerid, Long.toUnsignedString(rule), ant.getRule(), ant.getIterations()/seconds, seconds, (result[1] > 1 ? (result[1] + " " + Arrays.toString(Arrays.copyOfRange(result, 4, result.length))):result[1]==1 ? "?":"")));
 		}
 		Client.LOG.warning("Worker " + workerid + " has stopped");
 		running = false;
