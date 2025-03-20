@@ -1,7 +1,6 @@
 package com.camoga.ant.ants;
 
 import com.camoga.ant.Settings;
-import com.camoga.ant.Worker;
 import com.camoga.ant.ants.Map.Chunk;
 
 public class Ant3D extends AbstractAnt {

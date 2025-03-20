@@ -1,13 +1,10 @@
 package com.camoga.ant.ants;
 
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Arrays;
 
 import com.camoga.ant.Settings;
-import com.camoga.ant.Worker;
 import com.camoga.ant.ants.Map.Chunk;
 
 public class Ant4D extends AbstractAnt {

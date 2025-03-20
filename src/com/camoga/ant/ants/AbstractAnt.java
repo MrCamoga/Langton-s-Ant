@@ -8,8 +8,8 @@ import java.util.Map.Entry;
 import org.apache.commons.collections4.keyvalue.MultiKey;
 
 import com.camoga.ant.Settings;
-import com.camoga.ant.Worker;
 import com.camoga.ant.ants.Map.Chunk;
+import com.camoga.ant.ants.patterns.Pattern;
 
 public abstract class AbstractAnt {
 
@@ -118,6 +118,9 @@ public abstract class AbstractAnt {
 	public int getXC() { return xc; }
 	public int getYC() { return yc; }
 	public int getZC() { return zc; }
+	public int getChunkCoord(int index) {
+		return new int[] {xc,yc,zc,wc}[index];
+	}
 	public AbstractRule getRule() {return rule;}
 	public int getType() { return type; };
 	public long getIterations() { return iterations; }
