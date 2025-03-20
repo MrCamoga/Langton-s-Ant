@@ -102,6 +102,12 @@ public abstract class AbstractAnt {
 			chunk = map.getChunk(0, 0, 0, 0);
 		} else throw new RuntimeException("Invalid dimension");
 	}
+
+	public void init(long rule, long maxiterations, Pattern pattern) {
+		this.init(rule, maxiterations);
+		// TODO pass rule or something to the pattern to verify that the pattern doesnt have more states than the rule
+		pattern.buildPattern(this);
+	}
 	
 	public long getPeriod() { return period; }
 	public long getW() { return w + wc*cSIZE; }
