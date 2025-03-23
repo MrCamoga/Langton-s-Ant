@@ -53,7 +53,7 @@ This way we make sure that no rule is tested multiple times.
   - [x] API
   - [x] Add new winding data to database
   - [ ] Add histogram of the states used in the highway construction?
-  - [ ] User lists to save rules (WIP)
+  - [x] User lists to save rules (WIP)
   - [ ] Comments on rules (WIP)
   - [ ] Translation to other languages (WIP)
 - [ ] Improve GUI
@@ -83,7 +83,6 @@ If we find the size of the highway and the velocity at which it advances, we can
 | 	1e11		  	| 	LLRLRRLLRLLLLLLRRLLLR 		|	1147188			|   >= 133671045600	|	>=1.104122836656e15	|					|				|
 |	1.1e13			|	RRLRLLRRLRRRRRRRRRLLLRLLRLR	|	86245067		|	>= 4707316320	|	>=4.18492189e13 	|					| 				|
 |	1e13			|	RRRLRRLLRLRRRRLLRRRLLRLR	|	10960183		|	2^42*3 ??		|	3.77616273e16 ??	|					|				|
-|	1.74e12			|	RRRLRRLLRLRRRRRRRRRLR		|	1572151			|	2^40*3 ??		|	5.64742157e15 ??	|					|				|
 |	4e11			|	LLRLRRLLRLLLLLLLLRRRRRRLRLR	|	92143924		|	>= 886624056	|	>=5.730524292850e12	|					|				|
 |	7.6e11   		|	LLRLRRLLRLLLLLLLLLLRLRLR 	| 	11010356		| 	>= 146880		|						|					|				|
 |	1.4e12			|	LLRLRRLLRLLLLLLLLRRRLLRLR	|	21889332		|	>= 1573560		|						|					|				|
@@ -97,6 +96,7 @@ If we find the size of the highway and the velocity at which it advances, we can
 |					|								|	26106134219		|					|						|					|				|
 |					|								|	28052291275		|					|						|					|				|
 |					|								|	34763177675		|					|						|					|				|
+|	1.74e12			|	RRRLRRLLRLRRRRRRRRRLR		|	1572151			|	2^40*3 ??		|	5.64742157e15 	|		5647091720257856?		|	0.00584%			|
 |					|	LLRLRRLLRLLLLLLLLLLLRRLRLR	|	45089076		|	31460520		|	202740399826		|	200631077404	|	1.05%		|
 |					|								|	5772148427		|	28301520		|	242294338124		|	241836027556	|	0.189%		|
 |					|								|	120192715		|	34543080		|	318476375254		|	317869216552	|	0.191%		|
