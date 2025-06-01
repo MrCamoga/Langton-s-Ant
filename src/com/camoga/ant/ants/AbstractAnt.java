@@ -16,7 +16,7 @@ public abstract class AbstractAnt {
 	protected AbstractRule rule;
 	protected int type;
 	
-	protected Chunk chunk;
+	public Chunk chunk;
 
 	// Space/chunk
 	public int dimension;
@@ -27,20 +27,22 @@ public abstract class AbstractAnt {
 	public Map map;
 	
 	// Ant
-	protected int dir;
+	public int dir;
 	protected int state;
-	protected int wc,xc,yc,zc;
-	protected int w,x,y,z;
+	public int wc,xc,yc,zc;
+	public int w,x,y,z;
 	protected long iterations;
 	protected long maxiterations;
 	
 	// Highway
-	protected boolean saveState = false;
+	public boolean saveState = false;
+	public boolean resetState = true;
 	public byte[] states;
 	protected int match;
 	protected long stateindex;
 	public long wstart, xstart, ystart, zstart, wend, xend, yend, zend;
 	public long direction, directionstart, directionend;
+	public int maxstate;
 	protected long period = 0;  // This is the final period length
 	protected boolean PERIODFOUND = false;
 	
@@ -62,8 +64,11 @@ public abstract class AbstractAnt {
 		map.chunkSize = 1<<(cPOW*dimension);
 	}
 	
-	public abstract void move();
+	public abstract void move(long it);
 	
+	public ResultSet run(long rule, long maxiterations) {
+		throw new RuntimeException("Not implemented");
+	}
 	/**
 	 * Compute a hash around the ant for verification purposes.
 	 * @return
@@ -87,8 +92,10 @@ public abstract class AbstractAnt {
 		zc = 0;
 		dir = 0;
 		direction = 0;
+		maxstate = 0;
 		state = 0;
 		saveState = false;
+		resetState = true;
 		match = 2;
 		states[1] = -1;
 		stateindex = 0;

@@ -57,9 +57,9 @@ public class Ant4D extends AbstractAnt {
 		states[2] = -1;
 	}
 
-	public void move() {
+	public void move(long it) {
 		int iteration = 0;
-		for(; iteration < Settings.itpf; iteration++) {
+		for(; iteration < it; iteration++) {
 			changechunk: {
 				if(x > cSIZEm) {
 					x = 0;
