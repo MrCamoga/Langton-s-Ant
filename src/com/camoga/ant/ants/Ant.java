@@ -108,7 +108,7 @@ public class Ant extends AbstractAnt {
 					xend = getX();
 					yend = getY();
 					directionend = direction;
-					for(int i = 0; i < rule.size; i++) {
+					for(int i = 0; i <= maxstate; i++) {
 						histogram[i] += histogram2[i];
 						histogram2[i] = 0;
 					}
@@ -141,7 +141,7 @@ public class Ant extends AbstractAnt {
 						if(Math.abs(e.getKey().getKey(i)-getChunkCoord(i)) > 200) {
 							e.getValue().destroy();
 							return true;	// if ant is far away from chunk, delete. // TODO take into account chunk size
-						} 
+						}
 					}
 					return false;
 				});
