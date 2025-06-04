@@ -37,7 +37,7 @@ public abstract class AbstractAnt {
 	// Highway
 	public boolean saveState = false;
 	public boolean resetState = true;
-	public byte[] states;
+	public short[] states;
 	protected int match;
 	protected long stateindex;
 	public long wstart, xstart, ystart, zstart, wend, xend, yend, zend;
@@ -78,7 +78,7 @@ public abstract class AbstractAnt {
 	public void init(long rule, long maxiterations) {
 		this.maxiterations = maxiterations;
 		int stateslen = maxiterations == -1 ? 200000000:(int) Math.min(Math.max(5000000,maxiterations/(int)Settings.repeatpercent*2), 200000000);
-		if(states == null || states.length != stateslen) states = new byte[stateslen];
+		if(states == null || states.length != stateslen) states = new short[stateslen];
 		this.rule.createRule(rule);
 		map.init();
 		iterations = 0;
@@ -161,7 +161,7 @@ public abstract class AbstractAnt {
 				oos.writeLong(stateindex);
 				oos.writeInt(match);
 				oos.writeLong(period);
-				oos.write(states);
+				// oos.write(states);
 			}
 			oos.writeByte(cPOW);
 			oos.writeInt(map.chunks.size());

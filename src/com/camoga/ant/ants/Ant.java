@@ -19,12 +19,13 @@ public class Ant extends AbstractAnt {
 		index = 0;
 		diry=1;
 		dirx=0;
+		directionend = 0;
 		histogram = new long[255];
 		histogram2 = new long[255];
 	}
 	
-	int dirx, diry, state1, state2, index;
-	byte s1, s2;
+	public int dirx, diry, state1, state2, index;
+	short s1, s2;
 	public long[] histogram;
 	long[] histogram2;
 	
@@ -51,10 +52,10 @@ public class Ant extends AbstractAnt {
 			} */
 		
 			index = (y<<cPOW)|x;
-			state1 = chunk.cells[index]++;
+			state1 = (chunk.cells[index]++) & 0xff;
 			if(resetState && chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
-			if(!resetState && state1 > maxstate) maxstate = state1;
-			direction += rule.turn[state1];
+			// if(!resetState && state1 > maxstate) maxstate = state1;
+			// direction += rule.turn[state1];
 			dirx = -diry*rule.turn[state1];
 			x += dirx;
 
@@ -75,10 +76,10 @@ public class Ant extends AbstractAnt {
 			}
 
 			index = (y<<cPOW)|x;
-			state2 = chunk.cells[index]++;
-			if(resetState && chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0; // si se empieza a calcular el periodo, puede que un estado se haya reseteado y entonces no calcula el periodo
-			if(!resetState && state2 > maxstate) maxstate = state2;
-			direction += rule.turn[state2];
+			state2 = (chunk.cells[index]++) & 0xff;
+			if(resetState && chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
+			// if(!resetState && state2 > maxstate) maxstate = state2;
+			// direction += rule.turn[state2];
 			diry = dirx*rule.turn[state2];
 			y += diry;
 			
@@ -92,32 +93,38 @@ public class Ant extends AbstractAnt {
 					}
 					continue;
 				}*/
-				s1 = (byte)(state1^dirx);
-				s2 = (byte)(state2^diry);
+				s1 = (short)(state1^dirx);
+				s2 = (short)(state2^diry);
 				if(stateindex < states.length) {
 					states[(int) stateindex++] = s1;
 					states[(int) stateindex++] = s2;
 				} else stateindex+=2;
 
-				histogram2[state1]++;
-				histogram2[state2]++;
+				// histogram2[state1]++;
+				// histogram2[state2]++;
 
 				if(states[match] != s1 || states[match+1] != s2) {
 					match = 0;
 					period = stateindex;
 					xend = getX();
 					yend = getY();
-					directionend = direction;
-					for(int i = 0; i <= maxstate; i++) {
-						histogram[i] += histogram2[i];
-						histogram2[i] = 0;
-					}
+					// directionend = direction;
+					// for(int i = 0; i <= 254; i++) {
+					// 	histogram[i] += histogram2[i];
+					// 	histogram2[i] = 0;
+					// }
 				} else {
 					match += 2;
 					if(match == states.length || match > 200000+Settings.repeatpercent*period) {
 						PERIODFOUND = true;
 						saveState = false;
 						resetState = true;
+						for(int i = 0; i < period; i++) {
+							short st = states[i];
+							st ^= st < 0 ? -1:1;
+							directionend += rule.turn[st];
+							histogram[st]++;
+						}
 						break;
 					}
 				}
