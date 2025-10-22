@@ -18,14 +18,14 @@ public class Packet00Version extends Packet {
 	@Override
 	public void writeData(DataOutputStream os) throws IOException {
 		super.writeData(os);
-		os.writeInt(version.getMajor());
-		os.writeInt(version.getMinor());
-		os.writeInt(version.getPatch());
+		os.writeByte(version.getMajor());
+		os.writeByte(version.getMinor());
+		os.writeByte(version.getPatch());
 	}
 
 	@Override
 	public void readData(DataInputStream is) throws IOException {
-		version = new Version(is.readInt(),is.readInt(),is.readInt());
+		version = new Version(is.readByte(),is.readByte(),is.readByte());
 	}
 
 	public Version getVersion() { 
