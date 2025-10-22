@@ -18,7 +18,9 @@ public abstract class Packet {
 		INVALID(-1),
 		VERSION(0), AUTH(1),
 		ASSIGNMENT(2), RESULTS(3),
-		MESSAGE(4), STATUS(5), DISCONNECT(6);
+		MESSAGE(4), STATUS(5), 
+		SOUPRESULTS(6),
+		DISCONNECT(7);
 		
 		private int id;
 		
@@ -67,7 +69,6 @@ public abstract class Packet {
 	protected int id;
 	protected DataInputStream is;
 	
-	
 	public Packet(PacketType type) {
 		this.id = type.getId();
 	}
@@ -82,7 +83,7 @@ public abstract class Packet {
 	}
 	
 	public abstract void readData(DataInputStream is) throws IOException;
-	
+
 	public int getId() {
 		return id;
 	}
