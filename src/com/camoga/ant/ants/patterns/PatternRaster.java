@@ -9,18 +9,16 @@ public class PatternRaster extends Pattern {
 
     private byte[] raster;
     private int width;
-    private int antx, anty, antxc, antyc;
+    private int antx, anty;
     private int dirx, diry;
 
-    public PatternRaster(byte[] raster, int width, int antx, int anty, int antxc, int antyc, int antdirx, int antdiry) {
+    public PatternRaster(byte[] raster, int width, int antx, int anty, int antdirx, int antdiry) {
         this.raster = raster;
         this.width = width;
         this.antx = antx;
         this.anty = anty;
         this.dirx = antdirx;
         this.diry = antdiry;
-        this.antxc = antxc;
-        this.antyc = antyc;
     }
 
     @Override
@@ -28,26 +26,22 @@ public class PatternRaster extends Pattern {
 		if(ant.getType() != 0) throw new IllegalArgumentException("Invalid ant type");
         Ant a = (Ant) ant;
         int height = raster.length/width;
-        System.out.println("e");
-        int i = 0;
         for(int yc = 0; yc <= (height >> 7); yc++) {
             for(int xc = 0; xc <= (width >> 7); xc++) {
                 Chunk chunk = ant.map.getChunk(xc, yc);
                 for(int y = 0; y < Math.min(128,height-yc*128); y++) {
                     for(int x = 0; x < Math.min(128,width-xc*128); x++) {
                         chunk.cells[x+y*128] = raster[(x+xc*128) + (y+yc*128)*width];
-                        i++;
                     }
                 }
             }
         }
-        System.out.println(i);
-        a.xc = antxc;
-        a.yc = antyc;
-        a.x = antx;
-        a.y = anty;
+        a.xc = (antx&0xffffff80) >> 7;
+        a.yc = (anty&0xffffff80) >> 7;
+        a.x = antx&127;
+        a.y = anty&127;
         a.diry = diry;
         a.dirx = dirx;
-        System.out.println(a.xc + ", " + a.yc + ", " + a.x + ", " + a.y + ", " + a.dirx + ", " + a.diry);
+        ant.chunk = ant.map.getChunk(a.xc,a.yc);
     }
 }
