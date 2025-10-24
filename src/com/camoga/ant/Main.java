@@ -28,16 +28,17 @@ public class Main {
 		options.addOption(Option.builder("h").longOpt("help").hasArg(false).desc("print help").build());
 		options.addOption(Option.builder("ng").longOpt("nogui").hasArg(false).desc("run without GUI").build());                      
 		options.addOption(Option.builder("nl").longOpt("nolog").hasArg(false).desc("run without log").build());                      
-		options.addOption(Option.builder().longOpt("host").hasArg(true).desc("server address").build());                             
-		options.addOption(Option.builder("u").longOpt("user").hasArg(true).desc("login username").build());                          
-		options.addOption(Option.builder("w").hasArg(true).desc("number of 2d square grid ants").type(Number.class).build());        
-		options.addOption(Option.builder("wh").hasArg(true).desc("number of 2d hexagonal grid ants").type(Number.class).build());    
-		options.addOption(Option.builder("w3").hasArg(true).desc("number of 3d ants").type(Number.class).build());                   
-		options.addOption(Option.builder("w4").hasArg(true).desc("number of 4d ants").type(Number.class).build());                   
+		options.addOption(Option.builder().longOpt("host").hasArg(true).argName("hostname").desc("server address").build());                             
+		options.addOption(Option.builder("u").longOpt("user").hasArg(true).argName("username").desc("login username").build());                          
+		options.addOption(Option.builder("w").hasArg(true).argName("num_threads").desc("number of 2d square grid ants").type(Number.class).build());        
+		options.addOption(Option.builder("wh").hasArg(true).argName("num_threads").desc("number of 2d hexagonal grid ants").type(Number.class).build());    
+		options.addOption(Option.builder("w3").hasArg(true).argName("num_threads").desc("number of 3d ants").type(Number.class).build());                   
+		options.addOption(Option.builder("w4").hasArg(true).argName("num_threads").desc("number of 4d ants").type(Number.class).build());                   
 		options.addOption(Option.builder("c").hasArg(false).desc("Run ant").build());
-        options.addOption(Option.builder("ws").longOpt("soup").hasArg(true).numberOfArgs(4).desc("Run random soups").argName("threads rule number_soups iterations_per_soup").build());
+        options.addOption(Option.builder("ws").longOpt("soup").hasArg(true).numberOfArgs(4).argName("threads rule number_soups iterations_per_soup").desc("Run random soups").build());
 		CommandLineParser parser = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
+		formatter.setWidth(120);
 		CommandLine cmd = null;
 		
 		try {
@@ -71,7 +72,7 @@ public class Main {
 			String host = cmd.hasOption("host") ? cmd.getOptionValue("host"):"app.langtonsant.es";
 			if(workers2 == 0 && workershex == 0 && workers3 == 0 && workers4 == 0) workers2 = 1;
 			initLogger(!nolog);
-            client = new Client(host,3,workershex,workers3,workers4);
+            client = new Client(host,workers2,workershex,workers3,workers4);
 			if(gui)
 				window = new Window(null);
 			
