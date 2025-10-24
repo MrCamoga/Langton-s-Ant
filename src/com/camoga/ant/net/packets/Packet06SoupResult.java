@@ -1,6 +1,5 @@
 package com.camoga.ant.net.packets;
 
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;

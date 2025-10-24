@@ -3,7 +3,6 @@ package com.camoga.ant.net.packets;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.Scanner;
 
 public class Packet04Message extends Packet {
 
