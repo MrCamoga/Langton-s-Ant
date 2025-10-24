@@ -7,17 +7,17 @@ import com.camoga.ant.net.Client;
 public class WorkerManager {
 
 	static ArrayList<Worker> workers = new ArrayList<Worker>();
-	static int[] numworkers = new int[Client.ANT_TYPES]; // 0: normal, 1: hex, 2: 3D
+	static int[] numworkers = new int[4]; // 0: normal, 1: hex, 2: 3D
 	
 	static int idcount;
 	
 	//TODO do not start new workers until old workers have stopped
 	private static void updateWorkers() {
-		int[] count = new int[Client.ANT_TYPES];
+		int[] count = new int[4];
 		for(Worker w : workers) {
 			count[w.getType()]++;
 		}
-		for(int i = 0; i < Client.ANT_TYPES; i++) {
+		for(int i = 0; i < 4; i++) {
 			for(Worker w : workers) {
 				if(count[i] <= numworkers[i]) break;
 				if(w.getType() == i) {

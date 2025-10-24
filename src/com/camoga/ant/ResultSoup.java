@@ -1,18 +1,21 @@
 package com.camoga.ant;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 import java.util.Map.Entry;
 
 import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.map.MultiKeyMap;
 
+import com.camoga.ant.ants.AbstractAnt;
+import com.camoga.ant.ants.ResultSet;
+import com.camoga.ant.ants.patterns.PatternRandom;
 import com.camoga.ant.net.Client;
-import static com.camoga.ant.net.Client.LOG;
+import static com.camoga.ant.Main.LOG;
 import com.camoga.ant.net.packets.Packet06SoupResult;
 
 public class ResultSoup extends Result {
@@ -41,7 +44,7 @@ public class ResultSoup extends Result {
     public ResultSoup(int type, long rule, int[] seed, int patternSize, long maxiterations, int maxsoups) {
         this.type = type;
         this.rule = rule;
-        this.seed = seed;
+        this.seed = seed != null ? seed:generateSeed();
 		this.patternSize = patternSize;
 		this.maxiterations = maxiterations;
 		this.maxsoups = maxsoups;
@@ -53,16 +56,14 @@ public class ResultSoup extends Result {
 		this.offset = seedindex;
 	}
 
-    public synchronized void insertResult(Worker worker, long iterations, int seedindex, Long ...highway) {
+    public synchronized void insertResult(long iterations, int seedindex, Long ...highway) {
         totaliterations += iterations;
 		soupcount++;
 		
 		highwayfreq.compute(new MultiKey<Long>(highway), (k,v) -> {
 			if(v == null) {
-				v = new Integer[NUM_EXAMPLES+1];
+				v = new Integer[NUM_EXAMPLES+1]; // TODO change to int
 				v[0] = 0;
-				// System.out.println(highway[0] + ", " + Arrays.toString(Arrays.copyOf(worker.ant.states, 300)));
-				// worker.saveImage(new File("pics/soups/"+rule+"/"+highway.hashCode()+".png"), true);
 			}
 			v[0]++;
 			int insertIndex;
@@ -83,9 +84,11 @@ public class ResultSoup extends Result {
 		if(soupcount == maxsoups) sendResult();
     }
 
-	public synchronized int getSeedIndex() {
-		if(seedindex-offset >= maxsoups) return -1;
-		return seedindex++;
+	public synchronized int[] getSeedIndex() {
+		if(seedindex-offset >= maxsoups) return null;
+		int[] seed = Arrays.copyOf(this.seed, 4);
+		seed[3] = seedindex++;
+		return seed;
 	}
 
 	@Override
@@ -101,6 +104,15 @@ public class ResultSoup extends Result {
 			LOG.warning("Could not send rules to server");
 		}
 	}	
+
+	@Override
+	public ResultSet initAnt(AbstractAnt ant) {
+		int[] seed = getSeedIndex();
+		if(seed == null) return null;
+		ResultSet result = ant.run(this.rule, this.maxiterations, new PatternRandom(getPatternSize(), seed));
+		this.insertResult(result.iterations, seed[3], result.getHighway());
+		return result;
+	}
 
     public void print() {
 		List<Entry<MultiKey<? extends Long>, Integer[]>> list = new ArrayList<>(highwayfreq.entrySet());
@@ -118,6 +130,14 @@ public class ResultSoup extends Result {
 		System.out.println("# of iterations: " + this.totaliterations);
 		System.out.println("Avg # of iterations: " + this.totaliterations/this.soupcount);
     }
+
+	private static int[] generateSeed() {
+		Random rand = new Random();
+		int[] numseed = new int[4];
+		for(int i = 0; i < 3; i++) 
+			numseed[i] = rand.nextInt(916132832);
+		return numseed;
+	}
 
 	public int getType() { return type; }
 	public long getRule() { return rule; }

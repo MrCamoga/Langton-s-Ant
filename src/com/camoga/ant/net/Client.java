@@ -18,15 +18,11 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 import java.util.Properties;
-import java.util.Scanner;
 
-import com.camoga.ant.Settings;
+import com.camoga.ant.Worker;
+import com.camoga.ant.ResultRules;
 import com.camoga.ant.WorkerManager;
-import com.camoga.ant.ants.Ant;
-import com.camoga.ant.ants.patterns.PatternRaster;
-import com.camoga.ant.gui.Window;
 import com.camoga.ant.net.packets.Packet.PacketType;
 import com.camoga.ant.net.packets.Packet.StatusCodes;
 import com.camoga.ant.net.packets.Packet;
@@ -71,15 +67,8 @@ public class Client {
 			System.exit(0);
 		}
 
-		// TODO init resultrules and stuff
-		// for(int i = 0; i < ANT_TYPES; i++) {
-		// 	assignments[i] = new ArrayDeque<Long>();
-		// 	storedrules[i] = new ByteArrayOutputStream();			
-		// }
-
 		WorkerManager.setWorkers(w2, wh, w3, w4);
 		LOG.info("Running on " + (w2+wh+w3+w4) + "/" + Runtime.getRuntime().availableProcessors() + " threads");
-		// WorkerManager.start();
 //		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 //			//save rules that take too much time to compute (>1e10 iterations)
 //		}));
@@ -97,7 +86,7 @@ public class Client {
 			username = properties.getProperty("username");
 			secrettoken = properties.getProperty("secrettoken");
 		} else {
-			LOG.warning("You have to login.");
+			LOG.warning("You need to login. If you don't have an account, follow the instructions at https://langtonsant.es/downloads.php");
 			System.exit(0);
 		}
 		
@@ -143,7 +132,7 @@ public class Client {
 				os = new DataOutputStream(socket.getOutputStream());
 				is = new DataInputStream(socket.getInputStream());
 				
-				LOG.info("Connected to server");
+				LOG.info("Connected to the server");
 				
 				login();
 
@@ -161,13 +150,12 @@ public class Client {
 						// logintries = 0;
 						storeCredentials();
 						WorkerManager.start();
-						// for(int i = 0; i < ANT_TYPES; i++) getAssignment(i);
 						break;
 					case ASSIGNMENT:
 						Packet02Assignment packet = new Packet02Assignment(is);
-						// for(int i = 0; i < packet.getSize(); i++) {
-						// 	assignments[packet.getType()].add(is.readLong());
-						// }
+						for(int i = 0; i < packet.getSize(); i++) {
+							((ResultRules)(Worker.workresult)).insertAssignments(is.readLong());
+						}
 						LOG.info("New assignment of " + packet.getSize()/2 + " rules");
 						WorkerManager.start();
 						break;

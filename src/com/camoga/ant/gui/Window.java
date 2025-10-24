@@ -22,10 +22,9 @@ import javax.swing.JTextArea;
 import javax.swing.UIManager;
 import javax.swing.text.DefaultCaret;
 
+import com.camoga.ant.Main;
 import com.camoga.ant.Settings;
-import com.camoga.ant.Worker;
-import com.camoga.ant.WorkerManager;
-import com.camoga.ant.net.Client;
+import com.camoga.ant.ants.Ant;
 
 public class Window {
 	
@@ -164,8 +163,8 @@ public class Window {
 		((DefaultCaret)log.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 		log.setEditable(false);
 
-		Client.LOG.setUseParentHandlers(false);		
-		Client.LOG.addHandler(new TextAreaHandler(new TextAreaOutputStream(log)));
+		Main.LOG.setUseParentHandlers(false);		
+		Main.LOG.addHandler(new TextAreaHandler(new TextAreaOutputStream(log)));
 		
 		f.add(scrollpane,BorderLayout.WEST);
 		f.add(canvas, BorderLayout.CENTER);
