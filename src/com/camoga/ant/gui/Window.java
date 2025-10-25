@@ -127,7 +127,7 @@ public class Window {
 			if(w==null) return;
 
 			if(w.isRunning()) {
-				w.getLevel().render(canvasImage, pixels, canvasImage.getWidth(), canvasImage.getHeight(), Settings.followAnt || w.getAnt().findingPeriod(), true);				
+				w.getAnt().getMap().render(canvasImage, pixels, canvasImage.getWidth(), canvasImage.getHeight(), Settings.followAnt || w.getAnt().findingPeriod(), true);				
 			}
 
 			g.drawImage(canvasImage, 0, 0, 800, 800, null);
