@@ -24,14 +24,13 @@ public class Packet05Status extends Packet {
 	public void writeData(DataOutputStream os) throws IOException {
 		super.writeData(os);
 		os.writeByte(status);
-		os.writeInt(getMessage().length());
-		os.write(getMessage().getBytes());
+		os.writeUTF(message);
 	}
 
 	@Override
 	public void readData(DataInputStream is) throws IOException {
 		status = is.readByte();
-		message = new String(is.readNBytes(is.readInt()));
+		message = is.readUTF();
 	}
 
 	public int getStatusCode() { return status; }

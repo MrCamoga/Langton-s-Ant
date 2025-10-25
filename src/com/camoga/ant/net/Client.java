@@ -52,7 +52,7 @@ public class Client {
 	static DataInputStream is;
 	static String host;
 	static final int PORT = 7357;
-	static final Version VERSION = new Version(1,1,2);
+	static final Version VERSION = new Version(1,2,0);
 	
 	static int ASSIGN_SIZE = 50;
 	static long lastResultsTime;
