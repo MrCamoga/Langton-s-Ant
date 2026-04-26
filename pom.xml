@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>Langton-s-Ant</groupId>
 	<artifactId>Langton-s-Ant</artifactId>
-	<version>0.13.0</version>
+	<version>1.2.1</version>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<resources>
@@ -24,30 +24,39 @@
 				</configuration>
 			</plugin>
 			<plugin>
-                		<groupId>org.apache.maven.plugins</groupId>
-                		<artifactId>maven-jar-plugin</artifactId>
-                		<version>3.2.2</version>
-                		<configuration>
-                        		<archive>
-                                		<manifest>
-                                        		<mainClass>com.camoga.ant.net.Client</mainClass>
-                                		</manifest>
-                        		</archive>
-                		</configuration>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.2.2</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>com.camoga.ant.Main</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
 			</plugin>
 			<plugin>
-        			<artifactId>maven-assembly-plugin</artifactId>
-        			<configuration>
-          				<archive>
-            					<manifest>
-        						<mainClass>com.camoga.ant.net.Client</mainClass>
-	        	    			</manifest>
-          				</archive>
-			        	<descriptorRefs>
-            					<descriptorRef>jar-with-dependencies</descriptorRef>
-          				</descriptorRefs>
-        			</configuration>
-      			</plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>com.camoga.ant.Main</mainClass>
+						</manifest>
+					</archive>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>**/src/com/camoga/ant/test/**/*.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
@@ -55,6 +64,11 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>
 			<version>4.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-math3</artifactId>
+			<version>3.6.1</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-cli</groupId>

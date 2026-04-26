@@ -18,6 +18,7 @@ public class WorkerManager {
 			throw new RuntimeException("More workers than available processors ("+threads+")");
 		}
 		results.add(result);
+		numworkers += result.getWorkerCount();
 	}
 
 	public static int getNumWorkers() {

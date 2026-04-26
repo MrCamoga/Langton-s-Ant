@@ -16,8 +16,8 @@ import com.camoga.ant.gui.Window;
 import com.camoga.ant.net.Client;
 import com.camoga.ant.results.Result;
 import com.camoga.ant.results.ResultRules;
-import com.camoga.ant.results.ResultRulesTest;
 import com.camoga.ant.results.ResultSoup;
+import com.camoga.ant.results.ResultSoupRestore;
 
 public class Main {
 
@@ -39,7 +39,7 @@ public class Main {
 		options.addOption(Option.builder("w3").hasArg(true).argName("num_threads").desc("number of 3d ants").type(Number.class).build());                   
 		options.addOption(Option.builder("w4").hasArg(true).argName("num_threads").desc("number of 4d ants").type(Number.class).build());                   
 		options.addOption(Option.builder("c").hasArg(false).desc("Run ant").build());
-		options.addOption(Option.builder("ws").longOpt("soup").hasArg(true).numberOfArgs(4).argName("threads rule number_soups iterations_per_soup").desc("Run random soups").build());
+		options.addOption(Option.builder("ws").longOpt("soup").hasArgs().argName("threads rule number_soups iterations_per_soup | threads savefile").desc("Run random soups").build());
 		CommandLineParser parser = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
 		formatter.setWidth(120);
@@ -85,11 +85,15 @@ public class Main {
 			if(cmd.hasOption("ws")) {
 				String[] wsValues = cmd.getOptionValues("ws");
 				int wsThreads = Integer.parseInt(wsValues[0]);
-				int wsRule = Integer.parseInt(wsValues[1]);
-				int wsSize = Integer.parseInt(wsValues[2]);
-				int wsIterations = Integer.parseInt(wsValues[3]);
-
-				Result result = new ResultSoup(0, wsRule, null, 5, wsIterations, wsSize);
+				Result result;
+				if(wsValues.length == 2) {
+					result = new ResultSoupRestore(wsValues[1]);
+				} else {
+					int wsRule = Integer.parseInt(wsValues[1]);
+					int wsSize = Integer.parseInt(wsValues[2]);
+					int wsIterations = Integer.parseInt(wsValues[3]);
+					result = new ResultSoup(0, wsRule, null, 5, wsIterations, wsSize);
+				}
 				result.addWorkers(wsThreads);
 				WorkerManager.add(result);
 			}
