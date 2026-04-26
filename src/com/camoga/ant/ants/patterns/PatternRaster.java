@@ -2,7 +2,6 @@ package com.camoga.ant.ants.patterns;
 
 import com.camoga.ant.ants.AbstractAnt;
 import com.camoga.ant.ants.Ant;
-import com.camoga.ant.ants.Map;
 import com.camoga.ant.ants.Map.Chunk;
 
 public class PatternRaster extends Pattern {
@@ -26,20 +25,20 @@ public class PatternRaster extends Pattern {
 		if(ant.getType() != 0) throw new IllegalArgumentException("Invalid ant type");
         Ant a = (Ant) ant;
         int height = raster.length/width;
-        for(int yc = 0; yc <= (height >> 7); yc++) {
-            for(int xc = 0; xc <= (width >> 7); xc++) {
+        for(int yc = 0; yc <= (height >> ant.cPOW); yc++) {
+            for(int xc = 0; xc <= (width >> ant.cPOW); xc++) {
                 Chunk chunk = ant.map.getChunk(xc, yc);
-                for(int y = 0; y < Math.min(128,height-yc*128); y++) {
-                    for(int x = 0; x < Math.min(128,width-xc*128); x++) {
-                        chunk.cells[x+y*128] = raster[(x+xc*128) + (y+yc*128)*width];
+                for(int y = 0; y < Math.min(ant.cSIZE,height-yc*ant.cSIZE); y++) {
+                    for(int x = 0; x < Math.min(ant.cSIZE,width-xc*ant.cSIZE); x++) {
+                        chunk.cells[x+y*ant.cSIZE] = raster[(x+xc*ant.cSIZE) + (y+yc*ant.cSIZE)*width];
                     }
                 }
             }
         }
-        a.xc = (antx&0xffffff80) >> 7;
-        a.yc = (anty&0xffffff80) >> 7;
-        a.x = antx&127;
-        a.y = anty&127;
+        a.xc = (antx&-ant.cSIZE) >> ant.cPOW;
+        a.yc = (anty&-ant.cSIZE) >> ant.cPOW;
+        a.x = antx&ant.cSIZEm;
+        a.y = anty&ant.cSIZEm;
         a.diry = diry;
         a.dirx = dirx;
         ant.chunk = ant.map.getChunk(a.xc,a.yc);

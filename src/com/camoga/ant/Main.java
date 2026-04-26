@@ -17,12 +17,12 @@ import com.camoga.ant.net.Client;
 
 public class Main {
 
-    public static Client client;
+	public static Client client;
 	public static final Logger LOG = Logger.getLogger("Client");
-	public static final Version VERSION = new Version(1,1,2);
-    public static Window window;
+	public static final Version VERSION = new Version(1,2,1);
+	public static Window window;
 
-    public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException {
 		Options options = new Options();
 		
 		options.addOption(Option.builder("h").longOpt("help").hasArg(false).desc("print help").build());
@@ -35,7 +35,7 @@ public class Main {
 		options.addOption(Option.builder("w3").hasArg(true).argName("num_threads").desc("number of 3d ants").type(Number.class).build());                   
 		options.addOption(Option.builder("w4").hasArg(true).argName("num_threads").desc("number of 4d ants").type(Number.class).build());                   
 		options.addOption(Option.builder("c").hasArg(false).desc("Run ant").build());
-        options.addOption(Option.builder("ws").longOpt("soup").hasArg(true).numberOfArgs(4).argName("threads rule number_soups iterations_per_soup").desc("Run random soups").build());
+		options.addOption(Option.builder("ws").longOpt("soup").hasArg(true).numberOfArgs(4).argName("threads rule number_soups iterations_per_soup").desc("Run random soups").build());
 		CommandLineParser parser = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
 		formatter.setWidth(120);
@@ -44,7 +44,7 @@ public class Main {
 		try {
 			cmd = parser.parse(options, args);
 
-			// if(cmd.hasOption("c")) {
+			// if(cmd.hasOption("c")) { // TODO restore code to run ant from file
 			// 	runRule();
 			// 	return;
 			// }
@@ -72,9 +72,9 @@ public class Main {
 			String host = cmd.hasOption("host") ? cmd.getOptionValue("host"):"app.langtonsant.es";
 			if(workers2 == 0 && workershex == 0 && workers3 == 0 && workers4 == 0) workers2 = 1;
 			initLogger(!nolog);
-            client = new Client(host,workers2,workershex,workers3,workers4);
+			client = new Client(host,8,workershex,workers3,workers4);
 			if(gui)
-				window = new Window(null);
+				window = new Window();
 			
 		} catch(ParseException e) {
 			System.out.println(e.getMessage());
@@ -83,13 +83,13 @@ public class Main {
 		}
 	}
 
-    public static void initLogger(boolean log) {
-        if(log) {
-            LOG.setLevel(java.util.logging.Level.INFO);
-            System.setProperty("java.util.logging.SimpleFormatter.format", "%5$s%n");			
-        } else {
-            LOG.setLevel(java.util.logging.Level.WARNING);
-        }
-        LOG.info("Langton's Ant Client v"+VERSION);
-    }
+	public static void initLogger(boolean log) {
+		if(log) {
+			LOG.setLevel(java.util.logging.Level.INFO);
+			System.setProperty("java.util.logging.SimpleFormatter.format", "%5$s%n");			
+		} else {
+			LOG.setLevel(java.util.logging.Level.WARNING);
+		}
+		LOG.info("Langton's Ant Client v"+VERSION);
+	}
 }

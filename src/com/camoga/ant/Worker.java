@@ -7,13 +7,11 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
 import com.camoga.ant.ants.AbstractAnt;
-import com.camoga.ant.ants.Ant;
-import com.camoga.ant.ants.Ant3D;
-import com.camoga.ant.ants.Ant4D;
-import com.camoga.ant.ants.AntHex;
+import com.camoga.ant.ants.AntFactory;
 import com.camoga.ant.ants.ResultSet;
+import com.camoga.ant.results.Result;
+import com.camoga.ant.results.ResultSoupRestore;
 
 public class Worker {
 	
@@ -27,20 +25,25 @@ public class Worker {
 	int type;
 	public static Result workresult;
 
-	static {
-		// workresult = new ResultSoup(0, 786123, null, 5, 100000000, 10000, 0); // generateSeed()
+	static { // rule 374601147 main period always breaks
+		// workresult = new ResultSoup(0, 43, new int[] { 904527579, 868801032, 406085901, 0 }, 5, 30000000, 500000, 455); // para testear algoritmo de calcular periodo
+		// workresult = new ResultSoup(0, 43, null, 5, 100000000, 1000000, 0);
+		workresult = new ResultSoupRestore("saves/fTuNqWUaYdhaIe7.langton");
 		// System.out.println(((ResultSoup)workresult).getSeedString());
-		workresult = new ResultRules(0);
+		//workresult = new ResultRules(0);
+		// workresult = new ResultRulesTest(0, 31819, 150000000);
+		// workresult = new ResultSoupRestore(0, 371047772, new int[] {549072545, 903439913, 332504472, 0}, 5, 100000000, 1000000, 0, "371047772soups1M.csv"); // generateSeed()
+	}
+
+	public Worker(int ID, Result result) {
+		this(ID, result.getType());
+		workresult = result;
 	}
 
 	public Worker(int ID, int type) {
 		this.workerid = ID;
 		this.type = type;
-		if(type==0) ant = new Ant();
-		else if(type==1) ant = new AntHex();
-		else if(type==2) ant = new Ant3D();
-		else if(type==3) ant = new Ant4D();
-		else throw new IllegalArgumentException("Invalid type of ant");
+		ant = AntFactory.createAnt(type);
 	}
 	
 	public void start() {
@@ -50,23 +53,26 @@ public class Worker {
 		Main.LOG.info("Worker " + workerid + " started");
 		running = true;
 	}
-	
-	MultiKeyMap<Long,Integer> highway_hist = new MultiKeyMap<>();
 
 	public void run() {
 		long time;
 		
 		while(!kill) {
 			time = System.nanoTime();
-			ResultSet result = workresult.initAnt(ant);		
+			ResultSet result = workresult.initAnt(ant);	
 			if(result == null) break;	
 
 			//Client.LOG.info("Chunk neighbour hits: " + (ant.map.total-ant.map.nohit) + "/" + ant.map.total + ", " + (1-ant.map.nohit/(double)ant.map.total));
 			float seconds = (float) ((-time + (time = System.nanoTime()))/1e9);
-			Main.LOG.info(String.format("%02d %.4E it/s\t%.4f s\t%s", workerid, result.iterations/seconds, seconds, result));
+			if(result.isNew()) {
+				String resultStr = result.toString();
+				resultStr = resultStr.substring(0, Math.min(resultStr.length(),300));
+				Main.LOG.info(String.format("%02d %.4E it/s\t%.4f s\t%s", workerid, result.iterations/seconds, seconds, result));
+			}
 		}
 		Main.LOG.warning("Worker " + workerid + " has stopped");
 		running = false;
+		// TODO release ant memory
 		if(kill) WorkerManager.remove(this);
 	}
 	

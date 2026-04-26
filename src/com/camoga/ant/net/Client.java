@@ -1,6 +1,5 @@
 package com.camoga.ant.net;
 
-import java.awt.GraphicsEnvironment;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -21,16 +20,17 @@ import java.nio.charset.Charset;
 import java.util.Properties;
 
 import com.camoga.ant.Worker;
-import com.camoga.ant.ResultRules;
 import com.camoga.ant.WorkerManager;
 import com.camoga.ant.net.packets.Packet.PacketType;
 import com.camoga.ant.net.packets.Packet.StatusCodes;
+import com.camoga.ant.results.ResultRules;
 import com.camoga.ant.net.packets.Packet;
 import com.camoga.ant.net.packets.Packet00Version;
 import com.camoga.ant.net.packets.Packet01Auth;
 import com.camoga.ant.net.packets.Packet02Assignment;
 import com.camoga.ant.net.packets.Packet04Message;
 import com.camoga.ant.net.packets.Packet05Status;
+import com.camoga.ant.net.packets.Packet09Assignment;
 
 import static com.camoga.ant.Main.LOG;
 import static com.camoga.ant.Main.VERSION;
@@ -93,7 +93,7 @@ public class Client {
 		try {
 			// Get access token
 			String accesstoken;
-			URI url = URI.create("https://langtonsant.es/getaccesstoken.php");
+			URI url = URI.create("https://app.langtonsant.es/getaccesstoken.php");
 			HttpClient client = HttpClient.newHttpClient();
 			HttpRequest req = HttpRequest.newBuilder()
 					.uri(url)
@@ -126,7 +126,7 @@ public class Client {
 	
 	private void run() {
 		while(!STOP_ON_DISCONNECT) {
-			try {
+			try {	
 				socket = new Socket(host,PORT);
 
 				os = new DataOutputStream(socket.getOutputStream());
@@ -140,7 +140,6 @@ public class Client {
 					// System.out.println((int)is.readByte()&0xFF);
 					// if(0<1)continue;
 					PacketType pk = PacketType.getPacketType(is.readByte());
-					// System.out.println(pk.getId());
 					switch(pk) {
 					case AUTH:
 						Packet01Auth packetlogin = new Packet01Auth(is);
@@ -154,7 +153,7 @@ public class Client {
 					case ASSIGNMENT:
 						Packet02Assignment packet = new Packet02Assignment(is);
 						for(int i = 0; i < packet.getSize(); i++) {
-							((ResultRules)(Worker.workresult)).insertAssignments(is.readLong());
+							((ResultRules)(Worker.workresult)).insertAssignments(is.readLong()); // TODO do not cast. Call the class that stores result types to get the appropriate result.
 						}
 						LOG.info("New assignment of " + packet.getSize()/2 + " rules");
 						WorkerManager.start();
@@ -196,6 +195,13 @@ public class Client {
 							LOG.warning(message);
 							break;
 						}
+						break;
+					case NEWASSIGNMENT:
+						int size = is.readInt();
+						for(int i = 0; i < size; i++) {
+							((ResultRules)(Worker.workresult)).insertAssignments(is.readLong());
+						}
+						WorkerManager.start();
 						break;
 					default:
 						break;

@@ -1,11 +1,11 @@
 package com.camoga.ant.ants;
 
 import java.util.Arrays;
-import java.util.Scanner;
 
+import com.camoga.ant.Main;
 import com.camoga.ant.Settings;
 import com.camoga.ant.ants.Map.Chunk;
-import com.camoga.ant.net.Client;
+import com.camoga.ant.ants.patterns.Pattern;
 
 public class Ant extends AbstractAnt {
 
@@ -20,55 +20,32 @@ public class Ant extends AbstractAnt {
 		diry=1;
 		dirx=0;
 		directionend = 0;
-		histogram = new long[255];
-		histogram2 = new long[255];
+		histogram = new long[65535];
+		histogram2 = new long[65535];
 	}
 	
 	public int dirx, diry, state1, state2, index;
 	short s1, s2;
-	public long[] histogram;
-	long[] histogram2;
+	private long[] histogram;
+	private long[] histogram2;
 	
 	public void move(long it) {
 		int iteration = 0;
 		int e;
 		int mask = -(1<<cPOW);
-		boolean first = true;
 		for(; iteration < it; iteration+=2) {
 			if((e=y&mask) != 0) {
 				yc += e>>cPOW;
 				y -= e;
 				chunk = chunk.getNeighbour(xc, yc, diry+2);
 			}
-			/* changechunk: {
-				if(y > cSIZEm) {
-					y = 0;
-					yc++;
-				} else if(y < 0) {
-					y = cSIZEm;
-					yc--;
-				} else break changechunk;
-				chunk = chunk.getNeighbour(xc, yc, diry+2);
-			} */
 		
 			index = (y<<cPOW)|x;
-			state1 = (chunk.cells[index]++) & 0xff;
+			state1 = chunk.cells[index]++;
 			if(resetState && chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
-			// if(!resetState && state1 > maxstate) maxstate = state1;
-			// direction += rule.turn[state1];
+			if(!resetState && state1 > maxstate) maxstate = state1;
 			dirx = -diry*rule.turn[state1];
 			x += dirx;
-
-			/* changechunk: {
-				if(x > cSIZEm) {
-					x = 0;
-					xc++;
-				} else if(x < 0) {
-					x = cSIZEm;
-					xc--;
-				} else break changechunk;
-				chunk = chunk.getNeighbour(xc, yc, dirx+1);
-			} */
 			if((e=x&mask) != 0) {
 				xc += e >> cPOW;
 				x -= e;
@@ -76,55 +53,38 @@ public class Ant extends AbstractAnt {
 			}
 
 			index = (y<<cPOW)|x;
-			state2 = (chunk.cells[index]++) & 0xff;
+			state2 = chunk.cells[index]++;
 			if(resetState && chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
-			// if(!resetState && state2 > maxstate) maxstate = state2;
-			// direction += rule.turn[state2];
+			if(!resetState && state2 > maxstate) maxstate = state2;
 			diry = dirx*rule.turn[state2];
 			y += diry;
 			
 			if(saveState) {
-				/*if(stateindex == 0 && first) { // code to only start period when high state is reached. high sstates are less common and less likely to cause a period skip
-					if (state1 == 16 || state2 == 16) {
-						xstart = getX();
-						ystart = getY();
-						directionstart = direction;
-						first = false;
-					}
-					continue;
-				}*/
-				s1 = (short)(state1^dirx);
-				s2 = (short)(state2^diry);
+				s1 = (short) state1;
+				s2 = (short) state2;
 				if(stateindex < states.length) {
 					states[(int) stateindex++] = s1;
 					states[(int) stateindex++] = s2;
 				} else stateindex+=2;
 
-				// histogram2[state1]++;
-				// histogram2[state2]++;
+				histogram2[state1]++;
+				histogram2[state2]++;
 
 				if(states[match] != s1 || states[match+1] != s2) {
 					match = 0;
 					period = stateindex;
 					xend = getX();
 					yend = getY();
-					// directionend = direction;
-					// for(int i = 0; i <= 254; i++) {
-					// 	histogram[i] += histogram2[i];
-					// 	histogram2[i] = 0;
-					// }
+					for(int i = 0; i <= maxstate; i++) {
+						histogram[i] += histogram2[i];
+					 	histogram2[i] = 0;
+					}
 				} else {
 					match += 2;
 					if(match == states.length || match > 200000+Settings.repeatpercent*period) {
 						PERIODFOUND = true;
 						saveState = false;
 						resetState = true;
-						for(int i = 0; i < period; i++) {
-							short st = states[i];
-							st ^= st < 0 ? -1:1;
-							directionend += rule.turn[st];
-							histogram[st]++;
-						}
 						break;
 					}
 				}
@@ -133,14 +93,51 @@ public class Ant extends AbstractAnt {
 		iterations += (long)iteration;
 	}
 
-	public ResultSet run(long rule, long maxiterations) {
-		init(rule, maxiterations);
+	public ResultSet run(long rule, long maxiterations, Pattern pattern) {
+		init(rule, maxiterations, pattern);
 		int maxChunk = 1;
 		long autosavetimer = System.currentTimeMillis();
+		int initialDir = 1;
+		boolean extended = false;
 		
 		while(!periodFound() && (maxiterations == -1 || getIterations() < maxiterations)) {
 			move(Settings.itpf);
-
+			if(stateindex > 2000000 && stateindex <= 2000000+Settings.itpf) {
+				int diry = initialDir, dirx = 0;
+				long x = xstart, y = ystart;
+				long[] histogram = new long[65535];
+				histogram[states[0]]++;
+				histogram[states[1]]++;
+				dirx = -diry*this.rule.turn[states[0]];
+				x += dirx;
+				diry = dirx*this.rule.turn[states[1]];
+				y += diry;
+				outer: for(int p = 2; p < 1000000; p+=2) {
+					for(int i = 0; i < 2000000-p; i+=2) {
+						if(states[i] != states[i+p] || states[i+1] != states[i+1+p]) {
+							histogram[states[p]]++;
+							histogram[states[p+1]]++;
+							dirx = -diry*this.rule.turn[states[p]];
+							x += dirx;
+							diry = dirx*this.rule.turn[states[p+1]];
+							y += diry;
+							continue outer;
+						}
+					}
+					PERIODFOUND = true;
+					saveState = false;
+					resetState = true;
+					System.arraycopy(histogram, 0, this.histogram, 0, histogram.length);
+					period = p;
+					xend = x;
+					yend = y;
+					Main.LOG.info("Wrong period fixed: " + period+ ", " + (x-xstart) + ", " + (y-ystart));
+					long[] d = {Math.abs(xend-xstart), Math.abs(yend-ystart)}; 
+					if(isTriangle(d)) System.exit(0);
+					return getResult();
+				}
+			}
+			
 			// Chunk deletion only activates once highway computation has started
 			if(map.deleteOldChunks && getIterations() > 1000000000) {
 				map.chunks.entrySet().removeIf(e -> {
@@ -155,8 +152,9 @@ public class Ant extends AbstractAnt {
 			}
 
 			// before period calculation starts, resetState is set to false, and after 1M iterations, period calculation starts, this allows for the states to stabilize after resetting
-			if(!resetState && !saveState) {
+			if(!resetState && !saveState) { // Change this so that it takes a specific number of iterations (1-4M) instead of one loop
 				setFindingPeriod(true);
+				initialDir = diry;
 			}
 
 			// Detect highways
@@ -172,17 +170,18 @@ public class Ant extends AbstractAnt {
 			
 			if(Settings.autosave && maxiterations > 50e9 && System.currentTimeMillis()-autosavetimer > 900000) { // Autosave every 15 mins
 				saveState(getRule()+".state");
-				Client.LOG.info("Autosaving " + getRule());
+				Main.LOG.info("Autosaving " + getRule());
 				autosavetimer = System.currentTimeMillis();
 			}
 			
 			// if((getType() > 0 || (getType()==0 && (rule & (rule+1))==0)) && !extended && map.chunks.size() <= 4 &&  maxiterations != -1 && getIterations() > maxiterations) {
-			// 	extended = true;
-			// 	maxiterations += 100000000;
-			// 	setFindingPeriod(true);
+			if(saveState && !extended) {
+				extended = true;
+				maxiterations += 10_000_000L;
+				// setFindingPeriod(true);
+			}
 			// }
 		}
-
 		return getResult();
 	}
 
@@ -190,15 +189,15 @@ public class Ant extends AbstractAnt {
 		long period = periodFound() ? getPeriod():(findingPeriod() ? 1:0);
 		long winding = (directionend-directionstart);
 		int hash = computeHash();
-		long[] d = {Math.abs(xend-xstart), Math.abs(yend-ystart)};
+		long[] d = {Math.abs(xend-xstart), Math.abs(yend-ystart)}; 
 		if(period > 1) { // detect anomalies
 			if(isTriangle(d)) period = 0;
-			if((winding&3) != 0) period = 1;
+			// if((winding&3) != 0) period = 1;
 		}
 		winding >>= 2;
 		if(period <= 1) return new ResultSet(rule,iterations,hash,period);
 		Arrays.sort(d);
-		return new ResultSet(rule,iterations,hash,period,d[0],d[1],winding,histogram);
+		return new ResultSet(rule,iterations,hash,period,d[1],d[0],winding,histogram);
 	}
 
 	/**

@@ -2,8 +2,6 @@ package com.camoga.ant;
 
 import java.util.ArrayList;
 
-import com.camoga.ant.net.Client;
-
 public class WorkerManager {
 
 	static ArrayList<Worker> workers = new ArrayList<Worker>();
@@ -11,7 +9,6 @@ public class WorkerManager {
 	
 	static int idcount;
 	
-	//TODO do not start new workers until old workers have stopped
 	private static void updateWorkers() {
 		int[] count = new int[4];
 		for(Worker w : workers) {

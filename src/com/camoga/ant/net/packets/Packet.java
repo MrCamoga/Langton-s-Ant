@@ -20,6 +20,8 @@ public abstract class Packet {
 		ASSIGNMENT(2), RESULTS(3),
 		MESSAGE(4), STATUS(5), 
 		SOUPRESULTS(6),
+		NEWRESULTS(8),
+		NEWASSIGNMENT(9),
 		DISCONNECT(7);
 		
 		private int id;

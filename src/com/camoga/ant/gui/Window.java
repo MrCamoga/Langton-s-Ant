@@ -24,6 +24,8 @@ import javax.swing.text.DefaultCaret;
 
 import com.camoga.ant.Main;
 import com.camoga.ant.Settings;
+import com.camoga.ant.WorkerManager;
+import com.camoga.ant.ants.AbstractAnt;
 import com.camoga.ant.ants.Ant;
 
 public class Window {
@@ -122,12 +124,10 @@ public class Window {
 
 		public void render() {
 			Graphics g = getBufferStrategy().getDrawGraphics();
-			Worker w = WorkerManager.getWorker(0);
-			if(w==null) return;
+			AbstractAnt ant = WorkerManager.getWorker(0).getAnt();
+			if(ant==null) return;
 
-			if(w.isRunning()) {
-				w.getLevel().render(canvasImage, pixels, canvasImage.getWidth(), canvasImage.getHeight(), Settings.followAnt || w.getAnt().findingPeriod(), true);				
-			}
+			ant.map.render(canvasImage, pixels, canvasImage.getWidth(), canvasImage.getHeight(), Settings.followAnt || ant.findingPeriod(), true);				
 
 			g.drawImage(canvasImage, 0, 0, 800, 800, null);
 			g.dispose();

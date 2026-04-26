@@ -8,7 +8,7 @@ import java.util.Map.Entry;
 import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.map.MultiKeyMap;
 
-import com.camoga.ant.ResultSoup;
+import com.camoga.ant.results.ResultSoup;
 
 public class Packet06SoupResult extends Packet {
 	
@@ -37,8 +37,8 @@ public class Packet06SoupResult extends Packet {
 		os.writeLong(result.getIterations());
 		os.writeLong(result.getTotalIterations());
 		os.writeUTF(result.getSeedString());
-		os.writeInt(result.getPatternSize()); // width
-		os.writeInt(result.getPatternSize()); // height
+		os.writeInt(result.getPatternSize()*2+1); // width
+		os.writeInt(result.getPatternSize()*2+1); // height
 		// os.writeInt(result.getChunkCheck());
 		for(Entry<MultiKey<? extends Long>,Integer[]> entry: highways.entrySet()) {
 			Long[] highway = entry.getKey().getKeys();
@@ -48,11 +48,8 @@ public class Packet06SoupResult extends Packet {
 				os.writeLong(highway[i]);
 			os.writeInt(seeds[0]);
 			os.writeInt(Math.min(seeds.length-1,seeds[0]));
-			// System.out.println("------------");
-			// System.out.println(Math.min(seeds.length-1,seeds[0]));
 			for(int i = 1; i < seeds.length && seeds[i] != null; i++) {
 				os.writeInt(seeds[i]);
-				// System.out.println(seeds[i]);
 			}
 		}
 	}

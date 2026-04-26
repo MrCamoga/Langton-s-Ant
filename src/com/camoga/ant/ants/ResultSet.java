@@ -1,8 +1,10 @@
 package com.camoga.ant.ants;
 
 import java.util.Arrays;
-import java.util.function.LongPredicate;
 
+/**
+ * Stores result of computation: rule, highway information, iterations, hash,...
+ */
 public class ResultSet {
     public long period, dx, dy, winding;
     public long rule;
@@ -10,6 +12,8 @@ public class ResultSet {
     public long iterations;
     public int hash;
     public Long[] histogram;
+
+    private boolean newResult = false;
 
     public ResultSet(AbstractRule rule, long iterations, int hash, long period) {
         this.rule = rule.getRule();
@@ -57,5 +61,14 @@ public class ResultSet {
         if(period == 0) return "";
         else if(period == 1) return "?";
         return Long.toUnsignedString(period) + ", " + dx + ", " + dy + ", " + winding + "\t" + Arrays.toString(histogram);
+    }
+
+    // For logging purposes (e.g. only log new highways)
+    public void setNew() {
+        newResult = true;
+    }
+
+    public boolean isNew() {
+        return newResult;
     }
 }

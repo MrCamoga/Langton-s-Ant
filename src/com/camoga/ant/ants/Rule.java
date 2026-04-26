@@ -6,14 +6,17 @@ public class Rule extends AbstractRule {
 	
 	public void createRule(long rule) {
 		this.rule = rule;
-		this.size = 64-Long.numberOfLeadingZeros(rule);
-		colors = new int[size+1];
-		turn = new int[size];
+		this.size = (64-Long.numberOfLeadingZeros(rule));
+		colors = new int[65535];
+		turn = new int[65535];
 		Random r = new Random();
 		for(int i = 0; rule != 0; i++) {
 			turn[i] = (rule&1) == 1 ? 1:-1;
 			rule >>>= 1;
 			colors[i] = r.nextInt(0x1000000);
+		}
+		for(int i = size; i < turn.length; i++) {
+			turn[i] = turn[i-size];
 		}
 		colors[0] = 0xff101010;
 		colors[size] = colors[0];
@@ -22,7 +25,7 @@ public class Rule extends AbstractRule {
 	
 	private String generateString() {
 		ruleString = "";
-		for(int i = 0; i < turn.length; i++) {
+		for(int i = 0; i < size; i++) {
 			ruleString += turn[i] == 1 ? "R":"L";
 		}
 		return ruleString;

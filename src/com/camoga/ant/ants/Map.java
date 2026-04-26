@@ -26,9 +26,20 @@ public class Map {
 	public int total = 0;
 	
 	public class Chunk implements Serializable {		
-		public byte[] cells = new byte[chunkSize];
-		
-		public Chunk[] neighbours = new Chunk[4];
+		protected Chunk[] neighbours = new Chunk[4];
+		public short[] cells = new short[chunkSize];
+		// private byte count = 0;
+		// private int xc, yc;
+
+		// Chunk(int xc, int yc) {
+		// 	this.xc = xc;
+		// 	this.yc = yc;
+		// }
+
+		// public abstract int increment(int index);
+		// public abstract int get(int index);
+		// public abstract void set(int index, int state);
+		// public abstract Chunk upgrade(int xc, int yc);
 		
 		/**
 		 * Returns neighbour chunk in direction dir, creates one if doesn't exist and checks for highways
@@ -53,7 +64,7 @@ public class Map {
 			}
 		}
 	}
-	
+
 	private AbstractAnt ant;
 	
 	public Map(AbstractAnt ant) {
@@ -111,17 +122,15 @@ public class Map {
 	public Chunk getChunk2(int xc, int yc, int zc, int wc) { return chunks.get(xc,yc,zc,wc); }
 
 	
-	private static Font font = new Font("Tahoma", Font.PLAIN, 12);
 	//TODO improve render
 	public void render(BufferedImage image, int[] pixels, int width, int height, boolean followAnt, boolean info) {
 		int xa = followAnt ? ant.getXC():0;
 		int ya = followAnt ? ant.getYC():0;
 		int za = followAnt ? ant.getZC():0;
+		Font font = new Font("Tahoma", Font.PLAIN, 12);
 		
 		Graphics g = image.getGraphics();
-//		g.setFont(font);
-		
-//		System.out.println(xa+","+ya);
+		g.setFont(font);
 
 		int[] colors = ant.getRule().getColors();
 		if(colors == null) return;

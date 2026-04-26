@@ -69,6 +69,10 @@ public abstract class AbstractAnt {
 	public ResultSet run(long rule, long maxiterations) {
 		throw new RuntimeException("Not implemented");
 	}
+
+	public ResultSet run(long rule, long maxiterations, Pattern pattern) {
+		throw new RuntimeException("Not implemented");
+	}
 	/**
 	 * Compute a hash around the ant for verification purposes.
 	 * @return
@@ -77,8 +81,10 @@ public abstract class AbstractAnt {
 	
 	public void init(long rule, long maxiterations) {
 		this.maxiterations = maxiterations;
-		int stateslen = maxiterations == -1 ? 200000000:(int) Math.min(Math.max(5000000,maxiterations/(int)Settings.repeatpercent*2), 200000000);
-		if(states == null || states.length != stateslen) states = new short[stateslen];
+		int stateslen = maxiterations == -1 ? 10000000:(int) Math.min(Math.max(5000000,maxiterations/(int)Settings.repeatpercent*2), 10000000);
+		if(states == null || states.length != stateslen) {
+			states = new short[stateslen];
+		}
 		this.rule.createRule(rule);
 		map.init();
 		iterations = 0;
@@ -113,7 +119,8 @@ public abstract class AbstractAnt {
 	public void init(long rule, long maxiterations, Pattern pattern) {
 		this.init(rule, maxiterations);
 		// TODO pass rule or something to the pattern to verify that the pattern doesnt have more states than the rule
-		pattern.buildPattern(this);
+		if(pattern != null)
+			pattern.buildPattern(this);
 	}
 	
 	public long getPeriod() { return period; }
@@ -169,7 +176,10 @@ public abstract class AbstractAnt {
 				MultiKey<? extends Integer> key = c.getKey();
 				oos.writeInt(key.getKey(0));
 				oos.writeInt(key.getKey(1));
-				oos.write(c.getValue().cells);
+				short[] cells = c.getValue().cells;
+				for(short cell : cells) {
+					oos.writeShort(cell);
+				}
 			}
 			oos.close();
 		} catch (IOException e) {
