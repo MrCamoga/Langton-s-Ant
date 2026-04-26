@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 
-import com.camoga.ant.WorkerManager;
 import com.camoga.ant.ants.AbstractAnt;
 import com.camoga.ant.ants.ResultSet;
 import com.camoga.ant.net.Client;
@@ -35,7 +34,7 @@ public class ResultRules extends Result {
 	 * @return {rule, iterations}
 	 */
 	public synchronized long[] getRule() {
-		if(assignments.size() < 2*WorkerManager.size()*ASSIGN_SIZE) {
+		if(assignments.size() < 2*workerCount*ASSIGN_SIZE) {
 			getAssignment();
 			if(assignments.size() == 0) return null;
 		}
@@ -48,11 +47,11 @@ public class ResultRules extends Result {
 
 	protected synchronized void getAssignment() {
 		if(!Client.logged) return;
-		if(WorkerManager.size(type) == 0) return;
+		if(workerCount == 0) return;
 		if(System.currentTimeMillis()-lastAssignTime < 15000) return;
 		lastAssignTime = System.currentTimeMillis();
 		try {
-			Packet02Assignment packet = new Packet02Assignment(type, WorkerManager.size(type)*ASSIGN_SIZE);
+			Packet02Assignment packet = new Packet02Assignment(type, workerCount*ASSIGN_SIZE);
 			Client.sendPacket(packet);
 		} catch(IOException e) {
 			e.printStackTrace();
@@ -86,13 +85,22 @@ public class ResultRules extends Result {
 	protected synchronized void insertResult(ResultSet result) {
 		try {
 			if(type > 0) throw new RuntimeException("Types other than 2D not implemented yet");
-			Long[] highway = result.getHighway();
-			ByteBuffer bb = ByteBuffer.allocate(28+highway.length*8); // rule, iterations, hash, period, dx, dy, winding, histogram
+			// Long[] highway = result.getHighway(); 
+			// ByteBuffer bb = ByteBuffer.allocate(28+highway.length*8); // rule, iterations, hash, period, dx, dy, winding, histogram
+			// bb.putLong(result.rule);
+			// bb.putLong(result.iterations);
+			// bb.putLong(result.hash);
+			// bb.putInt(highway.length);
+			// for(int i = 0; i < highway.length; i++) {
+			// 	bb.putLong(highway[i]);
+			// }
+			Long[] highway = result.getSmallHighway(); 
+			ByteBuffer bb = ByteBuffer.allocate(24+highway.length*8); // rule, period, iterations, hash, dx, dy, winding
 			bb.putLong(result.rule);
+			bb.putLong(highway[0]);
 			bb.putLong(result.iterations);
 			bb.putLong(result.hash);
-			bb.putInt(highway.length);
-			for(int i = 0; i < highway.length; i++) {
+			for(int i = 1; i < highway.length; i++) {
 				bb.putLong(highway[i]);
 			}
 			storedrules.write(bb.array());

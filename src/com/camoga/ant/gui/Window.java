@@ -40,7 +40,7 @@ public class Window {
 	public Window() {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Exception e) {
+		} catch(Exception e) {
 			e.printStackTrace();
 		}
 		f = new JFrame("Langton's Ant Cellular Automata");
@@ -116,7 +116,7 @@ public class Window {
 				render();
 				try {
 					Thread.sleep(100);
-				} catch (InterruptedException e) {
+				} catch(InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
@@ -124,7 +124,8 @@ public class Window {
 
 		public void render() {
 			Graphics g = getBufferStrategy().getDrawGraphics();
-			AbstractAnt ant = WorkerManager.getWorker(0).getAnt();
+			AbstractAnt ant = null; // TODO get ant
+			//WorkerManager.getResult(0).getWorker(0).getAnt();
 			if(ant==null) return;
 
 			ant.map.render(canvasImage, pixels, canvasImage.getWidth(), canvasImage.getHeight(), Settings.followAnt || ant.findingPeriod(), true);				

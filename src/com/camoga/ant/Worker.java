@@ -11,11 +11,11 @@ import com.camoga.ant.ants.AbstractAnt;
 import com.camoga.ant.ants.AntFactory;
 import com.camoga.ant.ants.ResultSet;
 import com.camoga.ant.results.Result;
-import com.camoga.ant.results.ResultSoupRestore;
+import com.camoga.ant.results.ResultRules;
 
 public class Worker {
 	
-	Thread thread;	
+	Thread thread;
 	boolean kill;
 	boolean running;
 	int workerid;
@@ -23,12 +23,12 @@ public class Worker {
 	long autosavetimer;
 	AbstractAnt ant;
 	int type;
-	public static Result workresult;
+	protected Result workresult;
 
 	static { // rule 374601147 main period always breaks
 		// workresult = new ResultSoup(0, 43, new int[] { 904527579, 868801032, 406085901, 0 }, 5, 30000000, 500000, 455); // para testear algoritmo de calcular periodo
-		// workresult = new ResultSoup(0, 43, null, 5, 100000000, 1000000, 0);
-		workresult = new ResultSoupRestore("saves/fTuNqWUaYdhaIe7.langton");
+		// workresult = new ResultSoup(0, 396621243, null, 5, 100000000, 100000, 0);
+		// workresult = new ResultSoupRestore("saves/3h1hIkNbusAQSiY.langton");
 		// System.out.println(((ResultSoup)workresult).getSeedString());
 		//workresult = new ResultRules(0);
 		// workresult = new ResultRulesTest(0, 31819, 150000000);
@@ -43,7 +43,7 @@ public class Worker {
 	public Worker(int ID, int type) {
 		this.workerid = ID;
 		this.type = type;
-		ant = AntFactory.createAnt(type);
+		// ant = AntFactory.createAnt(type);
 	}
 	
 	public void start() {
@@ -59,12 +59,12 @@ public class Worker {
 		
 		while(!kill) {
 			time = System.nanoTime();
-			ResultSet result = workresult.initAnt(ant);	
-			if(result == null) break;	
+			ResultSet result = workresult.initAnt(AntFactory.createAnt(type));	
+			if(result == null) break;
 
 			//Client.LOG.info("Chunk neighbour hits: " + (ant.map.total-ant.map.nohit) + "/" + ant.map.total + ", " + (1-ant.map.nohit/(double)ant.map.total));
 			float seconds = (float) ((-time + (time = System.nanoTime()))/1e9);
-			if(result.isNew()) {
+			if(workresult instanceof ResultRules || result.isNew()) {
 				String resultStr = result.toString();
 				resultStr = resultStr.substring(0, Math.min(resultStr.length(),300));
 				Main.LOG.info(String.format("%02d %.4E it/s\t%.4f s\t%s", workerid, result.iterations/seconds, seconds, result));
@@ -72,8 +72,7 @@ public class Worker {
 		}
 		Main.LOG.warning("Worker " + workerid + " has stopped");
 		running = false;
-		// TODO release ant memory
-		if(kill) WorkerManager.remove(this);
+		if(kill) workresult.removeWorker(this);
 	}
 	
 	protected void saveImage(File file, boolean info) {
@@ -84,7 +83,7 @@ public class Worker {
 		try {
 			ImageIO.write(image, "PNG", file);
 			System.out.println(file);
-		} catch (IOException e) {
+		} catch(IOException e) {
 			e.printStackTrace();
 		}
 	}

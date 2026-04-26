@@ -21,6 +21,7 @@ public class PatternRandom extends Pattern {
 
     @Override
     public void buildPattern(AbstractAnt ant) {
+        if(ant.dimension != 2) throw new RuntimeException("Pattern only works for 2d ants");
         MersenneTwister mt = new MersenneTwister(seed);
         int rulesize = ant.getRule().getSize();
         for(int y = -size; y <= size; y++) {

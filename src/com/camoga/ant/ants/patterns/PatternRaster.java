@@ -22,7 +22,7 @@ public class PatternRaster extends Pattern {
 
     @Override
     public void buildPattern(AbstractAnt ant) { // FIX ant must be facing north or south to work properly
-		if(ant.getType() != 0) throw new IllegalArgumentException("Invalid ant type");
+		if(ant.getType() != 0) throw new RuntimeException("Only works for 2d ant");
         Ant a = (Ant) ant;
         int height = raster.length/width;
         for(int yc = 0; yc <= (height >> ant.cPOW); yc++) {

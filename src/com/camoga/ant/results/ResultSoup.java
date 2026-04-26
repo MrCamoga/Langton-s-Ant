@@ -177,7 +177,7 @@ public class ResultSoup extends Result {
 
 	public int getType() { return type; }
 	public long getRule() { return rule; }
-	public int[] getSeed() { return seed; }
+	// public int[] getSeed() { return seed; }
 	public int getOffset() { return offset; }
 	public int getCount() { return seedindex-offset; }
 	public String getSeedString() {

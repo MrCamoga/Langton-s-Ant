@@ -14,6 +14,10 @@ import org.apache.commons.cli.ParseException;
 
 import com.camoga.ant.gui.Window;
 import com.camoga.ant.net.Client;
+import com.camoga.ant.results.Result;
+import com.camoga.ant.results.ResultRules;
+import com.camoga.ant.results.ResultRulesTest;
+import com.camoga.ant.results.ResultSoup;
 
 public class Main {
 
@@ -54,10 +58,41 @@ public class Main {
 				System.exit(0);
 			}
 			
-			int workers2 = cmd.hasOption("w") ? ((Number) cmd.getParsedOptionValue("w")).intValue():0;
-			int workershex = cmd.hasOption("wh") ? ((Number) cmd.getParsedOptionValue("wh")).intValue():0;
-			int workers3 = cmd.hasOption("w3") ? ((Number) cmd.getParsedOptionValue("w3")).intValue():0;
-			int workers4 = cmd.hasOption("w4") ? ((Number) cmd.getParsedOptionValue("w4")).intValue():0;
+			if(cmd.hasOption("w")) {
+				int w = ((Number) cmd.getParsedOptionValue("w")).intValue();
+				Result result = new ResultRules(0);
+				result.addWorkers(w);
+				WorkerManager.add(result);
+			} 
+			if(cmd.hasOption("wh")) {
+				int w = ((Number) cmd.getParsedOptionValue("wh")).intValue();
+				Result result = new ResultRules(1);
+				result.addWorkers(w);
+				WorkerManager.add(result);
+			} 
+			if(cmd.hasOption("w3")) {
+				int w = ((Number) cmd.getParsedOptionValue("w3")).intValue();
+				Result result = new ResultRules(2);
+				result.addWorkers(w);
+				WorkerManager.add(result);
+			} 
+			if(cmd.hasOption("w4")) {
+				int w = ((Number) cmd.getParsedOptionValue("w4")).intValue();
+				Result result = new ResultRules(3);
+				result.addWorkers(w);
+				WorkerManager.add(result);
+			}
+			if(cmd.hasOption("ws")) {
+				String[] wsValues = cmd.getOptionValues("ws");
+				int wsThreads = Integer.parseInt(wsValues[0]);
+				int wsRule = Integer.parseInt(wsValues[1]);
+				int wsSize = Integer.parseInt(wsValues[2]);
+				int wsIterations = Integer.parseInt(wsValues[3]);
+
+				Result result = new ResultSoup(0, wsRule, null, 5, wsIterations, wsSize);
+				result.addWorkers(wsThreads);
+				WorkerManager.add(result);
+			}
 			boolean nolog = cmd.hasOption("nl");
 			if(cmd.hasOption("u")) {
 				String username = cmd.getOptionValue("u");
@@ -70,9 +105,9 @@ public class Main {
 			}
 			boolean gui = !GraphicsEnvironment.isHeadless() && !cmd.hasOption("ng");
 			String host = cmd.hasOption("host") ? cmd.getOptionValue("host"):"app.langtonsant.es";
-			if(workers2 == 0 && workershex == 0 && workers3 == 0 && workers4 == 0) workers2 = 1;
+			if(WorkerManager.getNumWorkers() == 0) WorkerManager.add(new ResultRules(0));
 			initLogger(!nolog);
-			client = new Client(host,8,workershex,workers3,workers4);
+			client = new Client(host);
 			if(gui)
 				window = new Window();
 			

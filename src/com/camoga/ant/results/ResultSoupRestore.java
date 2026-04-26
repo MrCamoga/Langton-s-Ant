@@ -47,7 +47,7 @@ public class ResultSoupRestore extends ResultSoup {
 		int wipSize = is.read();
 		wip2 = new ArrayList<>(wipSize);
 		for(int i = 0 ; i < wipSize; i++) wip2.add(is.readInt());
-		int numHighways = is.readInt(); 
+		int numHighways = is.readInt();
 		for(int i = 0; i < numHighways; i++) {
 			int highwaySize = is.readShort();
 			Long[] highway = new Long[highwaySize];

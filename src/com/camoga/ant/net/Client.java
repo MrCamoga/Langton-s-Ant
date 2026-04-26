@@ -54,7 +54,7 @@ public class Client {
 
 	public static Client client;
 
-	public Client(String host, int w2, int wh, int w3, int w4) throws IOException {		
+	public Client(String host) throws IOException {		
 		this.host = host;
 		properties = new Properties();
 		try {
@@ -67,8 +67,7 @@ public class Client {
 			System.exit(0);
 		}
 
-		WorkerManager.setWorkers(w2, wh, w3, w4);
-		LOG.info("Running on " + (w2+wh+w3+w4) + "/" + Runtime.getRuntime().availableProcessors() + " threads");
+		LOG.info("Running on " + WorkerManager.getNumWorkers() + "/" + Runtime.getRuntime().availableProcessors() + " threads");
 //		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 //			//save rules that take too much time to compute (>1e10 iterations)
 //		}));
@@ -115,7 +114,7 @@ public class Client {
 			sendPacket(versionpacket);
 			Packet01Auth loginpacket = new Packet01Auth(username, accesstoken);
 			sendPacket(loginpacket);
-		} catch (IOException | InterruptedException e) {
+		} catch(IOException | InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
@@ -152,8 +151,14 @@ public class Client {
 						break;
 					case ASSIGNMENT:
 						Packet02Assignment packet = new Packet02Assignment(is);
-						for(int i = 0; i < packet.getSize(); i++) {
-							((ResultRules)(Worker.workresult)).insertAssignments(is.readLong()); // TODO do not cast. Call the class that stores result types to get the appropriate result.
+						ResultRules result = WorkerManager.getResult(packet.getType());
+						if(result == null) {
+							is.skip(packet.getSize()*8);
+							break;
+						}
+						for(int i = 0; i < packet.getSize()/2; i++) {
+							result.insertAssignments(is.readLong()); // TODO do not cast. Call the class that stores result types to get the appropriate result.
+							is.readLong(); // iterations, not used
 						}
 						LOG.info("New assignment of " + packet.getSize()/2 + " rules");
 						WorkerManager.start();
@@ -199,7 +204,8 @@ public class Client {
 					case NEWASSIGNMENT:
 						int size = is.readInt();
 						for(int i = 0; i < size; i++) {
-							((ResultRules)(Worker.workresult)).insertAssignments(is.readLong());
+							is.readLong();
+							// ((ResultRules)(Worker.workresult)).insertAssignments(is.readLong());
 						}
 						WorkerManager.start();
 						break;
@@ -213,13 +219,13 @@ public class Client {
 				logged = false;
 				try {
 					Thread.sleep(RECONNECT_TIME);
-				} catch (InterruptedException e1) {
+				} catch(InterruptedException e1) {
 					e1.printStackTrace();
 				}
 			} catch(EOFException e) {
 				LOG.warning("Connection lost");
 				logged = false;
-			} catch (IOException e) {
+			} catch(IOException e) {
 				e.printStackTrace();
 			} 
 		}	
@@ -228,7 +234,7 @@ public class Client {
 	public static void saveProperties() {
 		try {
 			properties.store(new FileOutputStream("langton.properties"), null);
-		} catch (IOException e) {
+		} catch(IOException e) {
 			e.printStackTrace();
 		}
 	}

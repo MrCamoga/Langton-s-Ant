@@ -53,6 +53,10 @@ public class ResultSet {
         return highway;
     }
 
+    public Long[] getSmallHighway() {
+        return new Long[] {period,dx,dy,winding};
+    }
+
     public String toString() {
         return Long.toUnsignedString(rule) + "\t" + ruleString + "\t" + printHighway();
     }
