@@ -78,10 +78,8 @@ public class ResultRulesRecompute extends ResultRules {
 		try {
 			if(type > 0) throw new RuntimeException("Types other than 2D not implemented yet");
 			Long[] highway = result.getHighway();
-			ByteBuffer bb = ByteBuffer.allocate(12+highway.length*8); // rule, iterations, hash, period, dx, dy, winding, histogram
+			ByteBuffer bb = ByteBuffer.allocate(12+highway.length*8);
 			bb.putLong(result.rule);
-			// bb.putLong(result.iterations);
-			// bb.putLong(result.hash);
 			bb.putInt(highway.length);
 			for(int i = 0; i < highway.length; i++) {
 				bb.putLong(highway[i]);
