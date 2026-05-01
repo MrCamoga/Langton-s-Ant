@@ -149,7 +149,7 @@ public class Client {
 						storeCredentials();
 						// Packet09Assignment packetAssignment = new Packet09Assignment(0);
 						// Client.sendPacket(packetAssignment);
-						WorkerManager.startWorkers();
+						WorkerManager.start();
 						break;
 					case ASSIGNMENT:
 						Packet02Assignment packet = new Packet02Assignment(is);
@@ -163,7 +163,7 @@ public class Client {
 							is.readLong(); // iterations, not used
 						}
 						LOG.info("New assignment of " + packet.getSize()/2 + " rules");
-						result.start();
+						result.startWorkers();
 						break;
 					case RESULTS: // check if successful and delete data, else retry or store data in file for future retry
 						break;
