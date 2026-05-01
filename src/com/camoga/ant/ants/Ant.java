@@ -131,7 +131,6 @@ public class Ant extends AbstractAnt {
 					period = p;
 					xend = x;
 					yend = y;
-					Main.LOG.info("Wrong period fixed: " + period+ ", " + (x-xstart) + ", " + (y-ystart));
 					long[] d = {Math.abs(xend-xstart), Math.abs(yend-ystart)}; 
 					if(isTriangle(d)) System.exit(0);
 					return getResult();
