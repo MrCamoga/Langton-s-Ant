@@ -109,7 +109,11 @@ public class Main {
 			}
 			boolean gui = !GraphicsEnvironment.isHeadless() && !cmd.hasOption("ng");
 			String host = cmd.hasOption("host") ? cmd.getOptionValue("host"):"app.langtonsant.es";
-			if(WorkerManager.getNumWorkers() == 0) WorkerManager.add(new ResultRules(0));
+			if(WorkerManager.getNumWorkers() == 0)  {
+				ResultRules result = new ResultRules(0);
+				result.addWorkers(1);
+				WorkerManager.add(result);
+			}
 			initLogger(!nolog);
 			client = new Client(host);
 			if(gui)

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import com.camoga.ant.results.Result;
 import com.camoga.ant.results.ResultRules;
+import static com.camoga.ant.Main.LOG;;
 
 public class WorkerManager {
 	
@@ -15,7 +16,8 @@ public class WorkerManager {
 	public static void add(Result result) {
 		int threads = Runtime.getRuntime().availableProcessors();
 		if(threads < numworkers + result.getWorkerCount()) {
-			throw new RuntimeException("More workers than available processors ("+threads+")");
+			LOG.warning("More workers than available processors ("+threads+")");
+			return;
 		}
 		results.add(result);
 		numworkers += result.getWorkerCount();
