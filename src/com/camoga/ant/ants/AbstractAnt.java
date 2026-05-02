@@ -135,6 +135,7 @@ public abstract class AbstractAnt {
 	public int getChunkCoord(int index) {
 		return new int[] {xc,yc,zc,wc}[index];
 	}
+	public Map getMap() { return map; }
 	public AbstractRule getRule() {return rule;}
 	public int getType() { return type; };
 	public long getIterations() { return iterations; }
