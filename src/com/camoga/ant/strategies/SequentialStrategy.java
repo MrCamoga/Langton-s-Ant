@@ -5,8 +5,6 @@ public class SequentialStrategy implements StrategyInterface {
 	protected long start, step, limit, current;
 	protected boolean overflow = false;
 
-	public SequentialStrategy() {}
-
 	public SequentialStrategy(long start, long step, long limit) {
 		this.start = start;
 		this.step = step;
@@ -15,11 +13,15 @@ public class SequentialStrategy implements StrategyInterface {
 	}
 
 	public SequentialStrategy(long start, long step) {
-		this(2,1, -1);
+		this(start,step, -1);
 	}
 
 	public SequentialStrategy(long start) {
-		this(2,1);
+		this(start,1);
+	}
+
+	public SequentialStrategy() {
+		this(2);
 	}
 
 	@Override
