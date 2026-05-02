@@ -10,6 +10,7 @@ import com.camoga.ant.net.Client;
 import static com.camoga.ant.Main.LOG;
 import com.camoga.ant.net.packets.Packet03Result;
 import com.camoga.ant.strategies.AssignmentStrategy;
+import com.camoga.ant.strategies.StrategyInterface;
 
 public class ResultRules extends Result {
 
@@ -82,5 +83,10 @@ public class ResultRules extends Result {
 		} catch(IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	protected StrategyInterface defaultStrategy() {
+		return new AssignmentStrategy(); // TODO change default strategy depending on if you're logged in or not
 	}
 }

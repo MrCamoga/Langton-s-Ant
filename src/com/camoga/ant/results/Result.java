@@ -19,6 +19,7 @@ public abstract class Result {
 
 	protected Result(int type) {
 		this.type = type;
+		setStrategy(defaultStrategy());
 	}
 
 	protected Result() {}
@@ -56,4 +57,6 @@ public abstract class Result {
 		this.strategy = strategy;
 		strategy.init(this);
 	}
+
+	protected abstract StrategyInterface defaultStrategy();
 }

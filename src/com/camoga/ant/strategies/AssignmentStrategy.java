@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 
 import com.camoga.ant.net.Client;
+import com.camoga.ant.net.packets.Packet;
 import com.camoga.ant.net.packets.Packet02Assignment;
 import com.camoga.ant.results.Result;
 
@@ -29,11 +30,14 @@ public class AssignmentStrategy implements StrategyInterface {
 		if(System.currentTimeMillis()-lastAssignTime < 15000) return;
 		lastAssignTime = System.currentTimeMillis();
 		try {
-			Packet02Assignment packet = new Packet02Assignment(result.getType(), result.getWorkerCount()*ASSIGN_SIZE);
-			Client.sendPacket(packet);
+			Client.sendPacket(createAssignmentPacket());
 		} catch(IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	protected Packet createAssignmentPacket() {
+		return new Packet02Assignment(result.getType(), result.getWorkerCount()*ASSIGN_SIZE);
 	}
 
 	@Override

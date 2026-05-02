@@ -21,6 +21,7 @@ import com.camoga.ant.ants.patterns.PatternRandom;
 import com.camoga.ant.net.Client;
 import static com.camoga.ant.Main.LOG;
 import com.camoga.ant.net.packets.Packet06SoupResult;
+import com.camoga.ant.strategies.StrategyInterface;
 
 public class ResultSoup extends Result {
 	protected long rule;
@@ -233,5 +234,10 @@ public class ResultSoup extends Result {
 		}
 
 		os.close();
+	}
+
+	@Override
+	protected StrategyInterface defaultStrategy() { // TODO use strategy to start a new result soup once it finishes
+		return null;
 	}
 }
