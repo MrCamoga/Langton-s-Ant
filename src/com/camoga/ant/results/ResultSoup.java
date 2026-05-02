@@ -154,24 +154,28 @@ public class ResultSoup extends Result {
 		Entry<MultiKey<? extends Long>, Integer[]> largest = null;
 		int printcount = 0;
 		for(Entry<MultiKey<? extends Long>, Integer[]> entry : list) {
-			if(largest == null || largest.getKey().getKey(0) < entry.getKey().getKey(0) || largest.getKey().getKey(0) == entry.getKey().getKey(0) && largest.getValue()[0] == entry.getValue()[0]) largest = entry;
-			if(printcount++ < 10) System.out.println(entry.getKey().toString() + ": \t" + Arrays.toString(entry.getValue()));
+			if(	largest == null || 
+				largest.getKey().getKey(0) < entry.getKey().getKey(0) || 
+				largest.getKey().getKey(0) == entry.getKey().getKey(0) && largest.getValue()[0] < entry.getValue()[0]
+			)
+				largest = entry;
+			if(printcount++ < 10) LOG.info(entry.getKey().toString() + ": \t" + Arrays.toString(entry.getValue()));
 		}
-		if(largest != null) System.out.println("Largest highway: " + largest.getKey().toString() + ": \t" + Arrays.toString(largest.getValue()));
-		System.out.println("Results for rule " + this.rule + " soups");
-		System.out.println("Seed: " + this.getSeedString() + " ("+Arrays.toString(seed)+")");
-		System.out.println("# of soups: " + this.soupcount);
-		System.out.println("# of distinct patterns: " + this.highwayfreq.size());
-		System.out.println("Distribution of patterns: ");
-		System.out.println("# of iterations: " + this.totaliterations);
-		System.out.println("Avg # of iterations: " + this.totaliterations/this.soupcount);
+		if(largest != null) LOG.info("Largest highway: " + largest.getKey().toString() + ": \t" + Arrays.toString(largest.getValue()));
+		LOG.info("Results for rule " + this.rule + " soups");
+		LOG.info("Seed: " + this.getSeedString() + " ("+Arrays.toString(seed)+")");
+		LOG.info("# of soups: " + this.soupcount);
+		LOG.info("# of distinct patterns: " + this.highwayfreq.size());
+		LOG.info("Distribution of patterns: ");
+		LOG.info("# of iterations: " + this.totaliterations);
+		LOG.info("Avg # of iterations: " + this.totaliterations/this.soupcount);
 	}
 
 	private static int[] generateSeed() {
 		Random rand = new Random();
 		int[] numseed = new int[4];
 		for(int i = 0; i < 3; i++) 
-			numseed[i] = rand.nextInt(916132832);
+			numseed[i] = rand.nextInt(916132832); // 62**5
 		return numseed;
 	}
 
