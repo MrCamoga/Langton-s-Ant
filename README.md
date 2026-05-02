@@ -52,13 +52,15 @@ This way we make sure that no rule is tested multiple times.
   - [x] User statistics and profiles
   - [x] API
   - [x] Add new winding data to database
-  - [ ] Add histogram of the states used in the highway construction?
+  - [x] Add histogram of the states used in the highway construction (WIP, not in production)
   - [x] User lists to save rules (WIP)
   - [ ] Comments on rules (WIP)
   - [ ] Translation to other languages (WIP)
 - [ ] Improve GUI
-- [ ] Refactor code 
+- [x] Refactor code 
 - [ ] Different work types:
+  - [x] Regular work: simulate rules from the server
+  - [x] Soups: run different configurations for the same rule and find distribution of possible highways (WIP)
   - [ ] Approximate period of big highways
   - [ ] Find exact period of big highways
 - [ ] Render hexagonal grid
@@ -68,6 +70,7 @@ This way we make sure that no rule is tested multiple times.
 - [x] Calculate size of highways (displacement of the ant each period, e.g. the displacement of the original ant is 2x2). This is useful to distinguish highways with the same period but different structure.
 - [x] Calculate ant rotation (accumulated rotation of the ant to further distinguish ants with same period and size).
 - [ ] Make period calculation work 100% of the time in O(n). Right now the period calculation breaks on 0.1% of the rules but at least it says they have period 1 so they can be retested in the future.
+  - [x] Fix all highways < 1M iterations long
 
 ## Database
 
