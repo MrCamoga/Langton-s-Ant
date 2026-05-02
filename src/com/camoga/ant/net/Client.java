@@ -136,8 +136,6 @@ public class Client {
 				login();
 
 				while(true) {
-					// System.out.println((int)is.readByte()&0xFF);
-					// if(0<1)continue;
 					PacketType pk = PacketType.getPacketType(is.readByte());
 					switch(pk) {
 					case AUTH:
@@ -159,7 +157,7 @@ public class Client {
 							break;
 						}
 						for(int i = 0; i < packet.getSize()/2; i++) {
-							result.insertAssignments(is.readLong()); // TODO do not cast. Call the class that stores result types to get the appropriate result.
+							result.insertAssignments(is.readLong());
 							is.readLong(); // iterations, not used
 						}
 						LOG.info("New assignment of " + packet.getSize()/2 + " rules");

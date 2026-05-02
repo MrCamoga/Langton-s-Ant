@@ -27,9 +27,6 @@ public class Version {
 	 * @param v2
 	 * @return -1 if v1 < v2, 0 if v1 == v2 and 1 if v1 > v2
 	 */
-	// 1.0.12
-	// 0.0.13
-	//
 	public static int compare(Version v1, Version v2) {
 		for(int i = 0, sub = 0; i < 3; i++) {
 			sub = v1.version[i]-v2.version[i];

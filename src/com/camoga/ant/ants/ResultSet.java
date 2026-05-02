@@ -35,7 +35,9 @@ public class ResultSet {
     private void processHistogram(AbstractRule rule, long[] histogram) {
         int histsize = 0;
         while(histsize < histogram.length && histogram[histsize] != 0) {
-            histogram[histsize] *= rule.turn[histsize]; // we store the ant direction in each state as the sign
+            // we store the ant direction in each state as the sign
+            // TODO only do this in 2d
+            histogram[histsize] *= rule.turn[histsize];
             this.winding += histogram[histsize];
             histsize++;
         }

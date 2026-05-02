@@ -21,19 +21,9 @@ public class Worker {
 	int workerid;
 	
 	long autosavetimer;
-	AbstractAnt ant;
+	protected AbstractAnt ant;
 	int type;
 	protected Result workresult;
-
-	static { // rule 374601147 main period always breaks
-		// workresult = new ResultSoup(0, 43, new int[] { 904527579, 868801032, 406085901, 0 }, 5, 30000000, 500000, 455); // para testear algoritmo de calcular periodo
-		// workresult = new ResultSoup(0, 396621243, null, 5, 100000000, 100000, 0);
-		// workresult = new ResultSoupRestore("saves/3h1hIkNbusAQSiY.langton");
-		// System.out.println(((ResultSoup)workresult).getSeedString());
-		//workresult = new ResultRules(0);
-		// workresult = new ResultRulesTest(0, 31819, 150000000);
-		// workresult = new ResultSoupRestore(0, 371047772, new int[] {549072545, 903439913, 332504472, 0}, 5, 100000000, 1000000, 0, "371047772soups1M.csv"); // generateSeed()
-	}
 
 	public Worker(int ID, Result result) {
 		this(ID, result.getType());
@@ -43,7 +33,6 @@ public class Worker {
 	public Worker(int ID, int type) {
 		this.workerid = ID;
 		this.type = type;
-		// ant = AntFactory.createAnt(type);
 	}
 	
 	public void start() {
@@ -59,7 +48,7 @@ public class Worker {
 		
 		while(!kill) {
 			time = System.nanoTime();
-			ResultSet result = workresult.initAnt(AntFactory.createAnt(type));	
+			ResultSet result = workresult.initAnt(ant = AntFactory.createAnt(type));	
 			if(result == null) break;
 
 			//Client.LOG.info("Chunk neighbour hits: " + (ant.map.total-ant.map.nohit) + "/" + ant.map.total + ", " + (1-ant.map.nohit/(double)ant.map.total));

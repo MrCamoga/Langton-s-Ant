@@ -8,7 +8,6 @@ public class RuleHex extends AbstractRule {
 	
 	public void createRule(long rule) {
 		this.rule = rule;
-		// size = (byte) (Math.log(rule)/Math.log(6)+1);
 		colors = new int[33];
 		turn = new int[32];
 		Random r = new Random();

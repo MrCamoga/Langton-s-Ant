@@ -63,38 +63,6 @@ public class ResultSoupRestore extends ResultSoup {
 		is.close();
 	}
 
-	// private void loadData(String filename) {
-	// 	totaliterations = 23790995929518L;
-	// 	soupcount = 1000000;
-	// 	seedindex = 1000000;
-	// 	wip2 = new ArrayList<>(); //(Arrays.asList(183394,183395,183399,183396,183402,183397,183403,183400,183401,183404));
-	// 	try {
-	// 		BufferedReader br = new BufferedReader(new FileReader(new File("371047772soups1M.csv")));
-	// 		String line;
-	// 		while((line = br.readLine()) != null) {
-	// 			String[] split = line.split(";");
-	// 			ArrayList<Long> highway = new ArrayList<>();
-	// 			Integer[] seeds = new Integer[11];
-	// 			for(int i = 0; i < 11; i++) {
-	// 				if(split[i].equals("")) break;
-	// 				seeds[i] = Integer.parseInt(split[i]);
-	// 			}
-	// 			for(int i = 11; i < split.length; i++) {
-	// 				if(split[i].equals("")) break;
-	// 				highway.add(Long.parseLong(split[i]));
-	// 			}
-	// 			highwayfreq.put(new MultiKey<>(highway.toArray(new Long[0])), seeds);
-	// 		}
-	// 	} catch(IOException e) {
-	// 		e.printStackTrace();
-	// 	}
-	// 	print();
-	// 	Scanner sc = new Scanner(System.in);
-	// 	System.out.print("Enter to confirm: ");
-	// 	sc.nextLine();
-	// 	// System.exit(0);
-	// }
-
 	public synchronized int[] getSeedIndex() {
 		if(wip2.size() > 0) {
 			int[] seed = Arrays.copyOf(this.seed, 4);

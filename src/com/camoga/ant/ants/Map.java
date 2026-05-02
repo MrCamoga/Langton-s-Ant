@@ -28,18 +28,6 @@ public class Map {
 	public class Chunk implements Serializable {		
 		protected Chunk[] neighbours = new Chunk[4];
 		public short[] cells = new short[chunkSize];
-		// private byte count = 0;
-		// private int xc, yc;
-
-		// Chunk(int xc, int yc) {
-		// 	this.xc = xc;
-		// 	this.yc = yc;
-		// }
-
-		// public abstract int increment(int index);
-		// public abstract int get(int index);
-		// public abstract void set(int index, int state);
-		// public abstract Chunk upgrade(int xc, int yc);
 		
 		/**
 		 * Returns neighbour chunk in direction dir, creates one if doesn't exist and checks for highways

@@ -39,24 +39,28 @@ public abstract class Packet {
 	}
 	
 	public enum StatusCodes {
-		INVALID(-1),
-		OUTDATED(0), // client version is outdated
-		EXPIREDTOKEN(1), // user access token has expired
-		BADAUTH(2), // user credentials are wrong
-		UNSETTOKEN(3), // user secret token is not set
-		LOGGED(4), // user has successfully logged in
-		NEWVERSION(5), // there is a new version available
-		BADREQUEST(6), // bad packet
-		UNAUTHORIZED(7), // 
-		RATELIMIT(8), // TODO rate limit exceeded
-		INTERNALERROR(64), // general server error
-		AUTHDISABLED(65), //	login disabled for maintenance
-		ANTDISABLED(66), // some type of ant (2d, hex, 3d, 4d,...) is disabled
+		INVALID(-1, "Invalid packet"),
+		OUTDATED(0, "Client version outdated"),
+		EXPIREDTOKEN(1, "Expired access token"),
+		BADAUTH(2, "Wrong credentials"),
+		UNSETTOKEN(3, "Missing secret token"),
+		LOGGED(4, "Login successful"),
+		NEWVERSION(5, "New version available"),
+		BADREQUEST(6, "Bad packet"),
+		UNAUTHORIZED(7, "Unauthorized"),
+		RATELIMIT(8, "Rate limit exceeded"),
+		INTERNALERROR(64, "Internal server error"),
+		AUTHDISABLED(65, "Login disabled. Server under maintenance"),
+		ANTDISABLED(66, "Work type disabled"),
 		;
 		
 		protected int code;
+		protected String message;
 		
-		StatusCodes(int code) { this.code = code; }
+		StatusCodes(int code, String message) {
+			this.code = code;
+			this.message = message;
+		}
 		
 		public static StatusCodes getStatus(int code) {
 			for(StatusCodes p : StatusCodes.values()) {

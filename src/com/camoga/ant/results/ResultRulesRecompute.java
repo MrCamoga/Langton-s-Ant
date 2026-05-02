@@ -21,23 +21,6 @@ public class ResultRulesRecompute extends ResultRules {
 		super(type);
 	}
 
-	// private int index = 0;
-	/**
-	 * 
-	 * @param type
-	 * @return {rule, iterations}
-	 */
-	@Override
-	public synchronized long[] getRule() {
-		// long[] rules = {379063799};
-		// if(index == rules.length) {
-		// 	sendResult();
-		// 	return null;
-		// }
-		// if(1>0) return new long[]{rules[index++],300000000};
-		return super.getRule();
-	}
-
 	@Override
 	public void insertAssignments(long rule) {
 		assignments.add(rule);
