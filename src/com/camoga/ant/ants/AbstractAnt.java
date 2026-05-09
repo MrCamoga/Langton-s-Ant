@@ -42,7 +42,7 @@ public abstract class AbstractAnt {
 	protected long stateindex;
 	public long wstart, xstart, ystart, zstart, wend, xend, yend, zend;
 	public long direction, directionstart, directionend;
-	public int maxstate;
+	// public int maxstate;
 	protected long period = 0;  // This is the final period length
 	protected boolean PERIODFOUND = false;
 	
@@ -98,7 +98,7 @@ public abstract class AbstractAnt {
 		zc = 0;
 		dir = 0;
 		direction = 0;
-		maxstate = 0;
+		// maxstate = 0;
 		state = 0;
 		saveState = false;
 		resetState = true;

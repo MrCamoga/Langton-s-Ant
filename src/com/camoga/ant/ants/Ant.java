@@ -1,6 +1,8 @@
 package com.camoga.ant.ants;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map.Entry;
 
 import com.camoga.ant.Main;
 import com.camoga.ant.Settings;
@@ -21,13 +23,16 @@ public class Ant extends AbstractAnt {
 		dirx=0;
 		directionend = 0;
 		histogram = new long[65535];
-		histogram2 = new long[65535];
+		// histogram2 = new long[65535];
 	}
 	
 	public int dirx, diry, state1, state2, index;
 	short s1, s2;
 	private long[] histogram;
-	private long[] histogram2;
+	// private long[] histogram2;
+	public int[] matchResets = new int[100000];
+	public int matchResetIndex = 0;
+	public HashMap<Integer,Integer> matchResets2 = new HashMap<Integer,Integer>();
 	
 	public void move(long it) {
 		int iteration = 0;
@@ -43,7 +48,6 @@ public class Ant extends AbstractAnt {
 			index = (y<<cPOW)|x;
 			state1 = chunk.cells[index]++;
 			if(resetState && chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
-			if(!resetState && state1 > maxstate) maxstate = state1;
 			dirx = -diry*rule.turn[state1];
 			x += dirx;
 			if((e=x&mask) != 0) {
@@ -55,7 +59,6 @@ public class Ant extends AbstractAnt {
 			index = (y<<cPOW)|x;
 			state2 = chunk.cells[index]++;
 			if(resetState && chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
-			if(!resetState && state2 > maxstate) maxstate = state2;
 			diry = dirx*rule.turn[state2];
 			y += diry;
 			
@@ -67,18 +70,19 @@ public class Ant extends AbstractAnt {
 					states[(int) stateindex++] = s2;
 				} else stateindex+=2;
 
-				histogram2[state1]++;
-				histogram2[state2]++;
-
 				if(states[match] != s1 || states[match+1] != s2) {
+					matchResets[match]++;
+					// matchResets2.compute(match, (k,v) -> v==null ? 1:v+1);
+					histogram[s1]++;
+					histogram[s2]++;
 					match = 0;
 					period = stateindex;
 					xend = getX();
 					yend = getY();
-					for(int i = 0; i <= maxstate; i++) {
-						histogram[i] += histogram2[i];
-					 	histogram2[i] = 0;
-					}
+					// for(int i = 0; i <= maxstate; i++) {
+					// 	histogram[i] += histogram2[i];
+					//  	histogram2[i] = 0;
+					// }
 				} else {
 					match += 2;
 					if(match == states.length || match > 200000+Settings.repeatpercent*period) {
@@ -181,6 +185,20 @@ public class Ant extends AbstractAnt {
 			}
 			// }
 		}
+
+		// for(Entry<Integer,Integer> entry : matchResets2.entrySet()) {
+		// 	for(int i = 0; i < entry.getKey(); i++) {
+		// 		histogram[states[i]] += entry.getValue();
+		// 	}
+		// }
+
+		for(int i = 0; i < matchResets.length; i++) {
+			if(matchResets[i] == 0) continue;
+			for(int j = 0; j < i; j++) {
+				histogram[states[j]] += matchResets[i];
+			}
+		}
+
 		return getResult();
 	}
 
