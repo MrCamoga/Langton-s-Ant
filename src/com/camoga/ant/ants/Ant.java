@@ -1,8 +1,6 @@
 package com.camoga.ant.ants;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map.Entry;
 
 import com.camoga.ant.Main;
 import com.camoga.ant.Settings;
@@ -23,16 +21,12 @@ public class Ant extends AbstractAnt {
 		dirx=0;
 		directionend = 0;
 		histogram = new long[65535];
-		// histogram2 = new long[65535];
 	}
 	
 	public int dirx, diry, state1, state2, index;
 	short s1, s2;
 	private long[] histogram;
-	// private long[] histogram2;
-	public int[] matchResets = new int[100000];
-	public int matchResetIndex = 0;
-	public HashMap<Integer,Integer> matchResets2 = new HashMap<Integer,Integer>();
+	private long[] matchResets = new long[1000000];
 	
 	public void move(long it) {
 		int iteration = 0;
@@ -72,17 +66,12 @@ public class Ant extends AbstractAnt {
 
 				if(states[match] != s1 || states[match+1] != s2) {
 					matchResets[match]++;
-					// matchResets2.compute(match, (k,v) -> v==null ? 1:v+1);
 					histogram[s1]++;
 					histogram[s2]++;
 					match = 0;
 					period = stateindex;
 					xend = getX();
 					yend = getY();
-					// for(int i = 0; i <= maxstate; i++) {
-					// 	histogram[i] += histogram2[i];
-					//  	histogram2[i] = 0;
-					// }
 				} else {
 					match += 2;
 					if(match == states.length || match > 200000+Settings.repeatpercent*period) {
@@ -186,35 +175,32 @@ public class Ant extends AbstractAnt {
 			// }
 		}
 
-		// for(Entry<Integer,Integer> entry : matchResets2.entrySet()) {
-		// 	for(int i = 0; i < entry.getKey(); i++) {
-		// 		histogram[states[i]] += entry.getValue();
-		// 	}
-		// }
+		return getResult();
+	}
 
+	private void computeHistogram() {
+		int histogramFinished = 0;
 		for(int i = 0; i < matchResets.length; i++) {
 			if(matchResets[i] == 0) continue;
 			for(int j = 0; j < i; j++) {
+				histogramFinished += matchResets[i];
 				histogram[states[j]] += matchResets[i];
 			}
+			if(histogramFinished == period) break;
 		}
-
-		return getResult();
 	}
 
 	private ResultSet getResult() {
 		long period = periodFound() ? getPeriod():(findingPeriod() ? 1:0);
-		long winding = (directionend-directionstart);
+		computeHistogram();
 		int hash = computeHash();
 		long[] d = {Math.abs(xend-xstart), Math.abs(yend-ystart)}; 
 		if(period > 1) { // detect anomalies
 			if(isTriangle(d)) period = 0;
-			// if((winding&3) != 0) period = 1;
 		}
-		winding >>= 2;
 		if(period <= 1) return new ResultSet(rule,iterations,hash,period);
 		Arrays.sort(d);
-		return new ResultSet(rule,iterations,hash,period,d[1],d[0],winding,histogram);
+		return new ResultSet(rule,iterations,hash,period,d[1],d[0],0,histogram);
 	}
 
 	/**
