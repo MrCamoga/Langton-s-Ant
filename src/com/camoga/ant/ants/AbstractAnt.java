@@ -100,7 +100,7 @@ public abstract class AbstractAnt {
 		state = 0;
 		saveState = false;
 		resetState = true;
-		match = 2;
+		match = 0;
 		states[1] = -1;
 		stateindex = 0;
 		period = 0;

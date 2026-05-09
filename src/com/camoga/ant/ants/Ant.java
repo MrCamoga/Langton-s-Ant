@@ -24,7 +24,6 @@ public class Ant extends AbstractAnt {
 	}
 	
 	public int dirx, diry, state1, state2, index;
-	short s1, s2;
 	private long[] histogram;
 	private long[] matchResets = new long[1000000];
 	
@@ -57,19 +56,12 @@ public class Ant extends AbstractAnt {
 			y += diry;
 			
 			if(saveState) {
-				s1 = (short) state1;
-				s2 = (short) state2;
-				if(stateindex < states.length) {
-					states[(int) stateindex++] = s1;
-					states[(int) stateindex++] = s2;
-				} else stateindex+=2;
-
-				if(states[match] != s1 || states[match+1] != s2) {
+				if(states[match] != state1 || states[match+1] != state2) {
 					matchResets[match]++;
-					histogram[s1]++;
-					histogram[s2]++;
+					histogram[state1]++;
+					histogram[state2]++;
 					match = 0;
-					period = stateindex;
+					period = stateindex; // this should be stateindex+2 but we add it after the simulation to save cycles
 					xend = getX();
 					yend = getY();
 				} else {
@@ -81,6 +73,11 @@ public class Ant extends AbstractAnt {
 						break;
 					}
 				}
+				
+				if(stateindex < states.length) {
+					states[(int) stateindex++] = (short)state1;
+					states[(int) stateindex++] = (short)state2;
+				} else stateindex+=2;
 			}
 		}
 		iterations += (long)iteration;
@@ -188,6 +185,11 @@ public class Ant extends AbstractAnt {
 			}
 			if(histogramFinished == period) break;
 		}
+	}
+
+	@Override
+	public long getPeriod() {
+		return super.getPeriod() + 2;
 	}
 
 	private ResultSet getResult() {
