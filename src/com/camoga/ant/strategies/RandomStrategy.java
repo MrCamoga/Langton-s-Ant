@@ -14,7 +14,7 @@ public class RandomStrategy implements StrategyInterface {
 	}
 
 	@Override
-	public Long next() {
+	public synchronized Long next() {
 		return random.nextLong();
 	}
 	
