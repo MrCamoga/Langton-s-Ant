@@ -73,9 +73,9 @@ public class WorkerManager {
 		return count;
 	}
 
-	public static ResultRules getResult(int type) {
+	public static <T extends Result> T getResult(int type, Class<T> resultType) {
 		for(Result result : results) {
-			if(result instanceof ResultRules res && res.getType() == type) return res;
+			if(resultType.isInstance(result) && result.getType() == type) resultType.cast(result);
 		}
 		return null;
 	}

@@ -23,6 +23,7 @@ import com.camoga.ant.WorkerManager;
 import com.camoga.ant.net.packets.Packet.PacketType;
 import com.camoga.ant.net.packets.Packet.StatusCodes;
 import com.camoga.ant.results.ResultRules;
+import com.camoga.ant.results.ResultRulesRecompute;
 import com.camoga.ant.net.packets.Packet;
 import com.camoga.ant.net.packets.Packet00Version;
 import com.camoga.ant.net.packets.Packet01Auth;
@@ -149,7 +150,7 @@ public class Client {
 						break;
 					case ASSIGNMENT:
 						Packet02Assignment packet = new Packet02Assignment(is);
-						ResultRules result = WorkerManager.getResult(packet.getType());
+						ResultRules result = WorkerManager.getResult(packet.getType(), ResultRules.class);
 						if(result == null) {
 							is.skip(packet.getSize()*8);
 							break;
@@ -201,17 +202,16 @@ public class Client {
 						break;
 					case NEWASSIGNMENT:
 						int size = is.readInt();
+						ResultRulesRecompute result2 = WorkerManager.getResult(0, ResultRulesRecompute.class);
 						for(int i = 0; i < size; i++) {
-							is.readLong();
-							// ((ResultRules)(Worker.workresult)).insertAssignments(is.readLong());
+							result2.insertAssignments(is.readLong());
 						}
-						WorkerManager.start();
+						result2.startWorkers();
 						break;
 					default:
 						break;
 					}
 				}
-				
 			} catch(UnknownHostException | SocketException e) {
 				LOG.info("Could not connect to the server");
 				logged = false;
