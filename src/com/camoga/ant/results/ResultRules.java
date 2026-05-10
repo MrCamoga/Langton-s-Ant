@@ -20,6 +20,8 @@ public class ResultRules extends Result {
 	static long lastResultsTime;
 	static long DELAY_BETWEEN_RESULTS = 120000;
 
+	protected long maxiterations = 120000000;
+
 	public ResultRules(int type) {
 		super(type);
 		lastResultsTime = System.currentTimeMillis();
@@ -50,7 +52,7 @@ public class ResultRules extends Result {
 	public ResultSet initAnt(AbstractAnt ant) {
 		Long rule = strategy.next();
 		if(rule == null) return null;
-		ResultSet result = ant.run(rule,120000000,null);
+		ResultSet result = ant.run(rule,maxiterations,null);
 		this.insertResult(result);
 		return result;
 	}

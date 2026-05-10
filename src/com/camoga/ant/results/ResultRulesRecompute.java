@@ -15,9 +15,9 @@ import com.camoga.ant.strategies.StrategyInterface;
  * Used to recompute rules when new data is to be added on the database. Example: when highways added drift, winding, histograms, etc.
  */
 public class ResultRulesRecompute extends ResultRules {
-	public ResultRulesRecompute(int type) {
+	public ResultRulesRecompute(int type, long maxiterations) {
 		super(type);
-		setStrategy(new AssignmentRecomputeStrategy());
+		this.maxiterations = maxiterations;
 	}
 	
 	@Override
@@ -35,6 +35,20 @@ public class ResultRulesRecompute extends ResultRules {
 			LOG.warning("Could not send rules to server");
 		}
 		lastResultsTime = System.currentTimeMillis();
+	}
+
+	private synchronized Long[] getRule() {
+		return new Long[] {strategy.next(), strategy.next()};
+	}
+
+	@Override
+	public ResultSet initAnt(AbstractAnt ant) {
+		Long[] rule = getRule();
+		if(rule[0] == null) return null;
+		LOG.info(rule[0] + ", " + rule[1]);
+		ResultSet result = ant.run(rule[0],rule[1],null);
+		this.insertResult(result);
+		return result;
 	}
 
 	@Override
