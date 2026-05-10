@@ -3,46 +3,27 @@ package com.camoga.ant.results;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import com.camoga.ant.WorkerManager;
+import com.camoga.ant.ants.AbstractAnt;
 import com.camoga.ant.ants.ResultSet;
 import com.camoga.ant.net.Client;
 import static com.camoga.ant.Main.LOG;
 import com.camoga.ant.net.packets.Packet08Result;
-import com.camoga.ant.net.packets.Packet09Assignment;
+import com.camoga.ant.strategies.AssignmentRecomputeStrategy;
+import com.camoga.ant.strategies.StrategyInterface;
 
 /**
  * Used to recompute rules when new data is to be added on the database. Example: when highways added drift, winding, histograms, etc.
  */
 public class ResultRulesRecompute extends ResultRules {
-
-	private long maxrule = 0;
-
-	public ResultRulesRecompute(int type) {
+	public ResultRulesRecompute(int type, long maxiterations) {
 		super(type);
-	}
-
-	@Override
-	public void insertAssignments(long rule) {
-		assignments.add(rule);
-		maxrule = Math.max(rule,maxrule);
-	}
-
-	@Override
-	protected synchronized void getAssignment() {
-		if(!Client.logged) return;
-		if(WorkerManager.size(type) == 0) return;
-		if(System.currentTimeMillis()-lastAssignTime < 15000) return;
-		lastAssignTime = System.currentTimeMillis();
-		try {
-			Packet09Assignment packet = new Packet09Assignment(maxrule);
-			Client.sendPacket(packet);
-		} catch(IOException e) {
-			e.printStackTrace();
-		}
+		this.maxiterations = maxiterations;
 	}
 	
 	@Override
 	public synchronized void sendResult() {
+		if(!(strategy instanceof AssignmentRecomputeStrategy)) return;
+		if(System.currentTimeMillis()-lastResultsTime < DELAY_BETWEEN_RESULTS && strategy.remaining() > 0) return;
 		try {
 			if(storedrules.size() == 0) return;
 			Packet08Result packet = new Packet08Result(count,storedrules);
@@ -54,6 +35,20 @@ public class ResultRulesRecompute extends ResultRules {
 			LOG.warning("Could not send rules to server");
 		}
 		lastResultsTime = System.currentTimeMillis();
+	}
+
+	private synchronized Long[] getRule() {
+		return new Long[] {strategy.next(), strategy.next()};
+	}
+
+	@Override
+	public ResultSet initAnt(AbstractAnt ant) {
+		Long[] rule = getRule();
+		if(rule[0] == null) return null;
+		LOG.info(rule[0] + ", " + rule[1]);
+		ResultSet result = ant.run(rule[0],rule[1],null);
+		this.insertResult(result);
+		return result;
 	}
 
 	@Override
@@ -73,5 +68,10 @@ public class ResultRulesRecompute extends ResultRules {
 		} catch(IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	protected StrategyInterface defaultStrategy() {
+		return new AssignmentRecomputeStrategy();
 	}
 }

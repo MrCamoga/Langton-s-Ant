@@ -21,6 +21,7 @@ import com.camoga.ant.ants.patterns.PatternRandom;
 import com.camoga.ant.net.Client;
 import static com.camoga.ant.Main.LOG;
 import com.camoga.ant.net.packets.Packet06SoupResult;
+import com.camoga.ant.strategies.StrategyInterface;
 
 public class ResultSoup extends Result {
 	protected long rule;
@@ -38,8 +39,6 @@ public class ResultSoup extends Result {
 	protected HashSet<Integer> wip = new HashSet<>();
 
 	protected int NUM_EXAMPLES = 10;
-
-	private boolean sent = false;
 
 	/**
 	 * 
@@ -99,7 +98,6 @@ public class ResultSoup extends Result {
 			return v;
 		});
 
-		if((soupcount&127) == 0) this.print();
 		wip.remove(seedindex);
 		if(soupcount == maxsoups) sendResult();
 		if((soupcount&1023) == 0 || soupcount == maxsoups) {
@@ -115,7 +113,7 @@ public class ResultSoup extends Result {
 	public synchronized int[] getSeedIndex() {
 		if(seedindex-offset >= maxsoups) {
 			sendResult();
-			return null;
+			reset();
 		}
 		int[] seed = Arrays.copyOf(this.seed, 4);
 		seed[3] = seedindex++;
@@ -126,17 +124,24 @@ public class ResultSoup extends Result {
 	@Override
 	public synchronized void sendResult() {
 		if(soupcount != maxsoups) return;
-		if(sent) return;
 		try {
 			if(highwayfreq.size() == 0)
 				return;
 			Packet06SoupResult packet = new Packet06SoupResult(this);
 			Client.sendPacket(packet);
 			LOG.info("Data sent to server");
-			sent = true;
 		} catch(IOException e) {
 			LOG.warning("Could not send rules to server");
 		}
+	}
+
+	protected void reset() {
+		seedindex = 0;
+		totaliterations = 0;
+		highwayfreq.clear();
+		soupcount = 0;
+		seed = generateSeed();
+		rule = strategy.next();
 	}
 
 	@Override
@@ -237,5 +242,10 @@ public class ResultSoup extends Result {
 		}
 
 		os.close();
+	}
+
+	@Override
+	protected StrategyInterface defaultStrategy() { // TODO use strategy to start a new result soup once it finishes
+		return () -> rule;
 	}
 }

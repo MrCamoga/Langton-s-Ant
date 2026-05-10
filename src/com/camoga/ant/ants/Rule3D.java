@@ -5,7 +5,7 @@ import java.util.Random;
 public class Rule3D extends AbstractRule {
 	
 	private static final String[] letters 	= {"R","L","U","D"};
-	private static final int[] rotations 	= { 13, 10, 17, 22}; 
+	private static final int[] rotations 	= { 0, 1, 2, 3}; 
 	
 	public void createRule(long rule) {		
 		this.rule = rule;

@@ -2,6 +2,7 @@ package com.camoga.ant.results;
 
 import com.camoga.ant.ants.AbstractAnt;
 import com.camoga.ant.ants.ResultSet;
+import com.camoga.ant.strategies.StrategyInterface;
 
 public class ResultRulesTest extends Result {
 	private long rule;
@@ -23,5 +24,10 @@ public class ResultRulesTest extends Result {
 	@Override
 	public void sendResult() {
 		throw new UnsupportedOperationException("Unimplemented method 'sendResult'");
+	}
+
+	@Override
+	protected StrategyInterface defaultStrategy() {
+		return null;
 	}
 }

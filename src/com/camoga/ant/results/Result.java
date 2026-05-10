@@ -6,6 +6,7 @@ import com.camoga.ant.Worker;
 import com.camoga.ant.WorkerManager;
 import com.camoga.ant.ants.AbstractAnt;
 import com.camoga.ant.ants.ResultSet;
+import com.camoga.ant.strategies.StrategyInterface;
 
 public abstract class Result {
 
@@ -14,8 +15,11 @@ public abstract class Result {
 	protected int workerCount = 1;
 	protected ArrayList<Worker> workers = new ArrayList<Worker>();
 
+	protected StrategyInterface strategy;
+
 	protected Result(int type) {
 		this.type = type;
+		setStrategy(defaultStrategy());
 	}
 
 	protected Result() {}
@@ -48,4 +52,11 @@ public abstract class Result {
 	public int getType() {
 		return type;
 	}
+	
+	public void setStrategy(StrategyInterface strategy) {
+		this.strategy = strategy;
+		strategy.init(this);
+	}
+
+	protected abstract StrategyInterface defaultStrategy();
 }

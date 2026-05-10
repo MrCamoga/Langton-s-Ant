@@ -23,7 +23,7 @@ public class Main {
 
 	public static Client client;
 	public static final Logger LOG = Logger.getLogger("Client");
-	public static final Version VERSION = new Version(1,3,0);
+	public static final Version VERSION = new Version(1,3,1);
 	public static Window window;
 
 	public static void main(String[] args) throws IOException {
@@ -47,6 +47,8 @@ public class Main {
 		
 		try {
 			cmd = parser.parse(options, args);
+			boolean nolog = cmd.hasOption("nl");
+			initLogger(!nolog);
 
 			// if(cmd.hasOption("c")) { // TODO restore code to run ant from file
 			// 	runRule();
@@ -97,7 +99,6 @@ public class Main {
 				result.addWorkers(wsThreads);
 				WorkerManager.add(result);
 			}
-			boolean nolog = cmd.hasOption("nl");
 			if(cmd.hasOption("u")) {
 				String username = cmd.getOptionValue("u");
 				System.out.print("Enter secret token: ");
@@ -114,7 +115,6 @@ public class Main {
 				result.addWorkers(1);
 				WorkerManager.add(result);
 			}
-			initLogger(!nolog);
 			client = new Client(host);
 			if(gui)
 				window = new Window();
