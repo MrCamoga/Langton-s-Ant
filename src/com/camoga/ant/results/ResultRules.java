@@ -23,7 +23,6 @@ public class ResultRules extends Result {
 	public ResultRules(int type) {
 		super(type);
 		lastResultsTime = System.currentTimeMillis();
-		setStrategy(new AssignmentStrategy());
 	}
 
 	public void insertAssignments(long rule) {
@@ -58,7 +57,7 @@ public class ResultRules extends Result {
 
 	protected synchronized void insertResult(ResultSet result) {
 		try {
-			if(type > 0) throw new RuntimeException("Types other than 2D not implemented yet");
+			if(type > 0) return; //throw new RuntimeException("Types other than 2D not implemented yet");
 			// Long[] highway = result.getHighway(); 
 			// ByteBuffer bb = ByteBuffer.allocate(28+highway.length*8); // rule, iterations, hash, period, dx, dy, winding, histogram
 			// bb.putLong(result.rule);

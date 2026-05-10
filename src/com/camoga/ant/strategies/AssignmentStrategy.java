@@ -48,4 +48,9 @@ public class AssignmentStrategy implements StrategyInterface {
 	public void insertAssignments(long rule) {
 		assignments.add(rule);
 	}
+
+	@Override
+	public int remaining() {
+		return assignments.size();
+	}
 }

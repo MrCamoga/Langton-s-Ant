@@ -3,6 +3,7 @@ package com.camoga.ant.results;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import com.camoga.ant.ants.AbstractAnt;
 import com.camoga.ant.ants.ResultSet;
 import com.camoga.ant.net.Client;
 import static com.camoga.ant.Main.LOG;
@@ -22,6 +23,7 @@ public class ResultRulesRecompute extends ResultRules {
 	@Override
 	public synchronized void sendResult() {
 		if(!(strategy instanceof AssignmentRecomputeStrategy)) return;
+		if(System.currentTimeMillis()-lastResultsTime < DELAY_BETWEEN_RESULTS && strategy.remaining() > 0) return;
 		try {
 			if(storedrules.size() == 0) return;
 			Packet08Result packet = new Packet08Result(count,storedrules);

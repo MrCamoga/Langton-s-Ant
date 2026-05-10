@@ -10,4 +10,6 @@ public interface StrategyInterface {
 	public Long next();
 
 	public default void init(Result result) {}
+
+	public default int remaining() { return Integer.MAX_VALUE; }
 }

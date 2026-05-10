@@ -100,7 +100,6 @@ public class ResultSoup extends Result {
 			return v;
 		});
 
-		if((soupcount&127) == 0) this.print();
 		wip.remove(seedindex);
 		if(soupcount == maxsoups) sendResult();
 		if((soupcount&1023) == 0 || soupcount == maxsoups) {
@@ -242,6 +241,6 @@ public class ResultSoup extends Result {
 
 	@Override
 	protected StrategyInterface defaultStrategy() { // TODO use strategy to start a new result soup once it finishes
-		return null;
+		return () -> rule;
 	}
 }
