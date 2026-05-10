@@ -40,8 +40,6 @@ public class ResultSoup extends Result {
 
 	protected int NUM_EXAMPLES = 10;
 
-	private boolean sent = false;
-
 	/**
 	 * 
 	 * @param type rule type (0: 2d, 1: hex, 2: 3d, 3: 4d, 4: 45º)
@@ -115,7 +113,7 @@ public class ResultSoup extends Result {
 	public synchronized int[] getSeedIndex() {
 		if(seedindex-offset >= maxsoups) {
 			sendResult();
-			return null;
+			reset();
 		}
 		int[] seed = Arrays.copyOf(this.seed, 4);
 		seed[3] = seedindex++;
@@ -126,17 +124,24 @@ public class ResultSoup extends Result {
 	@Override
 	public synchronized void sendResult() {
 		if(soupcount != maxsoups) return;
-		if(sent) return;
 		try {
 			if(highwayfreq.size() == 0)
 				return;
 			Packet06SoupResult packet = new Packet06SoupResult(this);
 			Client.sendPacket(packet);
 			LOG.info("Data sent to server");
-			sent = true;
 		} catch(IOException e) {
 			LOG.warning("Could not send rules to server");
 		}
+	}
+
+	protected void reset() {
+		seedindex = 0;
+		totaliterations = 0;
+		highwayfreq.clear();
+		soupcount = 0;
+		seed = generateSeed();
+		rule = strategy.next();
 	}
 
 	@Override
