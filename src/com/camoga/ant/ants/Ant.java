@@ -121,7 +121,7 @@ public class Ant extends AbstractAnt {
 					saveState = false;
 					resetState = true;
 					System.arraycopy(histogram, 0, this.histogram, 0, histogram.length);
-					period = p;
+					period = p-2;
 					xend = x;
 					yend = y;
 					long[] d = {Math.abs(xend-xstart), Math.abs(yend-ystart)}; 
@@ -175,6 +175,7 @@ public class Ant extends AbstractAnt {
 			// }
 		}
 
+		computeHistogram();
 		return getResult();
 	}
 
@@ -182,7 +183,7 @@ public class Ant extends AbstractAnt {
 		int histogramFinished = 0;
 		for(int m : matchResets2) {
 			for(int i = 0; i < m; i++) {
-				histogram[states[i]]++; 
+				histogram[states[i]]++;
 			}
 		}
 		for(int i = 0; i < matchResets.length; i++) {
@@ -202,7 +203,6 @@ public class Ant extends AbstractAnt {
 
 	private ResultSet getResult() {
 		long period = periodFound() ? getPeriod():(findingPeriod() ? 1:0);
-		computeHistogram();
 		int hash = computeHash();
 		long[] d = {Math.abs(xend-xstart), Math.abs(yend-ystart)}; 
 		if(period > 1) { // detect anomalies
