@@ -19,7 +19,6 @@ import java.net.http.HttpResponse;
 import java.nio.charset.Charset;
 import java.util.Properties;
 
-import com.camoga.ant.Worker;
 import com.camoga.ant.WorkerManager;
 import com.camoga.ant.net.packets.Packet.PacketType;
 import com.camoga.ant.net.packets.Packet.StatusCodes;
@@ -30,7 +29,6 @@ import com.camoga.ant.net.packets.Packet01Auth;
 import com.camoga.ant.net.packets.Packet02Assignment;
 import com.camoga.ant.net.packets.Packet04Message;
 import com.camoga.ant.net.packets.Packet05Status;
-import com.camoga.ant.net.packets.Packet09Assignment;
 
 import static com.camoga.ant.Main.LOG;
 import static com.camoga.ant.Main.VERSION;

@@ -42,7 +42,6 @@ public abstract class AbstractAnt {
 	protected long stateindex;
 	public long wstart, xstart, ystart, zstart, wend, xend, yend, zend;
 	public long direction, directionstart, directionend;
-	public int maxstate;
 	protected long period = 0;  // This is the final period length
 	protected boolean PERIODFOUND = false;
 	
@@ -98,11 +97,10 @@ public abstract class AbstractAnt {
 		zc = 0;
 		dir = 0;
 		direction = 0;
-		maxstate = 0;
 		state = 0;
 		saveState = false;
 		resetState = true;
-		match = 2;
+		match = 0;
 		states[1] = -1;
 		stateindex = 0;
 		period = 0;
@@ -135,6 +133,7 @@ public abstract class AbstractAnt {
 	public int getChunkCoord(int index) {
 		return new int[] {xc,yc,zc,wc}[index];
 	}
+	public Map getMap() { return map; }
 	public AbstractRule getRule() {return rule;}
 	public int getType() { return type; };
 	public long getIterations() { return iterations; }

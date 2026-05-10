@@ -1,5 +1,6 @@
 package com.camoga.ant.ants;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import com.camoga.ant.Main;
@@ -21,13 +22,12 @@ public class Ant extends AbstractAnt {
 		dirx=0;
 		directionend = 0;
 		histogram = new long[65535];
-		histogram2 = new long[65535];
 	}
 	
 	public int dirx, diry, state1, state2, index;
-	short s1, s2;
 	private long[] histogram;
-	private long[] histogram2;
+	private long[] matchResets = new long[1000000];
+	private ArrayList<Integer> matchResets2 = new ArrayList<Integer>();
 	
 	public void move(long it) {
 		int iteration = 0;
@@ -43,7 +43,6 @@ public class Ant extends AbstractAnt {
 			index = (y<<cPOW)|x;
 			state1 = chunk.cells[index]++;
 			if(resetState && chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
-			if(!resetState && state1 > maxstate) maxstate = state1;
 			dirx = -diry*rule.turn[state1];
 			x += dirx;
 			if((e=x&mask) != 0) {
@@ -55,30 +54,19 @@ public class Ant extends AbstractAnt {
 			index = (y<<cPOW)|x;
 			state2 = chunk.cells[index]++;
 			if(resetState && chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
-			if(!resetState && state2 > maxstate) maxstate = state2;
 			diry = dirx*rule.turn[state2];
 			y += diry;
 			
 			if(saveState) {
-				s1 = (short) state1;
-				s2 = (short) state2;
-				if(stateindex < states.length) {
-					states[(int) stateindex++] = s1;
-					states[(int) stateindex++] = s2;
-				} else stateindex+=2;
-
-				histogram2[state1]++;
-				histogram2[state2]++;
-
-				if(states[match] != s1 || states[match+1] != s2) {
+				if(states[match] != state1 || states[match+1] != state2) {
+					if(match < matchResets.length) matchResets[match]++;
+					else matchResets2.add(match);
+					histogram[state1]++;
+					histogram[state2]++;
 					match = 0;
-					period = stateindex;
+					period = stateindex; // this should be stateindex+2 but we add it after the simulation to save cycles
 					xend = getX();
 					yend = getY();
-					for(int i = 0; i <= maxstate; i++) {
-						histogram[i] += histogram2[i];
-					 	histogram2[i] = 0;
-					}
 				} else {
 					match += 2;
 					if(match == states.length || match > 200000+Settings.repeatpercent*period) {
@@ -88,6 +76,11 @@ public class Ant extends AbstractAnt {
 						break;
 					}
 				}
+				
+				if(stateindex < states.length) {
+					states[(int) stateindex++] = (short)state1;
+					states[(int) stateindex++] = (short)state2;
+				} else stateindex+=2;
 			}
 		}
 		iterations += (long)iteration;
@@ -181,22 +174,43 @@ public class Ant extends AbstractAnt {
 			}
 			// }
 		}
+
 		return getResult();
+	}
+
+	private void computeHistogram() {
+		int histogramFinished = 0;
+		for(int m : matchResets2) {
+			for(int i = 0; i < m; i++) {
+				histogram[states[i]]++; 
+			}
+		}
+		for(int i = 0; i < matchResets.length; i++) {
+			if(matchResets[i] == 0) continue;
+			for(int j = 0; j < i; j++) {
+				histogramFinished += matchResets[i];
+				histogram[states[j]] += matchResets[i];
+			}
+			if(histogramFinished == period) break;
+		}
+	}
+
+	@Override
+	public long getPeriod() {
+		return super.getPeriod() + 2;
 	}
 
 	private ResultSet getResult() {
 		long period = periodFound() ? getPeriod():(findingPeriod() ? 1:0);
-		long winding = (directionend-directionstart);
+		computeHistogram();
 		int hash = computeHash();
 		long[] d = {Math.abs(xend-xstart), Math.abs(yend-ystart)}; 
 		if(period > 1) { // detect anomalies
 			if(isTriangle(d)) period = 0;
-			// if((winding&3) != 0) period = 1;
 		}
-		winding >>= 2;
 		if(period <= 1) return new ResultSet(rule,iterations,hash,period);
 		Arrays.sort(d);
-		return new ResultSet(rule,iterations,hash,period,d[1],d[0],winding,histogram);
+		return new ResultSet(rule,iterations,hash,period,d[1],d[0],0,histogram);
 	}
 
 	/**
