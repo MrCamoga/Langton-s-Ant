@@ -1,5 +1,6 @@
 package com.camoga.ant.ants;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import com.camoga.ant.Main;
@@ -26,6 +27,7 @@ public class Ant extends AbstractAnt {
 	public int dirx, diry, state1, state2, index;
 	private long[] histogram;
 	private long[] matchResets = new long[1000000];
+	private ArrayList<Integer> matchResets2 = new ArrayList<Integer>();
 	
 	public void move(long it) {
 		int iteration = 0;
@@ -57,7 +59,8 @@ public class Ant extends AbstractAnt {
 			
 			if(saveState) {
 				if(states[match] != state1 || states[match+1] != state2) {
-					matchResets[match]++;
+					if(match < matchResets.length) matchResets[match]++;
+					else matchResets2.add(match);
 					histogram[state1]++;
 					histogram[state2]++;
 					match = 0;
@@ -177,6 +180,11 @@ public class Ant extends AbstractAnt {
 
 	private void computeHistogram() {
 		int histogramFinished = 0;
+		for(int m : matchResets2) {
+			for(int i = 0; i < m; i++) {
+				histogram[states[i]]++; 
+			}
+		}
 		for(int i = 0; i < matchResets.length; i++) {
 			if(matchResets[i] == 0) continue;
 			for(int j = 0; j < i; j++) {
