@@ -91,9 +91,9 @@ public class Main {
 				if(wsValues.length == 2) {
 					result = new ResultSoupRestore(wsValues[1]);
 				} else {
-					int wsRule = Integer.parseInt(wsValues[1]);
+					long wsRule = Long.parseLong(wsValues[1]);
 					int wsSize = Integer.parseInt(wsValues[2]);
-					int wsIterations = Integer.parseInt(wsValues[3]);
+					long wsIterations = Long.parseLong(wsValues[3]);
 					result = new ResultSoup(0, wsRule, null, 5, wsIterations, wsSize);
 				}
 				result.addWorkers(wsThreads);
