@@ -39,12 +39,12 @@ public class Main {
 		options.addOption(Option.builder("w3").hasArg(true).argName("num_threads").desc("number of 3d ants").type(Number.class).build());                   
 		options.addOption(Option.builder("w4").hasArg(true).argName("num_threads").desc("number of 4d ants").type(Number.class).build());                   
 		options.addOption(Option.builder("c").hasArg(false).desc("Run ant").build());
-		options.addOption(Option.builder("ws").longOpt("soup").hasArgs().argName("threads rule number_soups iterations_per_soup | threads savefile").desc("Run random soups").build());
+		options.addOption(Option.builder("ws").longOpt("soup").hasArgs().argName("threads,rule,number_soups,iterations_per_soup | threads,savefile").desc("Run random soups").build());
 		CommandLineParser parser = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
 		formatter.setWidth(120);
 		CommandLine cmd = null;
-		
+
 		try {
 			cmd = parser.parse(options, args);
 			boolean nolog = cmd.hasOption("nl");
@@ -85,19 +85,22 @@ public class Main {
 				WorkerManager.add(result);
 			}
 			if(cmd.hasOption("ws")) {
-				String[] wsValues = cmd.getOptionValues("ws");
-				int wsThreads = Integer.parseInt(wsValues[0]);
-				Result result;
-				if(wsValues.length == 2) {
-					result = new ResultSoupRestore(wsValues[1]);
-				} else {
-					long wsRule = Long.parseLong(wsValues[1]);
-					int wsSize = Integer.parseInt(wsValues[2]);
-					long wsIterations = Long.parseLong(wsValues[3]);
-					result = new ResultSoup(0, wsRule, null, 5, wsIterations, wsSize);
+				String[] values = cmd.getOptionValues("ws");
+				for(String value: values) {
+					String[] wsValues = value.split(",");
+					int wsThreads = Integer.parseInt(wsValues[0]);
+					Result result;
+					if(wsValues.length == 2) {
+						result = new ResultSoupRestore(wsValues[1]);
+					} else {
+						long wsRule = Long.parseLong(wsValues[1]);
+						int wsSize = Integer.parseInt(wsValues[2]);
+						long wsIterations = Long.parseLong(wsValues[3]);
+						result = new ResultSoup(0, wsRule, null, 5, wsIterations, wsSize);
+					}
+					result.addWorkers(wsThreads);
+					WorkerManager.add(result);
 				}
-				result.addWorkers(wsThreads);
-				WorkerManager.add(result);
 			}
 			if(cmd.hasOption("u")) {
 				String username = cmd.getOptionValue("u");
