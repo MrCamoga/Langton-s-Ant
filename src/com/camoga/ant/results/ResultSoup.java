@@ -99,7 +99,6 @@ public class ResultSoup extends Result {
 		});
 
 		wip.remove(seedindex);
-		if(soupcount == maxsoups) sendResult();
 		if((soupcount&1023) == 0 || soupcount == maxsoups) {
 			try {
 				saveData();
@@ -107,14 +106,14 @@ public class ResultSoup extends Result {
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
+			if(soupcount == maxsoups) {
+				sendResult();
+				reset();
+			}
 		}
 	}
 
 	public synchronized int[] getSeedIndex() {
-		if(seedindex-offset >= maxsoups) {
-			sendResult();
-			reset();
-		}
 		int[] seed = Arrays.copyOf(this.seed, 4);
 		seed[3] = seedindex++;
 		wip.add(seed[3]);
