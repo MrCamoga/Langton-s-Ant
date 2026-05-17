@@ -75,7 +75,7 @@ public class WorkerManager {
 
 	public static <T extends Result> T getResult(int type, Class<T> resultType) {
 		for(Result result : results) {
-			if(resultType.isInstance(result) && result.getType() == type) resultType.cast(result);
+			if(resultType.isInstance(result) && result.getType() == type) return resultType.cast(result);
 		}
 		return null;
 	}
