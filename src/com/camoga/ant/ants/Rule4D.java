@@ -5,18 +5,9 @@ import java.util.Random;
 public class Rule4D extends AbstractRule {
 	
 	private static final String[] letters 	= {"R","L","U","D","X","Y"}; // RL xy-plane rotation, UD xz-plane rotation, XY xw-plane rotation
-	private static final int[] rotations 	= {100, 52, 99, 29, 97, 22}; 
+	private static final int[] rotations 	= {0, 1, 2, 3, 4, 5}; 
 	
 	public void createRule(long rule) {
-		// RLRUUUL
-//		letter = new int[] {0,1,0,2,2,2,1};
-//		size = letter.length;
-//		turn = new int[size];
-//		
-//		for(int i = 0; i < size; i++) {
-//			turn[i] = rotations[letter[i]];
-//		}
-		
 		this.rule = rule;
 		this.size = 0;
 //		rule += 1<<(size*2);
@@ -33,8 +24,6 @@ public class Rule4D extends AbstractRule {
 		colors[0] = 0xff101010;
 		colors[size] = colors[0];
 		generateString();
-//		System.out.println(string());
-//		System.out.println(Arrays.toString(turn));
 	}
 	
 	private String generateString() {

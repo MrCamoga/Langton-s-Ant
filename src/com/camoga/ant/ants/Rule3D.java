@@ -5,18 +5,9 @@ import java.util.Random;
 public class Rule3D extends AbstractRule {
 	
 	private static final String[] letters 	= {"R","L","U","D"};
-	private static final int[] rotations 	= { 13, 10, 17, 22}; 
+	private static final int[] rotations 	= { 0, 1, 2, 3}; 
 	
-	public void createRule(long rule) {
-		// RLRUUUL
-//		letter = new int[] {0,1,0,2,2,2,1};
-//		size = letter.length;
-//		turn = new int[size];
-//		
-//		for(int i = 0; i < size; i++) {
-//			turn[i] = rotations[letter[i]];
-//		}
-		
+	public void createRule(long rule) {		
 		this.rule = rule;
 		this.size = 32-Long.numberOfLeadingZeros(rule)/2;
 //		rule += 1<<(size*2);

@@ -3,8 +3,8 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>Langton-s-Ant</groupId>
-	<artifactId>Langton-s-Ant</artifactId>
-	<version>0.13.0</version>
+	<artifactId>langton</artifactId>
+	<version>1.2.1</version>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<resources>
@@ -24,30 +24,66 @@
 				</configuration>
 			</plugin>
 			<plugin>
-                		<groupId>org.apache.maven.plugins</groupId>
-                		<artifactId>maven-jar-plugin</artifactId>
-                		<version>3.2.2</version>
-                		<configuration>
-                        		<archive>
-                                		<manifest>
-                                        		<mainClass>com.camoga.ant.net.Client</mainClass>
-                                		</manifest>
-                        		</archive>
-                		</configuration>
+				<groupId>io.github.git-commit-id</groupId>
+				<artifactId>git-commit-id-maven-plugin</artifactId>
+				<version>9.2.0</version>
+				<executions>
+					<execution>
+						<id>get-the-git-infos</id>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+						<phase>initialize</phase>
+					</execution>
+				</executions>
+				<configuration>
+					<generateGitPropertiesFile>false</generateGitPropertiesFile>
+					<generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
+					<commitIdGenerationMode>full</commitIdGenerationMode>
+				</configuration>
 			</plugin>
 			<plugin>
-        			<artifactId>maven-assembly-plugin</artifactId>
-        			<configuration>
-          				<archive>
-            					<manifest>
-        						<mainClass>com.camoga.ant.net.Client</mainClass>
-	        	    			</manifest>
-          				</archive>
-			        	<descriptorRefs>
-            					<descriptorRef>jar-with-dependencies</descriptorRef>
-          				</descriptorRefs>
-        			</configuration>
-      			</plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<appendAssemblyId>false</appendAssemblyId>
+					<finalName>${project.artifactId}${project.version}</finalName>
+					<archive>
+						<manifest>
+							<mainClass>com.camoga.ant.Main</mainClass>
+						</manifest>
+						<manifestEntries>
+							<Git-Branch>${git.branch}</Git-Branch>
+							<Git-Commit>${git.commit.id.full}</Git-Commit>
+						</manifestEntries>
+					</archive>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
+				<version>4.9.10</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>**/src/com/camoga/ant/test/**/*.java</exclude>
+						<exclude>**/src/com/camoga/ant/ants/map/**/*.java</exclude>
+						<exclude>**/src/com/camoga/ant/work/**/*.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
@@ -55,6 +91,11 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>
 			<version>4.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-math3</artifactId>
+			<version>3.6.1</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-cli</groupId>

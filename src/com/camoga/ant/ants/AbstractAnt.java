@@ -9,13 +9,14 @@ import org.apache.commons.collections4.keyvalue.MultiKey;
 
 import com.camoga.ant.Settings;
 import com.camoga.ant.ants.Map.Chunk;
+import com.camoga.ant.ants.patterns.Pattern;
 
 public abstract class AbstractAnt {
 
 	protected AbstractRule rule;
 	protected int type;
 	
-	protected Chunk chunk;
+	public Chunk chunk;
 
 	// Space/chunk
 	public int dimension;
@@ -26,16 +27,17 @@ public abstract class AbstractAnt {
 	public Map map;
 	
 	// Ant
-	protected int dir;
+	public int dir;
 	protected int state;
-	protected int wc,xc,yc,zc;
-	protected int w,x,y,z;
+	public int wc,xc,yc,zc;
+	public int w,x,y,z;
 	protected long iterations;
 	protected long maxiterations;
 	
 	// Highway
-	protected boolean saveState = false;
-	public byte[] states;
+	public boolean saveState = false;
+	public boolean resetState = true;
+	public short[] states;
 	protected int match;
 	protected long stateindex;
 	public long wstart, xstart, ystart, zstart, wend, xend, yend, zend;
@@ -61,8 +63,15 @@ public abstract class AbstractAnt {
 		map.chunkSize = 1<<(cPOW*dimension);
 	}
 	
-	public abstract void move();
+	public abstract void move(long it);
 	
+	public ResultSet run(long rule, long maxiterations) {
+		throw new RuntimeException("Not implemented");
+	}
+
+	public ResultSet run(long rule, long maxiterations, Pattern pattern) {
+		throw new RuntimeException("Not implemented");
+	}
 	/**
 	 * Compute a hash around the ant for verification purposes.
 	 * @return
@@ -71,8 +80,10 @@ public abstract class AbstractAnt {
 	
 	public void init(long rule, long maxiterations) {
 		this.maxiterations = maxiterations;
-		int stateslen = maxiterations == -1 ? 200000000:(int) Math.min(Math.max(5000000,maxiterations/(int)Settings.repeatpercent*2), 200000000);
-		if(states == null || states.length != stateslen) states = new byte[stateslen];
+		int stateslen = maxiterations == -1 ? 10000000:(int) Math.min(Math.max(5000000,maxiterations/(int)Settings.repeatpercent*2), 10000000);
+		if(states == null || states.length != stateslen) {
+			states = new short[stateslen];
+		}
 		this.rule.createRule(rule);
 		map.init();
 		iterations = 0;
@@ -88,7 +99,8 @@ public abstract class AbstractAnt {
 		direction = 0;
 		state = 0;
 		saveState = false;
-		match = 2;
+		resetState = true;
+		match = 0;
 		states[1] = -1;
 		stateindex = 0;
 		period = 0;
@@ -100,6 +112,13 @@ public abstract class AbstractAnt {
 		} else if(dimension == 4) {
 			chunk = map.getChunk(0, 0, 0, 0);
 		} else throw new RuntimeException("Invalid dimension");
+	}
+
+	public void init(long rule, long maxiterations, Pattern pattern) {
+		this.init(rule, maxiterations);
+		// TODO pass rule or something to the pattern to verify that the pattern doesnt have more states than the rule
+		if(pattern != null)
+			pattern.buildPattern(this);
 	}
 	
 	public long getPeriod() { return period; }
@@ -148,7 +167,7 @@ public abstract class AbstractAnt {
 				oos.writeLong(stateindex);
 				oos.writeInt(match);
 				oos.writeLong(period);
-				oos.write(states);
+				// oos.write(states);
 			}
 			oos.writeByte(cPOW);
 			oos.writeInt(map.chunks.size());
@@ -156,10 +175,13 @@ public abstract class AbstractAnt {
 				MultiKey<? extends Integer> key = c.getKey();
 				oos.writeInt(key.getKey(0));
 				oos.writeInt(key.getKey(1));
-				oos.write(c.getValue().cells);
+				short[] cells = c.getValue().cells;
+				for(short cell : cells) {
+					oos.writeShort(cell);
+				}
 			}
 			oos.close();
-		} catch (IOException e) {
+		} catch(IOException e) {
 			e.printStackTrace();
 		}
 	}

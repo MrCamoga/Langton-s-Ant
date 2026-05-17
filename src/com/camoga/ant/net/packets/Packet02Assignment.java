@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public class Packet02Assignment extends Packet {
 
-	protected int type, size, count;
+	protected int type, size;
 	
 	public Packet02Assignment(DataInputStream is) throws IOException {
 		super(PacketType.ASSIGNMENT); // TODO put readData on parent class

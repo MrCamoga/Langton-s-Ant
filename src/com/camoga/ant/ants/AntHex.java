@@ -17,9 +17,9 @@ public class AntHex extends AbstractAnt {
 		super.init(rule, iterations);
 	}
 	
-	public void move() {
+	public void move(long it) {
 		int iteration = 0;
-		for(; iteration < Settings.itpf; iteration++) {
+		for(; iteration < it; iteration++) {
 			
 			if(x > cSIZEm || y > cSIZEm || x < 0 || y < 0) {
 				xc += x >> cPOW;

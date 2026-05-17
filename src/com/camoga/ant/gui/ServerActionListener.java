@@ -43,7 +43,6 @@ public class ServerActionListener implements ActionListener {
 		case "Settings":
 			break;
 		case "Send Data":
-			Client.sendAssignmentResult();
 			break;
 		}
 	}
