@@ -23,7 +23,7 @@ public class Main {
 
 	public static Client client;
 	public static final Logger LOG = Logger.getLogger("Client");
-	public static final Version VERSION = new Version(1,3,1);
+	public static final Version VERSION = new Version(1,3,0);
 	public static Window window;
 
 	public static void main(String[] args) throws IOException {

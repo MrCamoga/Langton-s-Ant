@@ -109,11 +109,15 @@ public class ResultSoup extends Result {
 			if(soupcount == maxsoups) {
 				sendResult();
 				reset();
+				startWorkers();
 			}
 		}
 	}
 
 	public synchronized int[] getSeedIndex() {
+		if(seedindex-offset >= maxsoups) {
+			return null;
+		}
 		int[] seed = Arrays.copyOf(this.seed, 4);
 		seed[3] = seedindex++;
 		wip.add(seed[3]);
