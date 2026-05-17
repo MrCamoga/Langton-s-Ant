@@ -174,7 +174,6 @@ public class ResultSoup extends Result {
 		LOG.info("Seed: " + this.getSeedString() + " ("+Arrays.toString(seed)+")");
 		LOG.info("# of soups: " + this.soupcount);
 		LOG.info("# of distinct patterns: " + this.highwayfreq.size());
-		LOG.info("Distribution of patterns: ");
 		LOG.info("# of iterations: " + this.totaliterations);
 		LOG.info("Avg # of iterations: " + this.totaliterations/this.soupcount);
 	}

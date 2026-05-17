@@ -8,7 +8,7 @@ Moves supported by each mode:
 - Square: R, L
 - Hexagonal: F, R, r, B, l, L
 - 3D: R, L, U, D
-- 4D: R, L, U, D, X, Y (90º and -90º rotations along xy, xz and xw planes)
+- 4D: R, L, U, D, X, Y (90ï¿½ and -90ï¿½ rotations along xy, xz and xw planes)
 
 More information on [Wikipedia](https://en.wikipedia.org/wiki/Langton%27s_ant#Extension_to_multiple_colors)
 
@@ -22,6 +22,7 @@ You first have to register [here](https://langtonsant.es/register.php). After th
 - **-wh** *n*:    Runs *n* hexagonal ants simultaneously on different threads (limited to the number of CPU threads)
 - **-w3** *n*:    Runs *n* 3D ants simultaneously on different threads (limited to the number of CPU threads)
 - **-w4** *n*:	Runs *n* 4D ants simultaneously on different threads (limited to the number of CPU threads)
+- **-ws** *n,rule,count,it*: Runs *count* ants with rule *rule* up to *it* iterations on *n* threads
 - **-u** *username*: Login as *username*, you have to enter the password on the next line
 - **--nogui**:   No interface mode
 - **--nolog**:   No log mode
@@ -29,16 +30,50 @@ You first have to register [here](https://langtonsant.es/register.php). After th
 Example:
 
 ```console
-	java -jar langton.jar -w 4 -wh 2 --nogui
+	java -jar langton.jar -w 4 -wh 2 -ws 4,43,100000,100000000 --nogui
 ```
 
 ## How it works
 
-The server sends rules to each client to check if they form a highway and if so, find their period, size and the ant rotation.
+There's different kind of works that can be performed
+
+### Regular work
+
+The server assigns rules to each client to simulate and, if they form a highway, it finds their period, size and the ant rotation.
 
 Every few minutes, the client sends the data back to the server and stores the rules in the database.
 
-This way we make sure that no rule is tested multiple times.
+### Soups
+
+The client chooses a rule to simulate many random initial configurations of and enumerate all the highways that show up.
+
+All simulations run with a random set seed and each highway stores some amount of seed indices that generate that highway.
+
+Once all simulations are finished, the results are sent to the server.
+
+Example output:
+
+Multikey[highway parameters]: [number of appareances, seed1, ..., seed10]
+
+```
+MultiKey[0, 0, 0, 0]:   [675, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+MultiKey[220, 2, 2, 20, 32, 32, -30, 26, -26, 21, 16, 9, -8, 6, -6, 4, 2, 2]:   [27, 21, 50, 53, 68, 154, 187, 194, 209, 212, 255]
+MultiKey[300, 2, 2, 26, 33, 33, -30, 28, -28, 25, 15, 12, -12, 12, -12, 12, 8, 8, -8, 6, -6, 4, 4, 2, -2]:      [12, 55, 197, 233, 277, 317, 362, 445, 455, 468, 510]
+MultiKey[244, 2, 2, 22, 36, 36, -34, 30, -30, 25, 16, 9, -8, 6, -6, 4, 2, 2]:   [6, 271, 304, 438, 456, 470, 627, null, null, null, null]
+MultiKey[348, 2, 2, 30, 41, 41, -38, 36, -36, 31, 15, 14, -12, 12, -12, 12, 8, 8, -8, 6, -6, 4, 4, 2, -2]:      [5, 147, 196, 270, 306, 495, null, null, null, null, null]
+MultiKey[324, 2, 2, 28, 37, 37, -34, 32, -32, 27, 15, 14, -12, 12, -12, 12, 8, 8, -8, 6, -6, 4, 4, 2, -2]:      [4, 58, 442, 632, 762, null, null, null, null, null, null]
+MultiKey[388, 2, 2, 36, 33, 33, -30, 28, -28, 28, 26, 24, -24, 22, -22, 21, 17, 16, -10, 8, -8, 6, 2, 2]:       [4, 37, 57, 159, 770, null, null, null, null, null, null]
+MultiKey[348, 2, 2, 30, 41, 41, -38, 36, -36, 33, 15, 12, -12, 12, -12, 12, 8, 8, -8, 6, -6, 4, 4, 2, -2]:      [4, 143, 175, 308, 613, null, null, null, null, null, null]
+MultiKey[324, 2, 2, 28, 37, 37, -34, 32, -32, 29, 15, 12, -12, 12, -12, 12, 8, 8, -8, 6, -6, 4, 4, 2, -2]:      [2, 501, 664, null, null, null, null, null, null, null, null]
+MultiKey[268, 2, 2, 24, 40, 40, -38, 34, -34, 29, 16, 9, -8, 6, -6, 4, 2, 2]:   [2, 52, 210, null, null, null, null, null, null, null, null]
+Largest highway: MultiKey[1340, 6, 6, 122, 153, 153, -140, 134, -134, 123, 65, 58, -46, 46, -46, 40, 32, 22, -18, 18, -18, 12, 12, 8, -8, 8, -8, 8, 8, 6, -4, 4, -4, 4]:        [1, 31, null, null, null, null, null, null, null, null, null]
+Results for rule 43 soups
+Seed: myNLqjkYCBI4w6J ([773466540, 165533225, 282403570, 0])
+# of soups: 768
+# of distinct patterns: 32
+# of iterations: 71190919802
+Avg # of iterations: 92696510
+```
 
 ## TODO
 - [ ] Server
