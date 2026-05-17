@@ -34,15 +34,29 @@ public class ResultSet {
 
     private void processHistogram(AbstractRule rule, long[] histogram) {
         int histsize = 0;
+        boolean wrong = false;
         while(histsize < histogram.length && histogram[histsize] != 0) {
+            if(histogram[histsize] < histogram[histsize+1]) {
+                wrong = true;
+                break;
+            }
             // we store the ant direction in each state as the sign
             // TODO only do this in 2d
             histogram[histsize] *= rule.turn[histsize];
             this.winding += histogram[histsize];
             histsize++;
         }
-        this.winding >>= 2;
-        this.histogram = Arrays.stream(histogram).limit(histsize).boxed().toArray(Long[]::new);
+        if((winding&3) != 0) wrong = true;
+        if(!wrong) {
+            this.winding >>= 2;
+            this.histogram = Arrays.stream(histogram).limit(histsize).boxed().toArray(Long[]::new);
+        } else {
+            this.period = 1;
+            this.dx = 0;
+            this.dy = 0;
+            this.winding = 0;
+            this.histogram = new Long[]{};
+        }
     }
 
     public Long[] getHighway() {
