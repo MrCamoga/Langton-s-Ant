@@ -8,9 +8,22 @@ Moves supported by each mode:
 - Square: R, L
 - Hexagonal: F, R, r, B, l, L
 - 3D: R, L, U, D
-- 4D: R, L, U, D, X, Y (90� and -90� rotations along xy, xz and xw planes)
+- 4D: R, L, U, D, X, Y (90º and -90º rotations along xy, xz and xw planes)
 
 More information on [Wikipedia](https://en.wikipedia.org/wiki/Langton%27s_ant#Extension_to_multiple_colors)
+
+## Build
+
+Requires Java 16+ and Maven.
+
+```bash
+mvn clean package
+```
+
+The build produces two jars in `target/`:
+
+- `langton{version}.jar` — uber-jar with all dependencies
+- `langton{version}-minimized.jar` — shrunk and obfuscated with ProGuard
 
 ## How to use
 
