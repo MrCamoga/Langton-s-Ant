@@ -60,22 +60,13 @@ public class ResultRules extends Result {
 	protected synchronized void insertResult(ResultSet result) {
 		try {
 			if(type > 0) return; //throw new RuntimeException("Types other than 2D not implemented yet");
-			// Long[] highway = result.getHighway(); 
-			// ByteBuffer bb = ByteBuffer.allocate(28+highway.length*8); // rule, iterations, hash, period, dx, dy, winding, histogram
-			// bb.putLong(result.rule);
-			// bb.putLong(result.iterations);
-			// bb.putLong(result.hash);
-			// bb.putInt(highway.length);
-			// for(int i = 0; i < highway.length; i++) {
-			// 	bb.putLong(highway[i]);
-			// }
-			Long[] highway = result.getSmallHighway(); 
-			ByteBuffer bb = ByteBuffer.allocate(24+highway.length*8); // rule, period, iterations, hash, dx, dy, winding
+			Long[] highway = result.getHighway(); 
+			ByteBuffer bb = ByteBuffer.allocate(28+highway.length*8); // rule, iterations, hash, period, dx, dy, winding, histogram
 			bb.putLong(result.rule);
-			bb.putLong(highway[0]);
 			bb.putLong(result.iterations);
 			bb.putLong(result.hash);
-			for(int i = 1; i < highway.length; i++) {
+			bb.putInt(highway.length);
+			for(int i = 0; i < highway.length; i++) {
 				bb.putLong(highway[i]);
 			}
 			storedrules.write(bb.array());

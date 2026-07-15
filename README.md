@@ -66,7 +66,7 @@ Once all simulations are finished, the results are sent to the server.
 
 Example output:
 
-Multikey[highway parameters]: [number of appareances, seed1, ..., seed10]
+Multikey[highway parameters]: [number of occurrences, seed1, ..., seed10]
 
 ```
 MultiKey[0, 0, 0, 0]:   [675, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
