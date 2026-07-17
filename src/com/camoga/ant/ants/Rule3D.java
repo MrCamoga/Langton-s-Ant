@@ -13,7 +13,7 @@ public class Rule3D extends AbstractRule {
 		letter = new int[32];
 		for(int i = 0; rule != 0; i++) {
 			letter[i] = (int) (rule&3);
-			turn[i] = rotations[letter[i]];
+			turn[i] = rotations[letter[i]] << 5;
 			rule >>>= 2;
 		}
 		for(int i = size; i < turn.length; i++) {

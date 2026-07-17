@@ -69,7 +69,7 @@ public class Ant3D extends AbstractAnt {
 			int index = (((z<<cPOW)|y)<<cPOW)|x;
 			state = chunk.cells[index]++;
 			if(resetState && chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
-			dir2 = transform[(rule.turn[state]<<5)|dir];
+			dir2 = transform[rule.turn[state]|dir];
 			
 			x += directionx[dir2];
 			y += directiony[dir2];
