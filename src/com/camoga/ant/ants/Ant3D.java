@@ -15,7 +15,7 @@ public class Ant3D extends AbstractAnt {
 	static final int[] directionz = new int[] {0,1,0,0,-1,0,-1,0,1,0,0,0,0,0,0,-1,0,1,0,1,0,0,-1,0};
 	
 	// Reduced cayley table for the symmetric group on four letters (S4)
-	static final int[] transform = {
+	static final byte[] transform = {
 		13,12,16,17,14,15,3,2,5,4,0,1,22,23,19,18,21,20,8,9,6,7,11,10,0,0,0,0,0,0,0,0,
 		10,11,7,6,9,8,20,21,18,19,23,22,1,0,4,5,2,3,15,14,17,16,12,13,0,0,0,0,0,0,0,0,
 		17,16,15,14,13,12,23,22,21,20,19,18,9,8,11,10,6,7,3,2,5,4,0,1,0,0,0,0,0,0,0,0,
@@ -30,14 +30,18 @@ public class Ant3D extends AbstractAnt {
 	private long[] histogram;
 	private long[] matchResets = new long[1000000];
 	private ArrayList<Integer> matchResets2 = new ArrayList<Integer>();
-	
+	private int initialDir;
+	private short state;
+
 	public void init(long rule, long iterations) {
 		super.init(rule, iterations);
 		histogram = new long[65535];
 	}
 
+
 	public void move(long it) {
 		int iteration = 0;
+		int dir2 = 0;
 		for(; iteration < it; iteration++) {
 			changechunk: {
 				if(x > cSIZEm) {
@@ -65,18 +69,14 @@ public class Ant3D extends AbstractAnt {
 			int index = (((z<<cPOW)|y)<<cPOW)|x;
 			state = chunk.cells[index]++;
 			if(resetState && chunk.cells[index] == rule.getSize()) chunk.cells[index] = 0;
-			dir = transform[(rule.turn[state]<<5)|dir];
+			dir2 = transform[(rule.turn[state]<<5)|dir];
 			
-			x += directionx[dir];
-			y += directiony[dir];
-			z += directionz[dir];
+			x += directionx[dir2];
+			y += directiony[dir2];
+			z += directionz[dir2];
 			
 			if(saveState) {
-				short s1 = (short) ((state << 5) | dir);	
-				if(states[match]!=s1) {
-					if(period > 27542350 && period < 27542400) {
-						LOG.info(match + ", " + period);
-					}
+				if(states[match]!=state || match == 0 && dir != initialDir) { // TODO compute in advance the second dir of the period to avoid using two dir variables
 					if(match < matchResets.length) matchResets[match]++;
 					else matchResets2.add(match);
 					histogram[state]++;
@@ -96,10 +96,11 @@ public class Ant3D extends AbstractAnt {
 				}
 
 				if(stateindex < states.length) {
-					states[(int) stateindex] = s1;
+					states[(int) stateindex] = state;
 				}
 				stateindex++;
 			}
+			dir = dir2;
 		}
 		iterations += iteration;
 	}
@@ -167,7 +168,7 @@ public class Ant3D extends AbstractAnt {
 			// Detect highways
 			if(resetState && !findingPeriod() && !periodFound()) {
 				//Farthest chunk ant has traveled
-				int maxc = Math.max(Math.abs(getZC()), Math.max(Math.abs(getXC()), Math.abs(getYC())));
+				int maxc = Math.max(Math.max(Math.abs(getXC()), Math.abs(getYC())),Math.abs(getZC()));
 				if(maxc > maxChunk) maxChunk = maxc;
 				if(maxChunk > Settings.chunkCheck && map.chunks.size() < 0.2*maxChunk*maxChunk*maxChunk) { // Proportion of chunks generated over size of square that bounds all chunks. If prop -> 0 ant forms a highway (prop might go near 0 if ant forms a thin triangle)
 					map.deleteOldChunks = true;
@@ -176,17 +177,13 @@ public class Ant3D extends AbstractAnt {
 				}
 			}
 			
-			// if((getType() > 0 || (getType()==0 && (rule & (rule+1))==0)) && !extended && map.chunks.size() <= 4 &&  maxiterations != -1 && getIterations() > maxiterations) {
 			if((!resetState || saveState) && !extended) {
 				extended = true;
 				maxiterations += 60_000_000L;
-				// setFindingPeriod(true);
 			}
-			// }
 		}
 
 		computeHistogram();
-		// LOG.info(maxChunk+", " + saveState + ", " + resetState + ", " + extended + ", " + getPeriod());
 		return getResult();
 	}
 
@@ -201,6 +198,11 @@ public class Ant3D extends AbstractAnt {
 		Arrays.sort(d);
 		LOG.info(rule + ", " + iterations + ", " + hash + ", " + period + ", " + d[2] + ", " + d[1] + ", " + d[0] + ", " + Arrays.toString(Arrays.copyOf(histogram,30)));
 		return new ResultSet(rule,iterations,hash,period,d[2],d[1],d[0],histogram);
+	}
+
+	public void setFindingPeriod(boolean b) {
+		super.setFindingPeriod(b);
+		initialDir = dir;
 	}
 
 
