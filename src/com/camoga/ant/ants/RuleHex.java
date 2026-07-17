@@ -1,27 +1,22 @@
 package com.camoga.ant.ants;
 
-import java.util.Random;
-
 public class RuleHex extends AbstractRule {
 	
 	private static final String[] letters = {"F","R","r","B","l","L"};
 	
 	public void createRule(long rule) {
 		this.rule = rule;
-		colors = new int[33];
-		turn = new int[32];
-		Random r = new Random();
+		turn = new int[65536];
 		turn[0] = (int) (Long.remainderUnsigned(rule, 3)+1);
-		colors[0] = r.nextInt();
 		rule = Long.divideUnsigned(rule, 3);
 		for(size = 1; rule != 0; size++) {
-			colors[size] = r.nextInt(0x1000000);
 			turn[size] = (int) (Long.remainderUnsigned(rule, 6));
 			rule = Long.divideUnsigned(rule, 6);
 		}
 		if(size > 32) throw new RuntimeException("More than 32 states not supported");
-		colors[size] = colors[0];
-		
+		for(int i = size; i < turn.length; i++) {
+			turn[i] = turn[i-size];
+		}
 		generateString();
 	}
 	

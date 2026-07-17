@@ -9,6 +9,7 @@ import java.awt.image.DataBufferInt;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Random;
 import java.util.logging.LogRecord;
 import java.util.logging.SimpleFormatter;
 import java.util.logging.StreamHandler;
@@ -24,9 +25,7 @@ import javax.swing.text.DefaultCaret;
 
 import com.camoga.ant.Main;
 import com.camoga.ant.Settings;
-import com.camoga.ant.WorkerManager;
 import com.camoga.ant.ants.AbstractAnt;
-import com.camoga.ant.ants.Ant;
 
 public class Window {
 	
@@ -105,9 +104,16 @@ public class Window {
 	class AntCanvas extends Canvas {
 		BufferedImage canvasImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		int[] pixels = ((DataBufferInt) canvasImage.getRaster().getDataBuffer()).getData();
+		int[] colors;
 		
 		public AntCanvas() {
 			setPreferredSize(new Dimension(640,640));
+			colors = new int[65536];
+			Random r = new Random();
+			for(int i = 0 ; i < colors.length; i++) {
+				colors[i] = r.nextInt(0x1000000);
+			}
+			colors[0] = 0x101010;
 		}
 		
 		public void run() {
@@ -128,7 +134,7 @@ public class Window {
 			//WorkerManager.getResult(0).getWorker(0).getAnt();
 			if(ant==null) return;
 
-			ant.map.render(canvasImage, pixels, canvasImage.getWidth(), canvasImage.getHeight(), Settings.followAnt || ant.findingPeriod(), true);				
+			ant.map.render(canvasImage, pixels, colors, canvasImage.getWidth(), canvasImage.getHeight(), Settings.followAnt || ant.findingPeriod(), true);				
 
 			g.drawImage(canvasImage, 0, 0, 800, 800, null);
 			g.dispose();

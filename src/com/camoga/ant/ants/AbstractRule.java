@@ -6,7 +6,6 @@ public abstract class AbstractRule {
 	public int[] turn;
 	public int[] letter;
 	protected int size;
-	protected int[] colors;
 	protected String ruleString;
 	
 	public abstract void createRule(long rule);
@@ -18,7 +17,6 @@ public abstract class AbstractRule {
 	public String toString() {return ruleString;}
 
 	public long getRule() {return rule;}
-	public int[] getColors() {return colors;}
 	
 	public int getSize() {return size;}
 }
