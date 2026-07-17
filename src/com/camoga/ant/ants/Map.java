@@ -111,7 +111,7 @@ public class Map {
 
 	
 	//TODO improve render
-	public void render(BufferedImage image, int[] pixels, int width, int height, boolean followAnt, boolean info) {
+	public void render(BufferedImage image, int[] pixels, int[] colors, int width, int height, boolean followAnt, boolean info) {
 		int xa = followAnt ? ant.getXC():0;
 		int ya = followAnt ? ant.getYC():0;
 		int za = followAnt ? ant.getZC():0;
@@ -120,14 +120,9 @@ public class Map {
 		Graphics g = image.getGraphics();
 		g.setFont(font);
 
-		int[] colors = ant.getRule().getColors();
-		if(colors == null) return;
-		
-		if(!Settings.renderVoid) for(int i = 0; i < pixels.length; i++) {
-			pixels[i] = colors[0];
-		}
-		else for(int i = 0; i < pixels.length; i++) {
-			pixels[i] = 0xff000000;
+		int voidColor = Settings.renderVoid ? 0:colors[0];
+		for(int i = 0; i < pixels.length; i++) {
+			pixels[i] = voidColor;
 		}
 		
 		int cSIZE = ant.cSIZE;

@@ -1,7 +1,5 @@
 package com.camoga.ant.ants;
 
-import java.util.Random;
-
 public class Rule3D extends AbstractRule {
 	
 	private static final String[] letters 	= {"R","L","U","D"};
@@ -11,21 +9,16 @@ public class Rule3D extends AbstractRule {
 		this.rule = rule;
 		this.size = 32-Long.numberOfLeadingZeros(rule)/2;
 //		rule += 1<<(size*2);
-		colors = new int[65536];
 		turn = new int[65536];
-		letter = new int[65536];
-		Random r = new Random();
+		letter = new int[32];
 		for(int i = 0; rule != 0; i++) {
 			letter[i] = (int) (rule&3);
 			turn[i] = rotations[letter[i]];
 			rule >>>= 2;
-			colors[i] = r.nextInt(0x1000000);
 		}
 		for(int i = size; i < turn.length; i++) {
 			turn[i] = turn[i-size];
 		}
-		colors[0] = 0xff101010;
-		colors[size] = colors[0];
 		generateString();
 	}
 	
